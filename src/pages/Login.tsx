@@ -1,16 +1,38 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, Navigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { fetchApi } from '../services/api';
 import toast from 'react-hot-toast';
-import { Leaf } from 'lucide-react';
+import { Leaf, ArrowLeft } from 'lucide-react';
+
+const roleMap: Record<string, string> = {
+  owner: 'owner',
+  admin: 'admin',
+  staff: 'staff',
+  viewer: 'view_only'
+};
+
+const roleTitles: Record<string, string> = {
+  owner: 'Owner Portal',
+  admin: 'Admin Portal',
+  staff: 'Staff Portal',
+  viewer: 'Viewer Portal'
+};
 
 const LoginPage = () => {
+  const { role } = useParams<{ role: string }>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const setAuth = useAuthStore((state) => state.setAuth);
+  const { setAuth, logout } = useAuthStore();
+
+  if (!role || !roleMap[role]) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const expectedRole = roleMap[role];
+  const portalTitle = roleTitles[role];
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,6 +42,13 @@ const LoginPage = () => {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
+      
+      if (user.role !== expectedRole) {
+        toast.error('Access Denied: Please use your designated login portal.');
+        logout();
+        return;
+      }
+
       setAuth(user, accessToken);
       toast.success('Welcome back!');
       navigate('/');
@@ -42,7 +71,7 @@ const LoginPage = () => {
             <Leaf className="w-10 h-10 text-forest" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">GVC Agro Finance</h1>
-          <p className="text-gray-500 text-sm">Sign in to manage your business</p>
+          <p className="text-forest font-medium mt-1">{portalTitle}</p>
         </div>
 
         <form onSubmit={handleLogin} className="relative z-10 space-y-6">
@@ -54,7 +83,7 @@ const LoginPage = () => {
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-leaf focus:border-leaf transition-all bg-white/50 backdrop-blur-sm"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@gvcagro.lk"
+              placeholder="user@gvcagro.lk"
             />
           </div>
 
@@ -92,6 +121,13 @@ const LoginPage = () => {
             )}
           </button>
         </form>
+        
+        <div className="relative z-10 mt-6 text-center">
+          <Link to="/login" className="text-sm text-gray-500 hover:text-forest inline-flex items-center transition-colors">
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            Back to Portal Selection
+          </Link>
+        </div>
       </div>
     </div>
   );

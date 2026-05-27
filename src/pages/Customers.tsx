@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchApi } from '../services/api';
 import { Search, Plus, Filter, MoreVertical, Edit, Trash2, Eye } from 'lucide-react';
+import { usePermissions } from '../hooks/usePermissions';
 
 const Customers = () => {
+  const { canEditCustomers, canDeleteCustomers } = usePermissions();
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
 
@@ -99,12 +101,16 @@ const Customers = () => {
                           <button className="p-1.5 text-gray-400 hover:text-forest hover:bg-forest/10 rounded-lg transition-colors">
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          {canEditCustomers && (
+                            <button className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                              <Edit className="w-4 h-4" />
+                            </button>
+                          )}
+                          {canDeleteCustomers && (
+                            <button className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

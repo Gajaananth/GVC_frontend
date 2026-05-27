@@ -3,8 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchApi } from '../services/api';
 import { FileText, Download, Filter, Calendar } from 'lucide-react';
 import { formatLKR, formatDate } from '../utils/format';
+import { usePermissions } from '../hooks/usePermissions';
 
-const reportTypes = [
+const ALL_REPORT_TYPES = [
   { id: 'daily_collection', name: 'Daily Collection Report', description: 'Collections recorded today or in a date range.' },
   { id: 'monthly_finance', name: 'Monthly Finance Summary', description: 'Net income, disbursements, and savings movement.' },
   { id: 'loan_summary', name: 'Loan Portfolio Summary', description: 'Overview of all active, overdue, and closed loans.' },
@@ -13,7 +14,13 @@ const reportTypes = [
 ];
 
 const Reports = () => {
-  const [selectedReport, setSelectedReport] = useState(reportTypes[0].id);
+  const { isStaff } = usePermissions();
+  
+  const reportTypes = isStaff 
+    ? ALL_REPORT_TYPES.filter(r => ['daily_collection', 'customer_wise'].includes(r.id))
+    : ALL_REPORT_TYPES;
+
+  const [selectedReport, setSelectedReport] = useState(reportTypes[0]?.id || '');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
 
   const { data: reportData, isLoading, refetch, isFetching } = useQuery({

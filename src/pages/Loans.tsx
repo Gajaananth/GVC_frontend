@@ -3,8 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchApi } from '../services/api';
 import { Search, Plus, Filter, FileText, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { formatLKR, formatDate } from '../utils/format';
+import { usePermissions } from '../hooks/usePermissions';
 
 const Loans = () => {
+  const { canIssueLoans } = usePermissions();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
@@ -34,10 +36,12 @@ const Loans = () => {
           <h2 className="text-2xl font-bold text-gray-800">Loans Portfolio</h2>
           <p className="text-sm text-gray-500">Manage all loans, statuses, and balances.</p>
         </div>
-        <button className="bg-forest hover:bg-leaf text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-sm">
-          <Plus className="w-5 h-5" />
-          New Loan
-        </button>
+        {canIssueLoans && (
+          <button className="bg-forest hover:bg-leaf text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-sm">
+            <Plus className="w-5 h-5" />
+            New Loan
+          </button>
+        )}
       </div>
 
       <div className="glass-card flex flex-col">

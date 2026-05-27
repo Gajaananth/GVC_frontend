@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
+import PortalSelector from './pages/PortalSelector';
 import LoginPage from './pages/Login';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -41,7 +42,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login" element={<PortalSelector />} />
+          <Route path="/login/:role" element={<LoginPage />} />
+          
           <Route path="/*" element={
             <ProtectedRoute>
               <Layout>
@@ -52,9 +55,24 @@ function App() {
                   <Route path="/savings/*" element={<Savings />} />
                   <Route path="/due/*" element={<DueReminders />} />
                   <Route path="/reports/*" element={<Reports />} />
-                  <Route path="/users/*" element={<Users />} />
-                  <Route path="/settings/*" element={<Settings />} />
-                  <Route path="/logs/*" element={<ActivityLogs />} />
+                  
+                  {/* Role-Restricted Routes */}
+                  <Route path="/users/*" element={
+                    <ProtectedRoute allowedRoles={['owner', 'admin']}>
+                      <Users />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/settings/*" element={
+                    <ProtectedRoute allowedRoles={['owner']}>
+                      <Settings />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/logs/*" element={
+                    <ProtectedRoute allowedRoles={['owner', 'admin']}>
+                      <ActivityLogs />
+                    </ProtectedRoute>
+                  } />
+                  
                   {/* Catch-all redirect to dashboard */}
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
