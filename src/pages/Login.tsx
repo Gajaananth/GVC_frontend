@@ -3,7 +3,7 @@ import { useNavigate, useParams, Navigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { fetchApi } from '../services/api';
 import toast from 'react-hot-toast';
-import { Leaf, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 const roleMap: Record<string, string> = {
   owner: 'owner',
@@ -67,8 +67,8 @@ const LoginPage = () => {
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-forest/20 rounded-full blur-3xl -ml-10 -mb-10" />
 
         <div className="relative z-10 flex flex-col items-center mb-8">
-          <div className="w-16 h-16 bg-white rounded-2xl shadow-lg flex items-center justify-center mb-4">
-            <Leaf className="w-10 h-10 text-forest" />
+          <div className="w-16 h-16 bg-white rounded-2xl shadow-lg flex items-center justify-center mb-4 overflow-hidden p-1">
+            <img src="/logo.png" alt="GVC Agro Logo" className="w-full h-full object-contain" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">GVC Agro Finance</h1>
           <p className="text-forest font-medium mt-1">{portalTitle}</p>

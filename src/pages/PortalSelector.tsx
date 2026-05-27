@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, Users, Briefcase, Eye, Leaf } from 'lucide-react';
+import { Shield, Users, Briefcase, Eye } from 'lucide-react';
 
 const portals = [
   {
@@ -30,8 +30,8 @@ const PortalSelector = () => {
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-forest/20 rounded-full blur-3xl -ml-20 -mb-20" />
 
         <div className="relative z-10 flex flex-col items-center mb-12">
-          <div className="w-20 h-20 bg-white rounded-3xl shadow-xl flex items-center justify-center mb-6">
-            <Leaf className="w-12 h-12 text-forest" />
+          <div className="w-20 h-20 bg-white rounded-3xl shadow-xl flex items-center justify-center mb-6 overflow-hidden p-1">
+            <img src="/logo.png" alt="GVC Agro Logo" className="w-full h-full object-contain" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">GVC Agro Finance</h1>
           <p className="text-gray-500 text-lg">Select your designated login portal</p>

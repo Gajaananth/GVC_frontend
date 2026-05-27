@@ -7,6 +7,7 @@ import TopBar from './components/TopBar';
 import PortalSelector from './pages/PortalSelector';
 import LoginPage from './pages/Login';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { SidebarProvider } from './context/SidebarContext';
 
 import Dashboard from './pages/Dashboard';
 import Customers from './pages/Customers';
@@ -19,13 +20,15 @@ import Settings from './pages/Settings';
 import ActivityLogs from './pages/ActivityLogs';
 
 const Layout = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex h-screen bg-[#F8FBF8] font-sans">
-    <Sidebar />
-    <div className="flex-1 flex flex-col overflow-hidden">
-      <TopBar />
-      <main className="flex-1 p-8 overflow-y-auto">{children}</main>
+  <SidebarProvider>
+    <div className="flex h-screen bg-[#F8FBF8] font-sans overflow-hidden relative">
+      <Sidebar />
+      <div className="flex-1 flex flex-col h-screen overflow-hidden w-full relative">
+        <TopBar />
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto w-full">{children}</main>
+      </div>
     </div>
-  </div>
+  </SidebarProvider>
 );
 
 const queryClient = new QueryClient({

@@ -20,15 +20,13 @@ export const fetchApi = async (endpoint: string, options: RequestInit = {}) => {
       headers,
     });
 
-    if (response.status === 401) {
-      logout();
-      window.location.href = '/login';
-      throw new Error('Unauthorized');
-    }
-
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
+      if (response.status === 401 && !endpoint.includes('/auth/login')) {
+        logout();
+        window.location.href = '/login';
+      }
       throw new Error(data.error || 'API request failed');
     }
 
