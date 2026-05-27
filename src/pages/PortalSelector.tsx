@@ -4,14 +4,6 @@ import { Shield, Users, Briefcase, Eye, Leaf } from 'lucide-react';
 
 const portals = [
   {
-    id: 'owner',
-    title: 'Owner Portal',
-    description: 'Full system access and settings',
-    icon: Shield,
-    color: 'bg-emerald-100 text-emerald-700',
-    link: '/login/owner'
-  },
-  {
     id: 'admin',
     title: 'Admin Portal',
     description: 'System administration and management',
@@ -26,14 +18,6 @@ const portals = [
     icon: Users,
     color: 'bg-orange-100 text-orange-700',
     link: '/login/staff'
-  },
-  {
-    id: 'view_only',
-    title: 'Viewer Portal',
-    description: 'Read-only access to records',
-    icon: Eye,
-    color: 'bg-purple-100 text-purple-700',
-    link: '/login/viewer'
   }
 ];
 
