@@ -1,12 +1,20 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, Users, Briefcase, Eye } from 'lucide-react';
+import { Users, Briefcase, Eye, Crown } from 'lucide-react';
 
 const portals = [
   {
+    id: 'owner',
+    title: 'Owner Portal',
+    description: 'Loan approvals, in-charge changes, full control',
+    icon: Crown,
+    color: 'bg-amber-100 text-amber-800',
+    link: '/login/owner'
+  },
+  {
     id: 'admin',
     title: 'Admin Portal',
-    description: 'System administration and management',
+    description: 'Customers, documents, loan applications',
     icon: Briefcase,
     color: 'bg-blue-100 text-blue-700',
     link: '/login/admin'
@@ -14,10 +22,18 @@ const portals = [
   {
     id: 'staff',
     title: 'Staff Portal',
-    description: 'Daily operations and customer management',
+    description: 'View all records, hand paper forms to admin, collect dues',
     icon: Users,
     color: 'bg-orange-100 text-orange-700',
     link: '/login/staff'
+  },
+  {
+    id: 'viewer',
+    title: 'View Only',
+    description: 'Read-only access to records',
+    icon: Eye,
+    color: 'bg-gray-100 text-gray-700',
+    link: '/login/viewer'
   }
 ];
 
@@ -25,7 +41,6 @@ const PortalSelector = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-forest to-leaf/80 p-4">
       <div className="glass-card w-full max-w-4xl p-8 md:p-12 relative overflow-hidden">
-        {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-gold/20 rounded-full blur-3xl -mr-20 -mt-20" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-forest/20 rounded-full blur-3xl -ml-20 -mb-20" />
 
@@ -34,7 +49,7 @@ const PortalSelector = () => {
             <img src="/logo.png" alt="GVC Agro Logo" className="w-full h-full object-contain" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">GVC Agro Finance</h1>
-          <p className="text-gray-500 text-lg">Select your designated login portal</p>
+          <p className="text-gray-500 text-lg text-center">Sri Lanka finance operations — select your portal</p>
         </div>
 
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -53,9 +68,7 @@ const PortalSelector = () => {
                   <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-forest transition-colors">
                     {portal.title}
                   </h3>
-                  <p className="text-gray-500 text-sm">
-                    {portal.description}
-                  </p>
+                  <p className="text-gray-500 text-sm">{portal.description}</p>
                 </div>
               </Link>
             );

@@ -1,18 +1,25 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchApi } from '../services/api';
+import { Link } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
 import { 
-  Users, 
   Wallet, 
   PiggyBank, 
   AlertCircle,
   ArrowUpRight,
   ArrowDownRight,
-  Clock
+  Clock,
+  ArrowRight,
+  ShieldCheck,
+  TrendingDown,
+  Award
 } from 'lucide-react';
 import { formatLKR } from '../utils/format';
+import { DashboardCharts } from '../components/DashboardCharts';
 
 const Dashboard = () => {
+  const { user } = useAuthStore();
   const { data: summaryData, isLoading: loadingSummary } = useQuery({
     queryKey: ['dashboard-summary'],
     queryFn: () => fetchApi('/dashboard/summary'),
@@ -23,7 +30,14 @@ const Dashboard = () => {
     queryFn: () => fetchApi('/dashboard/recent-transactions'),
   });
 
+  const { data: advancedMetrics, isLoading: loadingMetrics } = useQuery({
+    queryKey: ['advanced-metrics'],
+    queryFn: () => fetchApi('/dashboard/advanced-metrics'),
+    enabled: user?.role === 'owner' || user?.role === 'admin'
+  });
+
   const summary = summaryData?.data || {};
+  const metrics = advancedMetrics?.data || {};
 
   const stats = [
     {
@@ -56,8 +70,48 @@ const Dashboard = () => {
     },
   ];
 
+  const pendingTotal = (summary.pending_loan_approvals || 0) + (summary.pending_assignment_approvals || 0) + (summary.pending_correction_requests || 0);
+
   return (
     <div className="space-y-6 flex flex-col h-full">
+      {(user?.role === 'admin' || user?.role === 'owner') && (summary.pending_physical_forms || 0) > 0 && (
+        <Link to="/physical-forms" className="block bg-orange-50 border border-orange-200 rounded-2xl p-4 hover:bg-orange-100 transition-colors mb-4">
+          <div className="flex items-center gap-3">
+            <ShieldCheck className="w-6 h-6 text-orange-700" />
+            <div>
+              <p className="font-semibold text-orange-900">{summary.pending_physical_forms} physical form(s) from staff awaiting data entry</p>
+              <p className="text-sm text-orange-700">Enter customer & loan details, then submit to owner</p>
+            </div>
+            <ArrowRight className="w-5 h-5 text-orange-700 ml-auto" />
+          </div>
+        </Link>
+      )}
+      {(user?.role === 'admin' || user?.role === 'owner') && (summary.pending_collection_approvals || 0) > 0 && (
+        <Link to="/collection-approvals" className="block bg-blue-50 border border-blue-200 rounded-2xl p-4 hover:bg-blue-100 transition-colors">
+          <div className="flex items-center gap-3">
+            <ShieldCheck className="w-6 h-6 text-blue-700" />
+            <div>
+              <p className="font-semibold text-blue-900">{summary.pending_collection_approvals} staff collection(s) awaiting approval</p>
+              <p className="text-sm text-blue-700">Verify cash & online totals before approving</p>
+            </div>
+            <ArrowRight className="w-5 h-5 text-blue-700 ml-auto" />
+          </div>
+        </Link>
+      )}
+      {user?.role === 'owner' && pendingTotal > 0 && (
+        <Link to="/approvals" className="block bg-amber-50 border border-amber-200 rounded-2xl p-4 hover:bg-amber-100 transition-colors">
+          <div className="flex items-center gap-3">
+            <ShieldCheck className="w-6 h-6 text-amber-700" />
+            <div>
+              <p className="font-semibold text-amber-900">{pendingTotal} item(s) need your approval</p>
+              <p className="text-sm text-amber-700">
+                {summary.pending_loan_approvals || 0} loan(s), {summary.pending_assignment_approvals || 0} handover(s), {summary.pending_correction_requests || 0} correction letter(s)
+              </p>
+            </div>
+            <ArrowRight className="w-5 h-5 text-amber-700 ml-auto" />
+          </div>
+        </Link>
+      )}
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => {
@@ -78,7 +132,85 @@ const Dashboard = () => {
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
+      {/* Dashboard Charts */}
+      <DashboardCharts />
+
+      {/* Advanced Analytics Section */}
+      {(user?.role === 'owner' || user?.role === 'admin') && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0 mt-6">
+          {/* Portfolio at Risk */}
+          <div className="glass-card p-6 flex flex-col items-center justify-center text-center">
+            <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
+              <TrendingDown className="w-8 h-8 text-red-600" />
+            </div>
+            <h3 className="text-gray-500 font-medium mb-1">Portfolio at Risk (PAR)</h3>
+            <div className="text-4xl font-bold text-gray-900 mb-2">
+              {loadingMetrics ? '...' : `${metrics.portfolio_at_risk_pct?.toFixed(2) || 0}%`}
+            </div>
+            <p className="text-xs text-gray-400">
+              {formatLKR(metrics.overdue_outstanding || 0)} overdue of {formatLKR(metrics.total_outstanding || 0)} total
+            </p>
+          </div>
+
+          {/* Top Overdue Loans */}
+          <div className="glass-card p-6 flex flex-col">
+            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-orange-500" />
+              Highest Overdue Loans
+            </h3>
+            <div className="flex-1 overflow-y-auto">
+              {loadingMetrics ? (
+                <div className="text-center text-gray-400 text-sm py-4 animate-pulse">Loading...</div>
+              ) : metrics.top_overdue?.length === 0 ? (
+                <div className="text-center text-gray-400 text-sm py-4">No overdue loans found.</div>
+              ) : (
+                <ul className="space-y-3">
+                  {metrics.top_overdue?.map((loan: any, i: number) => (
+                    <li key={i} className="flex justify-between items-center bg-orange-50/50 p-3 rounded-xl border border-orange-100/50">
+                      <div>
+                        <p className="font-medium text-gray-800 text-sm">{loan.customer_name}</p>
+                        <p className="text-xs text-orange-600 font-medium">{loan.days_overdue} days overdue</p>
+                      </div>
+                      <p className="font-bold text-gray-900 text-sm">{formatLKR(loan.remaining_balance)}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+
+          {/* Staff Performance */}
+          <div className="glass-card p-6 flex flex-col">
+            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <Award className="w-5 h-5 text-gold" />
+              Top Staff (This Month)
+            </h3>
+            <div className="flex-1 overflow-y-auto">
+              {loadingMetrics ? (
+                <div className="text-center text-gray-400 text-sm py-4 animate-pulse">Loading...</div>
+              ) : metrics.staff_performance?.length === 0 ? (
+                <div className="text-center text-gray-400 text-sm py-4">No collections this month.</div>
+              ) : (
+                <ul className="space-y-3">
+                  {metrics.staff_performance?.map((staff: any, i: number) => (
+                    <li key={i} className="flex justify-between items-center">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
+                          {i + 1}
+                        </div>
+                        <p className="font-medium text-gray-800 text-sm">{staff.name}</p>
+                      </div>
+                      <p className="font-bold text-gray-900 text-sm text-leaf">{formatLKR(staff.total)}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0 mt-6">
         {/* Recent Transactions List */}
         <div className="lg:col-span-2 glass-card flex flex-col">
           <div className="p-6 border-b border-gray-100">
@@ -152,8 +284,5 @@ const Dashboard = () => {
     </div>
   );
 };
-
-// Add ArrowRight to Lucide imports
-import { ArrowRight } from 'lucide-react';
 
 export default Dashboard;

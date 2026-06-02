@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchApi } from '../services/api';
-import { FileText, Download, Filter, Calendar } from 'lucide-react';
+import { FileText, Download, Filter, Calendar, Mail, FileSpreadsheet } from 'lucide-react';
 import { formatLKR, formatDate } from '../utils/format';
 import { usePermissions } from '../hooks/usePermissions';
+
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 const ALL_REPORT_TYPES = [
   { id: 'daily_collection', name: 'Daily Collection Report', description: 'Collections recorded today or in a date range.' },
@@ -11,6 +13,8 @@ const ALL_REPORT_TYPES = [
   { id: 'loan_summary', name: 'Loan Portfolio Summary', description: 'Overview of all active, overdue, and closed loans.' },
   { id: 'savings_summary', name: 'Savings Account Summary', description: 'Total deposits, withdrawals, and balances.' },
   { id: 'due_payment', name: 'Due Payments Report', description: 'List of all current overdue balances.' },
+  { id: 'customer_wise', name: 'Customer-Wise Report', description: 'Loans and savings per customer.' },
+  { id: 'income', name: 'Income Report', description: 'Interest income earned in a period.' },
 ];
 
 const Reports = () => {
@@ -39,8 +43,26 @@ const Reports = () => {
   };
 
   const handleExportPDF = () => {
-    // In a real app, this would use jsPDF or call a backend PDF generation endpoint
-    alert('Exporting PDF... (Not implemented in demo)');
+    window.open(`${API_URL}/reports/${selectedReport}/export/pdf?start_date=${dateRange.start}&end_date=${dateRange.end}`, '_blank');
+  };
+
+  const handleExportExcel = () => {
+    window.open(`${API_URL}/reports/${selectedReport}/export/excel?start_date=${dateRange.start}&end_date=${dateRange.end}`, '_blank');
+  };
+
+  const handleEmailReport = async () => {
+    const email = prompt("Enter email address to send this report:");
+    if (email) {
+      try {
+        await fetchApi(`/reports/${selectedReport}/email`, {
+          method: 'POST',
+          body: JSON.stringify({ email })
+        });
+        alert('Email sent successfully!');
+      } catch (err) {
+        alert('Failed to send email');
+      }
+    }
   };
 
   const renderReportPreview = () => {
@@ -196,6 +218,20 @@ const Reports = () => {
             
             {reportData && (
               <div className="flex gap-2">
+                <button 
+                  onClick={handleEmailReport}
+                  className="px-4 py-2 bg-white border border-gray-200 hover:border-blue-500 hover:text-blue-500 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm"
+                >
+                  <Mail className="w-4 h-4" />
+                  Email
+                </button>
+                <button 
+                  onClick={handleExportExcel}
+                  className="px-4 py-2 bg-white border border-gray-200 hover:border-green-500 hover:text-green-500 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm"
+                >
+                  <FileSpreadsheet className="w-4 h-4" />
+                  Excel
+                </button>
                 <button 
                   onClick={handleExportPDF}
                   className="px-4 py-2 bg-white border border-gray-200 hover:border-red-500 hover:text-red-500 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm"

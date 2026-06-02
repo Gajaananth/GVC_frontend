@@ -18,6 +18,11 @@ import Reports from './pages/Reports';
 import Users from './pages/Users';
 import Settings from './pages/Settings';
 import ActivityLogs from './pages/ActivityLogs';
+import Approvals from './pages/Approvals';
+import StaffCollections from './pages/StaffCollections';
+import CollectionApprovals from './pages/CollectionApprovals';
+import PhysicalForms from './pages/PhysicalForms';
+import Notifications from './pages/Notifications';
 
 const Layout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
@@ -58,6 +63,26 @@ function App() {
                   <Route path="/savings/*" element={<Savings />} />
                   <Route path="/due/*" element={<DueReminders />} />
                   <Route path="/reports/*" element={<Reports />} />
+                  <Route path="/approvals/*" element={
+                    <ProtectedRoute allowedRoles={['owner']}>
+                      <Approvals />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/collections/*" element={
+                    <ProtectedRoute allowedRoles={['staff']}>
+                      <StaffCollections />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/collection-approvals/*" element={
+                    <ProtectedRoute allowedRoles={['owner', 'admin']}>
+                      <CollectionApprovals />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/physical-forms/*" element={
+                    <ProtectedRoute allowedRoles={['owner', 'admin']}>
+                      <PhysicalForms />
+                    </ProtectedRoute>
+                  } />
                   
                   {/* Role-Restricted Routes */}
                   <Route path="/users/*" element={
@@ -73,6 +98,11 @@ function App() {
                   <Route path="/logs/*" element={
                     <ProtectedRoute allowedRoles={['owner', 'admin']}>
                       <ActivityLogs />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/notifications/*" element={
+                    <ProtectedRoute allowedRoles={['owner', 'admin']}>
+                      <Notifications />
                     </ProtectedRoute>
                   } />
                   

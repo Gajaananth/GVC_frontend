@@ -3,8 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchApi } from '../services/api';
 import { Search, Plus, ArrowUpRight, ArrowDownRight, MoreVertical } from 'lucide-react';
 import { formatLKR } from '../utils/format';
+import { usePermissions } from '../hooks/usePermissions';
 
 const Savings = () => {
+  const { canManageSavingsAccounts } = usePermissions();
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
 
@@ -20,10 +22,12 @@ const Savings = () => {
           <h2 className="text-2xl font-bold text-gray-800">Savings Accounts</h2>
           <p className="text-sm text-gray-500">Manage customer deposits, withdrawals, and interest.</p>
         </div>
-        <button className="bg-forest hover:bg-leaf text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-sm">
-          <Plus className="w-5 h-5" />
-          Open Account
-        </button>
+        {canManageSavingsAccounts && (
+          <button className="bg-forest hover:bg-leaf text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-sm">
+            <Plus className="w-5 h-5" />
+            Open Account
+          </button>
+        )}
       </div>
 
       <div className="glass-card flex flex-col">

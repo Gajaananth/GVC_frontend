@@ -1,30 +1,69 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchApi } from '../services/api';
-import { Search, Plus, Filter, MoreVertical, Edit, Trash2, Eye } from 'lucide-react';
+import { Search, Plus, Filter, Edit, Trash2, Eye } from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
+import CustomerFormModal from '../components/customers/CustomerFormModal';
+import CustomerDetailModal from '../components/customers/CustomerDetailModal';
+import SubmitPhysicalFormModal from '../components/customers/SubmitPhysicalFormModal';
+import toast from 'react-hot-toast';
+import { FileInput } from 'lucide-react';
 
 const Customers = () => {
-  const { canEditCustomers, canDeleteCustomers } = usePermissions();
+  const { canCreateCustomers, canEditCustomers, canDeleteCustomers, canSubmitPhysicalForm, isStaff } = usePermissions();
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
+  const [showAdd, setShowAdd] = useState(false);
+  const [editCustomer, setEditCustomer] = useState<any>(null);
+  const [viewId, setViewId] = useState<string | null>(null);
+  const [showSubmitForm, setShowSubmitForm] = useState(false);
+  const [submitFormCustomerId, setSubmitFormCustomerId] = useState<string | undefined>();
 
-  const { data: customersData, isLoading } = useQuery({
+  const { data: customersData, isLoading, refetch } = useQuery({
     queryKey: ['customers', page, searchTerm],
     queryFn: () => fetchApi(`/customers?page=${page}&limit=10&search=${searchTerm}`),
   });
 
+  const handleDelete = async (customer: any) => {
+    if (!confirm(`Deactivate ${customer.full_name}?`)) return;
+    try {
+      await fetchApi(`/customers/${customer.id}`, { method: 'DELETE' });
+      toast.success('Customer deactivated');
+      refetch();
+    } catch { /* toast from api */ }
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center flex-wrap gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Customers</h2>
-          <p className="text-sm text-gray-500">Manage your client base and view their details.</p>
+          <p className="text-sm text-gray-500">
+            {isStaff
+              ? 'View all customers and evidence. Verify physically, collect paper forms, then hand to admin — admin enters data and owner approves.'
+              : 'Manage clients, upload scanned forms, create loans, and submit to owner for approval.'}
+          </p>
         </div>
-        <button className="bg-forest hover:bg-leaf text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-sm">
-          <Plus className="w-5 h-5" />
-          Add Customer
-        </button>
+        <div className="flex gap-2 flex-wrap">
+          {canSubmitPhysicalForm && (
+            <button
+              onClick={() => { setSubmitFormCustomerId(undefined); setShowSubmitForm(true); }}
+              className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2.5 rounded-xl font-medium flex items-center gap-2 shadow-sm"
+            >
+              <FileInput className="w-5 h-5" />
+              Hand Form to Admin
+            </button>
+          )}
+          {canCreateCustomers && (
+            <button
+              onClick={() => setShowAdd(true)}
+              className="bg-forest hover:bg-leaf text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-sm"
+            >
+              <Plus className="w-5 h-5" />
+              Add Customer
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="glass-card flex flex-col">
@@ -36,7 +75,7 @@ const Customers = () => {
               placeholder="Search by name, NIC, or ID..."
               className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-leaf focus:border-leaf transition-all"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
             />
           </div>
           <button className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-100 transition-colors flex items-center gap-2">
@@ -59,16 +98,14 @@ const Customers = () => {
             </thead>
             <tbody>
               {isLoading ? (
-                <tr>
-                  <td colSpan={6} className="p-8 text-center text-gray-500 animate-pulse">Loading customers...</td>
-                </tr>
+                <tr><td colSpan={6} className="p-8 text-center text-gray-500 animate-pulse">Loading customers...</td></tr>
               ) : customersData?.data?.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="p-8 text-center text-gray-500">No customers found.</td>
-                </tr>
+                <tr><td colSpan={6} className="p-8 text-center text-gray-500">No customers found.</td></tr>
               ) : (
                 customersData?.data?.map((customer: any) => {
-                  const activeLoansCount = customer.loans?.filter((l: any) => l.status === 'active' || l.status === 'overdue').length || 0;
+                  const activeLoansCount = customer.loans?.filter((l: any) =>
+                    l.status === 'active' || l.status === 'overdue'
+                  ).length || 0;
                   return (
                     <tr key={customer.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
                       <td className="p-4">
@@ -83,9 +120,7 @@ const Customers = () => {
                         </div>
                       </td>
                       <td className="p-4 text-gray-600">{customer.nic_number}</td>
-                      <td className="p-4">
-                        <p className="text-gray-900">{customer.phone}</p>
-                      </td>
+                      <td className="p-4"><p className="text-gray-900">{customer.phone}</p></td>
                       <td className="p-4">
                         <span className={`px-2.5 py-1 rounded-lg text-xs font-medium ${activeLoansCount > 0 ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
                           {activeLoansCount} Active
@@ -98,16 +133,25 @@ const Customers = () => {
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <button className="p-1.5 text-gray-400 hover:text-forest hover:bg-forest/10 rounded-lg transition-colors">
+                          <button onClick={() => setViewId(customer.id)} className="p-1.5 text-gray-400 hover:text-forest hover:bg-forest/10 rounded-lg transition-colors" title="View details & documents">
                             <Eye className="w-4 h-4" />
                           </button>
+                          {canSubmitPhysicalForm && (
+                            <button
+                              onClick={() => { setSubmitFormCustomerId(customer.id); setShowSubmitForm(true); }}
+                              className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg"
+                              title="Hand physical form to admin"
+                            >
+                              <FileInput className="w-4 h-4" />
+                            </button>
+                          )}
                           {canEditCustomers && (
-                            <button className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                            <button onClick={() => setEditCustomer(customer)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                               <Edit className="w-4 h-4" />
                             </button>
                           )}
                           {canDeleteCustomers && (
-                            <button className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                            <button onClick={() => handleDelete(customer)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                               <Trash2 className="w-4 h-4" />
                             </button>
                           )}
@@ -121,27 +165,24 @@ const Customers = () => {
           </table>
         </div>
 
-        {/* Pagination */}
         <div className="p-4 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
           <p>Showing page {page} of {customersData?.totalPages || 1}</p>
           <div className="flex gap-2">
-            <button 
-              className="px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"
-              disabled={page === 1}
-              onClick={() => setPage(p => p - 1)}
-            >
-              Previous
-            </button>
-            <button 
-              className="px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"
-              disabled={page === (customersData?.totalPages || 1)}
-              onClick={() => setPage(p => p + 1)}
-            >
-              Next
-            </button>
+            <button className="px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Previous</button>
+            <button className="px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50" disabled={page === (customersData?.totalPages || 1)} onClick={() => setPage(p => p + 1)}>Next</button>
           </div>
         </div>
       </div>
+
+      {showAdd && <CustomerFormModal onClose={() => setShowAdd(false)} />}
+      {editCustomer && <CustomerFormModal customer={editCustomer} onClose={() => setEditCustomer(null)} />}
+      {viewId && <CustomerDetailModal customerId={viewId} onClose={() => setViewId(null)} />}
+      {showSubmitForm && (
+        <SubmitPhysicalFormModal
+          preselectedCustomerId={submitFormCustomerId}
+          onClose={() => { setShowSubmitForm(false); setSubmitFormCustomerId(undefined); }}
+        />
+      )}
     </div>
   );
 };

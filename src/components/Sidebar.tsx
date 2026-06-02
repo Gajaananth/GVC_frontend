@@ -11,7 +11,11 @@ import {
   FileText, 
   Settings, 
   LogOut,
-  X
+  X,
+  Banknote,
+  ClipboardCheck,
+  FileInput,
+  Bell
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -24,9 +28,14 @@ const Sidebar = () => {
     { name: 'Customers', path: '/customers', icon: Users, roles: ['owner', 'admin', 'staff', 'view_only'] },
     { name: 'Loans', path: '/loans', icon: Wallet, roles: ['owner', 'admin', 'staff', 'view_only'] },
     { name: 'Savings', path: '/savings', icon: PiggyBank, roles: ['owner', 'admin', 'staff', 'view_only'] },
+    { name: 'Collections', path: '/collections', icon: Banknote, roles: ['staff'] },
+    { name: 'Approve Collections', path: '/collection-approvals', icon: ClipboardCheck, roles: ['owner', 'admin'] },
+    { name: 'Physical Forms', path: '/physical-forms', icon: FileInput, roles: ['owner', 'admin'] },
     { name: 'Due & Reminders', path: '/due', icon: CalendarClock, roles: ['owner', 'admin', 'staff', 'view_only'] },
     { name: 'Reports', path: '/reports', icon: FileText, roles: ['owner', 'admin', 'staff', 'view_only'] },
+    { name: 'Owner Approvals', path: '/approvals', icon: ShieldCheck, roles: ['owner'] },
     { name: 'Staff & Users', path: '/users', icon: Users, roles: ['owner', 'admin'] },
+    { name: 'Notifications', path: '/notifications', icon: Bell, roles: ['owner', 'admin'] },
     { name: 'Settings', path: '/settings', icon: Settings, roles: ['owner'] },
   ];
 
