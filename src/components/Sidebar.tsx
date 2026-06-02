@@ -16,7 +16,8 @@ import {
   ClipboardCheck,
   FileInput,
   Bell,
-  Database
+  Database,
+  ShieldCheck
 } from 'lucide-react';
 
 const Sidebar = () => {
