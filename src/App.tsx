@@ -6,6 +6,7 @@ import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
 import PortalSelector from './pages/PortalSelector';
 import LoginPage from './pages/Login';
+import ResetPassword from './pages/ResetPassword';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { SidebarProvider } from './context/SidebarContext';
 
@@ -23,6 +24,7 @@ import StaffCollections from './pages/StaffCollections';
 import CollectionApprovals from './pages/CollectionApprovals';
 import PhysicalForms from './pages/PhysicalForms';
 import Notifications from './pages/Notifications';
+import ImportExport from './pages/ImportExport';
 
 const Layout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
@@ -52,6 +54,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<PortalSelector />} />
           <Route path="/login/:role" element={<LoginPage />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           
           <Route path="/*" element={
             <ProtectedRoute>
@@ -103,6 +106,11 @@ function App() {
                   <Route path="/notifications/*" element={
                     <ProtectedRoute allowedRoles={['owner', 'admin']}>
                       <Notifications />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/import-export/*" element={
+                    <ProtectedRoute allowedRoles={['owner']}>
+                      <ImportExport />
                     </ProtectedRoute>
                   } />
                   

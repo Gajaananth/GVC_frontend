@@ -2,6 +2,7 @@ import React from 'react';
 import { Bell, Search, Menu } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useSidebar } from '../context/SidebarContext';
+import { GlobalSearch } from './GlobalSearch';
 
 const TopBar = () => {
   const location = useLocation();
@@ -34,12 +35,7 @@ const TopBar = () => {
 
       <div className="flex items-center gap-2 lg:gap-6">
         <div className="relative hidden md:block">
-          <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <input 
-            type="text" 
-            placeholder="Search by ID, name, or phone..." 
-            className="pl-10 pr-4 py-2 bg-gray-100/50 border-none rounded-xl focus:ring-2 focus:ring-leaf w-64 text-sm transition-all"
-          />
+          <GlobalSearch />
         </div>
         <button className="md:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-full">
           <Search className="w-5 h-5" />

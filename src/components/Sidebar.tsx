@@ -15,7 +15,8 @@ import {
   Banknote,
   ClipboardCheck,
   FileInput,
-  Bell
+  Bell,
+  Database
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -31,6 +32,7 @@ const Sidebar = () => {
     { name: 'Collections', path: '/collections', icon: Banknote, roles: ['staff'] },
     { name: 'Approve Collections', path: '/collection-approvals', icon: ClipboardCheck, roles: ['owner', 'admin'] },
     { name: 'Physical Forms', path: '/physical-forms', icon: FileInput, roles: ['owner', 'admin'] },
+    { name: 'Import/Export', path: '/import-export', icon: Database, roles: ['owner'] },
     { name: 'Due & Reminders', path: '/due', icon: CalendarClock, roles: ['owner', 'admin', 'staff', 'view_only'] },
     { name: 'Reports', path: '/reports', icon: FileText, roles: ['owner', 'admin', 'staff', 'view_only'] },
     { name: 'Owner Approvals', path: '/approvals', icon: ShieldCheck, roles: ['owner'] },

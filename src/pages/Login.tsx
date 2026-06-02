@@ -3,7 +3,7 @@ import { useNavigate, useParams, Navigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { fetchApi } from '../services/api';
 import toast from 'react-hot-toast';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 
 const roleMap: Record<string, string> = {
   owner: 'owner',
@@ -23,6 +23,7 @@ const LoginPage = () => {
   const { role } = useParams<{ role: string }>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { setAuth, logout } = useAuthStore();
@@ -89,14 +90,27 @@ const LoginPage = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input
-              type="password"
-              required
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-leaf focus:border-leaf transition-all bg-white/50 backdrop-blur-sm"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-leaf focus:border-leaf transition-all bg-white/50 backdrop-blur-sm"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                ) : (
+                  <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                )}
+              </button>
+            </div>
           </div>
 
           <div className="flex items-center justify-between">
@@ -104,9 +118,9 @@ const LoginPage = () => {
               <input type="checkbox" className="rounded text-leaf focus:ring-leaf" />
               <span className="ml-2 text-sm text-gray-600">Remember me</span>
             </label>
-            <a href="#" className="text-sm font-medium text-forest hover:text-leaf transition-colors">
+            <Link to="/reset-password" className="text-sm font-medium text-forest hover:text-leaf transition-colors">
               Forgot password?
-            </a>
+            </Link>
           </div>
 
           <button
