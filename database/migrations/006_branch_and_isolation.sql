@@ -17,9 +17,7 @@ CREATE TABLE branches (
 ALTER TABLE users ADD COLUMN branch_id uuid REFERENCES branches(id) ON DELETE SET NULL;
 -- Owner (role = 'owner') may have null branch_id; others must have a branch
 -- Add a check constraint for role
-ALTER TABLE users ADD CONSTRAINT users_branch_required CHECK (
-    (role = 'owner' AND branch_id IS NULL) OR (role <> 'owner' AND branch_id IS NOT NULL)
-);
+-- Constraint will be added after assigning default branch IDs
 
 -- 3. Ensure only one active Branch Manager per branch
 -- Assume role = 'branch_manager' for manager
@@ -63,6 +61,7 @@ UPDATE savings SET branch_id = (SELECT id FROM default_branch) WHERE branch_id I
 UPDATE transactions SET branch_id = (SELECT id FROM default_branch) WHERE branch_id IS NULL;
 UPDATE reports SET branch_id = (SELECT id FROM default_branch) WHERE branch_id IS NULL;
 UPDATE activity_logs SET branch_id = (SELECT id FROM default_branch) WHERE branch_id IS NULL;
+ALTER TABLE users ADD CONSTRAINT users_branch_required CHECK ((role = 'owner' AND branch_id IS NULL) OR (role <> 'owner' AND branch_id IS NOT NULL));
 
 -- 8. Add trigger to update updated_at for branches
 CREATE OR REPLACE FUNCTION update_branch_timestamp()
