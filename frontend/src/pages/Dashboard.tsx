@@ -117,11 +117,11 @@ const Dashboard = () => {
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div key={index} className="glass-card p-6 flex flex-col items-center gap-4 h-full min-w-0">
+            <div key={index} className="glass-card p-6 flex flex-col items-center gap-4 h-full min-w-0 w-full">
               <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${stat.bgColor} group-hover:scale-110 transition-transform`}>
                 <Icon className={`w-7 h-7 ${stat.color}`} />
               </div>
-              <div className="text-center">
+              <div className="text-center w-full">
                 <p className="text-sm font-medium text-gray-500 mb-1 truncate" title={stat.title}>{stat.title}</p>
                 <h3 className="text-2xl font-bold text-gray-900 truncate" title={String(stat.value)}>
                   {loadingSummary ? <span className="animate-pulse bg-gray-200 text-transparent rounded">Loading...</span> : stat.value}
