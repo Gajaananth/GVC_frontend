@@ -73,7 +73,7 @@ const Dashboard = () => {
   const pendingTotal = (summary.pending_loan_approvals || 0) + (summary.pending_assignment_approvals || 0) + (summary.pending_correction_requests || 0);
 
   return (
-    <div className="space-y-6 flex flex-col h-full">
+    <div className="space-y-6 flex flex-col h-full max-w-7xl mx-auto px-4">
       {(user?.role === 'admin' || user?.role === 'owner') && (summary.pending_physical_forms || 0) > 0 && (
         <Link to="/physical-forms" className="block bg-orange-50 border border-orange-200 rounded-2xl p-4 hover:bg-orange-100 transition-colors mb-4">
           <div className="flex items-center gap-3">
@@ -113,17 +113,17 @@ const Dashboard = () => {
         </Link>
       )}
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 min-w-0">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div key={index} className="glass-card p-6 flex items-center gap-4 hover:shadow-2xl transition-all group">
-              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${stat.bgColor} group-hover:scale-110 transition-transform`}>
-                <Icon className={`w-7 h-7 ${stat.color}`} />
+            <div key={index} className="glass-card p-5 flex flex-row items-center gap-4 h-full min-w-0 w-full overflow-hidden">
+              <div className={`shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center ${stat.bgColor} group-hover:scale-110 transition-transform`}>
+                <Icon className={`w-6 h-6 sm:w-7 sm:h-7 ${stat.color}`} />
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500 mb-1">{stat.title}</p>
-                <h3 className="text-2xl font-bold text-gray-900">
+              <div className="flex-1 min-w-0 overflow-hidden flex flex-col justify-center">
+                <p className="text-xs sm:text-sm font-medium text-gray-500 mb-0.5 truncate" title={stat.title}>{stat.title}</p>
+                <h3 className="text-lg sm:text-2xl font-bold text-gray-900 truncate" title={String(stat.value)}>
                   {loadingSummary ? <span className="animate-pulse bg-gray-200 text-transparent rounded">Loading...</span> : stat.value}
                 </h3>
               </div>
@@ -137,7 +137,7 @@ const Dashboard = () => {
 
       {/* Advanced Analytics Section */}
       {(user?.role === 'owner' || user?.role === 'admin') && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 flex-1 min-h-0 mt-6">
           {/* Portfolio at Risk */}
           <div className="glass-card p-6 flex flex-col items-center justify-center text-center">
             <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
@@ -210,13 +210,13 @@ const Dashboard = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0 mt-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 min-h-0 mt-6">
         {/* Recent Transactions List */}
-        <div className="lg:col-span-2 glass-card flex flex-col">
+        <div className="lg:col-span-2 glass-card flex flex-col p-6 gap-4">
           <div className="p-6 border-b border-gray-100">
             <h2 className="text-lg font-bold text-gray-800">Recent Transactions</h2>
           </div>
-          <div className="p-0 overflow-y-auto flex-1">
+          <div className="p-0 overflow-y-auto flex-1 max-h-80 md:max-h-full">
             {loadingTxs ? (
               <div className="p-8 text-center text-gray-500 animate-pulse">Loading transactions...</div>
             ) : recentTxs?.data?.length === 0 ? (
@@ -229,12 +229,12 @@ const Dashboard = () => {
                   
                   return (
                     <li key={i} className="p-4 hover:bg-gray-50/50 transition-colors flex items-center justify-between">
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-4 min-w-0">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isDeposit ? 'bg-leaf/10 text-leaf' : 'bg-red-100 text-red-600'}`}>
                           {isDeposit ? <ArrowDownRight className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
                         </div>
-                        <div>
-                          <p className="font-semibold text-gray-800">{tx.customer?.full_name || 'Unknown'}</p>
+                        <div className="flex-1 min-w-0 overflow-hidden break-words">
+                          <p className="font-semibold text-gray-800 truncate" title={tx.customer?.full_name}>{tx.customer?.full_name || 'Unknown'}</p>
                           <p className="text-xs text-gray-500 capitalize">{tx.type.replace('_', ' ')} • {isLoan ? 'Loan' : 'Savings'}</p>
                         </div>
                       </div>
@@ -253,7 +253,7 @@ const Dashboard = () => {
         </div>
 
         {/* Action Panel */}
-        <div className="glass-card flex flex-col p-6 gap-6">
+          <div className="glass-card flex flex-col p-6 gap-6 max-h-80 md:max-h-full overflow-y-auto">
           <div className="bg-gradient-to-br from-forest to-leaf rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10" />
             <h3 className="font-bold text-lg mb-2 relative z-10">Today's Collections</h3>
