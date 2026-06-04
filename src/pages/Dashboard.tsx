@@ -113,7 +113,7 @@ const Dashboard = () => {
         </Link>
       )}
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 min-w-0">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 min-w-0">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
@@ -122,10 +122,10 @@ const Dashboard = () => {
                 <Icon className={`w-5 h-5 ${stat.color}`} />
               </div>
               <div className="flex-1 min-w-0 flex flex-col justify-center">
-                <p className="text-[11px] sm:text-xs font-medium text-gray-500 mb-0.5 leading-tight break-words whitespace-normal" title={stat.title}>
+                <p className="text-[11px] sm:text-xs font-medium text-gray-500 mb-0.5 leading-tight break-all whitespace-normal" title={stat.title}>
                   {stat.title}
                 </p>
-                <h3 className="text-sm sm:text-base lg:text-sm xl:text-lg font-bold text-gray-900 break-words whitespace-normal" title={String(stat.value)}>
+                <h3 className="text-sm sm:text-base lg:text-sm xl:text-lg font-bold text-gray-900 break-all whitespace-normal" title={String(stat.value)}>
                   {loadingSummary ? <span className="animate-pulse bg-gray-200 text-transparent rounded">Loading...</span> : stat.value}
                 </h3>
               </div>
