@@ -117,13 +117,15 @@ const Dashboard = () => {
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div key={index} className="glass-card p-5 flex flex-row items-center gap-4 h-full min-w-0 w-full overflow-hidden">
-              <div className={`shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center ${stat.bgColor} group-hover:scale-110 transition-transform`}>
-                <Icon className={`w-6 h-6 sm:w-7 sm:h-7 ${stat.color}`} />
+            <div key={index} className="glass-card p-4 flex flex-row items-center gap-3 h-full w-full">
+              <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${stat.bgColor} group-hover:scale-110 transition-transform`}>
+                <Icon className={`w-5 h-5 ${stat.color}`} />
               </div>
-              <div className="flex-1 min-w-0 overflow-hidden flex flex-col justify-center">
-                <p className="text-xs sm:text-sm font-medium text-gray-500 mb-0.5 truncate" title={stat.title}>{stat.title}</p>
-                <h3 className="text-lg sm:text-2xl font-bold text-gray-900 truncate" title={String(stat.value)}>
+              <div className="flex-1 min-w-0 flex flex-col justify-center">
+                <p className="text-[11px] sm:text-xs font-medium text-gray-500 mb-0.5 leading-tight break-words whitespace-normal" title={stat.title}>
+                  {stat.title}
+                </p>
+                <h3 className="text-sm sm:text-base lg:text-sm xl:text-lg font-bold text-gray-900 break-words whitespace-normal" title={String(stat.value)}>
                   {loadingSummary ? <span className="animate-pulse bg-gray-200 text-transparent rounded">Loading...</span> : stat.value}
                 </h3>
               </div>
