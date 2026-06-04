@@ -4,15 +4,9 @@
 
 @layer utilities {
   .glass-card {
-    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl rounded-2xl overflow-hidden max-w-full;
-    @apply break-words;
-    overflow: hidden;
-    word-break: break-word;
-    overflow-wrap: anywhere;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl rounded-2xl;
   }
+
 
   @media (max-width: 640px) {
     .responsive-table {

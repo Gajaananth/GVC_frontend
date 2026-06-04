@@ -117,14 +117,16 @@ const Dashboard = () => {
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div key={index} className="glass-card p-6 flex flex-col items-center gap-4 h-full min-w-0 w-full">
-              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${stat.bgColor} group-hover:scale-110 transition-transform`}>
-                <Icon className={`w-7 h-7 ${stat.color}`} />
+            <div key={index} className="glass-card p-5 flex flex-row items-center gap-4 h-full min-w-0 w-full overflow-hidden">
+              <div className={`shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center ${stat.bgColor} group-hover:scale-110 transition-transform`}>
+                <Icon className={`w-6 h-6 sm:w-7 sm:h-7 ${stat.color}`} />
               </div>
-                <p className="text-sm font-medium text-gray-500 mb-1 truncate max-w-full" title={stat.title}>{stat.title}</p>
-                <h3 className="text-2xl font-bold text-gray-900 truncate max-w-full" title={String(stat.value)}>
+              <div className="flex-1 min-w-0 overflow-hidden flex flex-col justify-center">
+                <p className="text-xs sm:text-sm font-medium text-gray-500 mb-0.5 truncate" title={stat.title}>{stat.title}</p>
+                <h3 className="text-lg sm:text-2xl font-bold text-gray-900 truncate" title={String(stat.value)}>
                   {loadingSummary ? <span className="animate-pulse bg-gray-200 text-transparent rounded">Loading...</span> : stat.value}
                 </h3>
+              </div>
             </div>
           );
         })}
