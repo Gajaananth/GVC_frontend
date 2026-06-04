@@ -6,7 +6,7 @@ export interface User {
   user_code: string;
   email: string;
   full_name: string;
-  role: 'owner' | 'admin' | 'staff' | 'view_only';
+  role: 'owner' | 'admin' | 'staff' | 'view_only' | 'branch_manager' | 'cashier';
   mobile?: string;
   address?: string;
   avatar_url?: string;
