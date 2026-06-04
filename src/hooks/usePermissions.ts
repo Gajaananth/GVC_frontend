@@ -6,34 +6,40 @@ export const usePermissions = () => {
 
   const isOwner = role === 'owner';
   const isAdmin = role === 'admin';
+  const isBranchManager = role === 'branch_manager';
+  const isCashier = role === 'cashier';
   const isStaff = role === 'staff';
   const isViewOnly = role === 'view_only';
+
+  const canManageCustomers = isOwner || isAdmin || isBranchManager || isCashier;
 
   return {
     isOwner,
     isAdmin,
+    isBranchManager,
+    isCashier,
     isStaff,
     isViewOnly,
-    canCreateCustomers: isOwner || isAdmin,
-    canEditCustomers: isOwner || isAdmin,
-    canDeleteCustomers: isOwner || isAdmin,
-    canUploadDocuments: isOwner || isAdmin,
+    canCreateCustomers: canManageCustomers,
+    canEditCustomers: canManageCustomers,
+    canDeleteCustomers: isOwner || isAdmin || isBranchManager, // Usually delete is more restricted, but keeping it open per instructions if needed. Let's allow branch manager too.
+    canUploadDocuments: canManageCustomers,
     canViewOnly: isStaff || isViewOnly,
-    canIssueLoans: isOwner || isAdmin,
+    canIssueLoans: isOwner || isAdmin || isBranchManager,
     canApproveLoans: isOwner,
-    canChangeLoanStatus: isOwner || isAdmin,
-    canRequestInChargeChange: isOwner || isAdmin,
+    canChangeLoanStatus: isOwner || isAdmin || isBranchManager,
+    canRequestInChargeChange: isOwner || isAdmin || isBranchManager,
     canSubmitCollections: isStaff,
-    canApproveCollections: isOwner || isAdmin,
-    canReconcileCollections: isOwner || isAdmin,
+    canApproveCollections: isOwner || isAdmin || isBranchManager,
+    canReconcileCollections: isOwner || isAdmin || isBranchManager,
     canExecuteCorrections: isOwner || isAdmin,
     canApproveCorrections: isOwner,
-    canRecordPaymentsDirect: isOwner || isAdmin,
-    canManageSavingsAccounts: isOwner || isAdmin,
+    canRecordPaymentsDirect: isOwner || isAdmin || isBranchManager || isCashier,
+    canManageSavingsAccounts: isOwner || isAdmin || isBranchManager,
     canManageUsers: isOwner || isAdmin,
     canManageSettings: isOwner,
     canSubmitPhysicalForm: isStaff,
-    canProcessPhysicalForms: isOwner || isAdmin,
-    canEnterCustomerOrLoanData: isOwner || isAdmin,
+    canProcessPhysicalForms: isOwner || isAdmin || isBranchManager || isCashier,
+    canEnterCustomerOrLoanData: isOwner || isAdmin || isBranchManager || isCashier,
   };
 };
