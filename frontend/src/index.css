@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl rounded-2xl overflow-hidden;
+    @apply break-words;
+  }
+
+  @media (max-width: 640px) {
+    .responsive-table {
+      @apply block w-full overflow-x-auto whitespace-nowrap;
+    }
+    .modal-content {
+      @apply w-full max-w-none h-full max-h-none rounded-none;
+    }
+  }
+}
+
+body {
+  @apply bg-[#F8FBF8] text-gray-800 antialiased;
+}
+
+@layer components {
+  .input-field {
+    @apply w-full mt-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-leaf focus:border-leaf outline-none transition-all text-sm;
+  }
+}
