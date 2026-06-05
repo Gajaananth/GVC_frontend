@@ -85,6 +85,26 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
           >
             <Download className="w-4 h-4" /> Customer Statement
           </a>
+          {loan.loan_application_url && (
+            <a
+              href={loan.loan_application_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-sm font-medium flex items-center gap-1.5"
+            >
+              <Download className="w-4 h-4" /> Application PDF
+            </a>
+          )}
+          {loan.loan_form_url && (
+            <a
+              href={loan.loan_form_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 rounded-lg text-sm font-medium flex items-center gap-1.5"
+            >
+              <Download className="w-4 h-4" /> Auto-Generated Form
+            </a>
+          )}
           
           {loan.status === 'closed' && loan.is_fully_paid && (
             <a

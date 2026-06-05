@@ -21,7 +21,7 @@ export const TERM_CONFIG: Record<RepaymentFrequency, TermConfig> = {
     max: 180,
     default: 90,
     presets: [30, 60, 90, 120, 180],
-    interestRateHint: 'Interest % per day on gross amount',
+    interestRateHint: 'Monthly interest rate % on gross amount (collected daily)',
     collectionHint: 'Credit today → collect from tomorrow, then every day',
   },
   weekly: {
@@ -32,7 +32,7 @@ export const TERM_CONFIG: Record<RepaymentFrequency, TermConfig> = {
     max: 104,
     default: 12,
     presets: [4, 8, 12, 26, 52],
-    interestRateHint: 'Interest % per week on gross amount',
+    interestRateHint: 'Monthly interest rate % on gross amount (collected weekly)',
     collectionHint: 'Credit 1 May → first collection 8 May, then weekly',
   },
   biweekly: {
@@ -43,7 +43,7 @@ export const TERM_CONFIG: Record<RepaymentFrequency, TermConfig> = {
     max: 52,
     default: 6,
     presets: [2, 4, 6, 12, 26],
-    interestRateHint: 'Interest % per 14-day period on gross amount',
+    interestRateHint: 'Monthly interest rate % on gross amount (collected every 14 days)',
     collectionHint: 'Credit 1 May → first collection 15 May, then every 14 days',
   },
   monthly: {
@@ -54,7 +54,7 @@ export const TERM_CONFIG: Record<RepaymentFrequency, TermConfig> = {
     max: 120,
     default: 12,
     presets: [3, 6, 12, 24, 36, 60],
-    interestRateHint: 'Interest % per month on gross amount',
+    interestRateHint: 'Monthly interest rate % on gross amount',
     collectionHint: 'Credit 1 May → first collection 1 June, then monthly',
   },
 };

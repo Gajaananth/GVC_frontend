@@ -5,7 +5,7 @@ import Modal from '../Modal';
 import { formatLKR } from '../../utils/format';
 import { getTermConfig, type RepaymentFrequency } from '../../utils/loanTermConfig';
 import toast from 'react-hot-toast';
-import { Calculator } from 'lucide-react';
+import { Calculator, Upload, FileCheck } from 'lucide-react';
 
 interface Props {
   onClose: () => void;
@@ -14,6 +14,7 @@ interface Props {
 const LoanFormModal = ({ onClose }: Props) => {
   const queryClient = useQueryClient();
   const [preview, setPreview] = useState<any>(null);
+  const [applicationPdf, setApplicationPdf] = useState<File | null>(null);
 
   const { data: customersData } = useQuery({
     queryKey: ['customers-all'],
@@ -95,25 +96,35 @@ const LoanFormModal = ({ onClose }: Props) => {
   ]);
 
   const mutation = useMutation({
-    mutationFn: () =>
-      fetchApi('/loans', {
+    mutationFn: async () => {
+      const formData = new FormData();
+      formData.append('customer_id', form.customer_id);
+      formData.append('gross_loan_amount', String(Number(form.gross_loan_amount)));
+      formData.append('insurance_fee_percent', String(Number(form.insurance_fee_percent)));
+      formData.append('insurance_fee_amount', String(Number(form.insurance_fee_amount)));
+      formData.append('documentation_fee', String(Number(form.documentation_fee)));
+      formData.append('interest_rate_per_period', String(Number(form.interest_rate_per_period)));
+      formData.append('term_count', String(clampTerm(form.term_count)));
+      formData.append('repayment_frequency', form.repayment_frequency);
+      formData.append('credit_date', form.credit_date);
+      formData.append('applied_by', form.applied_by);
+      formData.append('in_charge_user_id', form.in_charge_user_id);
+      if (form.purpose) formData.append('purpose', form.purpose);
+      if (form.notes) formData.append('notes', form.notes);
+      if (applicationPdf) formData.append('loan_application_pdf', applicationPdf);
+
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/loans`, {
         method: 'POST',
-        body: JSON.stringify({
-          customer_id: form.customer_id,
-          gross_loan_amount: Number(form.gross_loan_amount),
-          insurance_fee_percent: Number(form.insurance_fee_percent),
-          insurance_fee_amount: Number(form.insurance_fee_amount),
-          documentation_fee: Number(form.documentation_fee),
-          interest_rate_per_period: Number(form.interest_rate_per_period),
-          term_count: clampTerm(form.term_count),
-          repayment_frequency: form.repayment_frequency,
-          credit_date: form.credit_date,
-          applied_by: form.applied_by,
-          in_charge_user_id: form.in_charge_user_id,
-          purpose: form.purpose || null,
-          notes: form.notes || null,
-        }),
-      }),
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData,
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Failed to create loan');
+      }
+      return res.json();
+    },
     onSuccess: () => {
       toast.success('Loan submitted for owner approval');
       queryClient.invalidateQueries({ queryKey: ['loans'] });
@@ -125,6 +136,10 @@ const LoanFormModal = ({ onClose }: Props) => {
     e.preventDefault();
     if (!preview) {
       toast.error('Wait for loan calculation preview');
+      return;
+    }
+    if (!applicationPdf) {
+      toast.error('Please upload the loan application PDF');
       return;
     }
     mutation.mutate();
@@ -241,7 +256,7 @@ const LoanFormModal = ({ onClose }: Props) => {
           </div>
           <div className="mt-4">
             <label className="text-sm font-medium">
-              Interest rate (% per {termCfg.unitLabel}) *
+              Interest Rate (% per month) *
             </label>
             <input
               required
@@ -306,6 +321,45 @@ const LoanFormModal = ({ onClose }: Props) => {
           </div>
         )}
 
+        <div className="border border-blue-200 rounded-xl p-4 bg-blue-50/30">
+          <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+            <Upload className="w-5 h-5 text-blue-600" />
+            Loan Application Document *
+          </h4>
+          <p className="text-xs text-gray-500 mb-3">Upload the scanned PDF of the physical loan application form. This is required before submission.</p>
+          <div className="flex items-center gap-3">
+            <label className="cursor-pointer px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2">
+              <Upload className="w-4 h-4" />
+              {applicationPdf ? 'Change PDF' : 'Select PDF'}
+              <input
+                type="file"
+                accept=".pdf,application/pdf"
+                className="hidden"
+                onChange={e => {
+                  const file = e.target.files?.[0] || null;
+                  if (file && file.type !== 'application/pdf') {
+                    toast.error('Only PDF files are allowed');
+                    return;
+                  }
+                  if (file && file.size > 10 * 1024 * 1024) {
+                    toast.error('File must be under 10MB');
+                    return;
+                  }
+                  setApplicationPdf(file);
+                }}
+              />
+            </label>
+            {applicationPdf && (
+              <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 px-3 py-1.5 rounded-lg">
+                <FileCheck className="w-4 h-4" />
+                <span className="font-medium truncate max-w-[200px]">{applicationPdf.name}</span>
+                <span className="text-xs text-gray-400">({(applicationPdf.size / 1024).toFixed(0)} KB)</span>
+                <button type="button" onClick={() => setApplicationPdf(null)} className="text-red-400 hover:text-red-600 ml-1 text-xs">✕</button>
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
           <div>
             <label className="text-sm font-medium">Staff Who Applied *</label>
@@ -330,7 +384,7 @@ const LoanFormModal = ({ onClose }: Props) => {
 
         <div className="flex justify-end gap-3">
           <button type="button" onClick={onClose} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl">Cancel</button>
-          <button type="submit" disabled={mutation.isPending || !preview} className="px-4 py-2 bg-forest text-white rounded-xl hover:bg-leaf disabled:opacity-50">
+          <button type="submit" disabled={mutation.isPending || !preview || !applicationPdf} className="px-4 py-2 bg-forest text-white rounded-xl hover:bg-leaf disabled:opacity-50">
             {mutation.isPending ? 'Submitting...' : 'Submit for Owner Approval'}
           </button>
         </div>

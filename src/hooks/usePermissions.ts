@@ -25,7 +25,7 @@ export const usePermissions = () => {
     canDeleteCustomers: isOwner || isAdmin || isBranchManager, // Usually delete is more restricted, but keeping it open per instructions if needed. Let's allow branch manager too.
     canUploadDocuments: canManageCustomers,
     canViewOnly: isStaff || isViewOnly,
-    canIssueLoans: isOwner || isAdmin || isBranchManager,
+    canIssueLoans: isOwner || isAdmin || isBranchManager || isCashier,
     canApproveLoans: isOwner,
     canChangeLoanStatus: isOwner || isAdmin || isBranchManager,
     canRequestInChargeChange: isOwner || isAdmin || isBranchManager,

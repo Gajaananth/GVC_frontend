@@ -35,6 +35,7 @@ const CustomerFormModal = ({ customer, onClose }: Props) => {
   const [photo, setPhoto] = useState<File | null>(null);
   const [nicFront, setNicFront] = useState<File | null>(null);
   const [nicBack, setNicBack] = useState<File | null>(null);
+  const [otherPhotos, setOtherPhotos] = useState<File[]>([]);
   const [isFaceApiLoaded, setIsFaceApiLoaded] = useState(false);
   const [isValidatingFace, setIsValidatingFace] = useState(false);
 
@@ -143,6 +144,9 @@ const CustomerFormModal = ({ customer, onClose }: Props) => {
       formData.append('photo', photo);
       formData.append('nic_front', nicFront);
       formData.append('nic_back', nicBack);
+      otherPhotos.forEach((file, i) => {
+        if (i < 5) formData.append(`other_photo_${i + 1}`, file);
+      });
 
       mutation.mutate(formData);
     } else {
@@ -211,6 +215,34 @@ const CustomerFormModal = ({ customer, onClose }: Props) => {
               </div>
             </div>
             <p className="text-xs text-amber-700 mt-2">Face photo will be validated to ensure a clear human face is present before submission.</p>
+
+            <div className="mt-4">
+              <label className="text-sm font-medium text-gray-700">Other Documents / Photos (Optional, max 5)</label>
+              <input 
+                type="file" 
+                accept="image/*" 
+                multiple 
+                onChange={e => {
+                  const files = Array.from(e.target.files || []);
+                  if (otherPhotos.length + files.length > 5) {
+                    toast.error('Maximum 5 other photos allowed');
+                    return;
+                  }
+                  setOtherPhotos([...otherPhotos, ...files].slice(0, 5));
+                }} 
+                className="w-full text-sm border p-2 rounded-lg mt-1" 
+              />
+              {otherPhotos.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {otherPhotos.map((file, i) => (
+                    <div key={i} className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded text-xs">
+                      <span className="truncate max-w-[100px]">{file.name}</span>
+                      <button type="button" onClick={() => setOtherPhotos(otherPhotos.filter((_, idx) => idx !== i))} className="text-red-500 font-bold ml-1">✕</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
