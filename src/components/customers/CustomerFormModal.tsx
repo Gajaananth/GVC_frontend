@@ -43,9 +43,8 @@ const CustomerFormModal = ({ customer, onClose }: Props) => {
     if (!isEdit) {
       const loadModels = async () => {
         try {
-          // Since we don't have models hosted yet, we can mock it or use an empty resolve if models are unavailable.
-          // For now, assume models are in /models. If it fails, we will bypass or show error.
-          await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
+          // Load from a reliable CDN to avoid needing local weights
+          await faceapi.nets.tinyFaceDetector.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models');
           setIsFaceApiLoaded(true);
         } catch (err) {
           console.warn("Face models could not be loaded from /models. Ensure they exist. We will do a generic check if unavailable.", err);
