@@ -39,13 +39,13 @@ const Reports = () => {
     enabled: false, // Wait for user to click Generate
   });
 
-  const { accessToken } = useAuthStore();
-
   const handleGenerate = () => {
     refetch();
   };
 
   const downloadReport = async (format: 'pdf' | 'excel') => {
+    const { accessToken } = useAuthStore.getState();
+    
     if (!accessToken) {
       alert('Please log in to export reports.');
       return;
@@ -55,7 +55,8 @@ const Reports = () => {
     const response = await fetch(url, {
       method: 'GET',
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
       },
     });
 
