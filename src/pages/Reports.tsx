@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchApi } from '../services/api';
+import { useAuthStore } from '../store/authStore';
 import { FileText, Download, Filter, Calendar, Mail, FileSpreadsheet } from 'lucide-react';
 import { formatLKR, formatDate } from '../utils/format';
 import { usePermissions } from '../hooks/usePermissions';
@@ -38,16 +39,48 @@ const Reports = () => {
     enabled: false, // Wait for user to click Generate
   });
 
+  const { accessToken } = useAuthStore();
+
   const handleGenerate = () => {
     refetch();
   };
 
+  const downloadReport = async (format: 'pdf' | 'excel') => {
+    if (!accessToken) {
+      alert('Please log in to export reports.');
+      return;
+    }
+
+    const url = `${API_URL}/reports/${selectedReport}/export/${format}?start_date=${dateRange.start}&end_date=${dateRange.end}`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({ error: 'Failed to export report' }));
+      throw new Error(data.error || 'Failed to export report');
+    }
+
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = `${selectedReport}-${dateRange.start || 'start'}-to-${dateRange.end || 'end'}.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(blobUrl);
+  };
+
   const handleExportPDF = () => {
-    window.open(`${API_URL}/reports/${selectedReport}/export/pdf?start_date=${dateRange.start}&end_date=${dateRange.end}`, '_blank');
+    downloadReport('pdf').catch((err) => alert(err.message));
   };
 
   const handleExportExcel = () => {
-    window.open(`${API_URL}/reports/${selectedReport}/export/excel?start_date=${dateRange.start}&end_date=${dateRange.end}`, '_blank');
+    downloadReport('excel').catch((err) => alert(err.message));
   };
 
   const handleEmailReport = async () => {
