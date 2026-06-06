@@ -5,6 +5,10 @@ Run `schema.sql` first, then migrations in order:
 2. `migrations/003_collections_approval.sql`
 3. `migrations/004_loan_products_and_staff.sql`
 4. `migrations/005_physical_form_submissions.sql`
+5. `migrations/006_branch_and_isolation.sql`
+6. `migrations/007_loan_form_url.sql`
+7. `migrations/008_loan_application_url.sql`
+8. `migrations/009_service_role_permissions.sql`
 
 ## Supabase Storage
 

@@ -110,7 +110,31 @@ const Reports = () => {
             </table>
           </div>
         );
-      
+
+      case 'monthly_finance':
+        return (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                <p className="text-sm text-gray-500">Collections</p>
+                <p className="text-2xl font-bold">{formatLKR(data.loan_collections)}</p>
+              </div>
+              <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                <p className="text-sm text-blue-600">Loans Disbursed</p>
+                <p className="text-2xl font-bold text-blue-700">{formatLKR(data.loans_disbursed)}</p>
+              </div>
+              <div className="bg-leaf/10 p-4 rounded-xl border border-leaf/20">
+                <p className="text-sm text-forest">Net Income</p>
+                <p className="text-2xl font-bold text-forest">{formatLKR(data.net_income)}</p>
+              </div>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+              <p className="text-sm text-gray-500">Period</p>
+              <p className="font-medium">{formatDate(data.period.start)} to {formatDate(data.period.end)}</p>
+            </div>
+          </div>
+        );
+
       case 'loan_summary':
         return (
           <div className="space-y-6">
@@ -131,6 +155,130 @@ const Reports = () => {
                 <p className="text-sm text-forest">Outstanding Bal</p>
                 <p className="text-xl font-bold text-forest">{formatLKR(data.summary.total_outstanding)}</p>
               </div>
+            </div>
+          </div>
+        );
+
+      case 'savings_summary':
+        return (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                <p className="text-sm text-gray-500">Total Accounts</p>
+                <p className="text-xl font-bold">{data.summary.total_accounts}</p>
+              </div>
+              <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                <p className="text-sm text-blue-600">Active Accounts</p>
+                <p className="text-xl font-bold text-blue-700">{data.summary.active_accounts}</p>
+              </div>
+              <div className="bg-leaf/10 p-4 rounded-xl border border-leaf/20">
+                <p className="text-sm text-forest">Total Balance</p>
+                <p className="text-xl font-bold text-forest">{formatLKR(data.summary.total_balance)}</p>
+              </div>
+              <div className="bg-amber-50 p-4 rounded-xl border border-amber-100">
+                <p className="text-sm text-amber-700">Total Deposited</p>
+                <p className="text-xl font-bold text-amber-800">{formatLKR(data.summary.total_deposited)}</p>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'customer_wise':
+        return (
+          <div className="space-y-4">
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+              <p className="text-sm text-gray-500">Customers</p>
+              <p className="text-xl font-bold">{data.customers.length}</p>
+            </div>
+            <div className="overflow-auto rounded-xl border border-gray-100 bg-white">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="py-2">Customer</th>
+                    <th className="py-2">Loans</th>
+                    <th className="py-2">Savings Accounts</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.customers.map((customer: any) => (
+                    <tr key={customer.id} className="border-b border-gray-100">
+                      <td className="py-2">{customer.full_name}</td>
+                      <td className="py-2">{customer.loans?.length || 0}</td>
+                      <td className="py-2">{customer.savings_accounts?.length || 0}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+
+      case 'due_payment':
+        return (
+          <div className="space-y-4">
+            <div className="bg-forest/5 p-4 rounded-xl border border-forest/10 flex justify-between items-center">
+              <div>
+                <h3 className="font-bold text-gray-800">Total Due Outstanding</h3>
+              </div>
+              <p className="text-3xl font-bold text-forest">{formatLKR(data.total_outstanding)}</p>
+            </div>
+            <div className="overflow-auto rounded-xl border border-gray-100 bg-white">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="py-2">Loan</th>
+                    <th className="py-2">Customer</th>
+                    <th className="py-2">Balance</th>
+                    <th className="py-2">Days Overdue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.overdue_loans.map((loan: any) => (
+                    <tr key={loan.id} className="border-b border-gray-100">
+                      <td className="py-2">{loan.loan_code}</td>
+                      <td className="py-2">{loan.full_name || loan.customer_name || 'N/A'}</td>
+                      <td className="py-2">{formatLKR(loan.remaining_balance)}</td>
+                      <td className="py-2">{loan.days_overdue || '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+
+      case 'income':
+        return (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                <p className="text-sm text-gray-500">Income Period</p>
+                <p>{formatDate(data.period.start)} to {formatDate(data.period.end)}</p>
+              </div>
+              <div className="bg-forest/10 p-4 rounded-xl border border-forest/20">
+                <p className="text-sm text-forest">Interest Income</p>
+                <p className="text-2xl font-bold text-forest">{formatLKR(data.total_interest_income)}</p>
+              </div>
+            </div>
+            <div className="overflow-auto rounded-xl border border-gray-100 bg-white">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="py-2">Date</th>
+                    <th className="py-2">Method</th>
+                    <th className="py-2 text-right">Interest</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.payments.map((payment: any, index: number) => (
+                    <tr key={index} className="border-b border-gray-100">
+                      <td className="py-2">{formatDate(payment.payment_date)}</td>
+                      <td className="py-2">{payment.payment_method}</td>
+                      <td className="py-2 text-right">{formatLKR(payment.interest_paid || 0)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         );
