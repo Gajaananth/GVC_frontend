@@ -15,6 +15,10 @@ const Users = () => {
     switch (role) {
       case 'owner':
         return <span className="bg-purple-100 text-purple-700 px-2.5 py-1 rounded-lg text-xs font-bold">Owner</span>;
+      case 'branch_manager':
+        return <span className="bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-lg text-xs font-bold">Branch Manager</span>;
+      case 'cashier':
+        return <span className="bg-yellow-100 text-yellow-700 px-2.5 py-1 rounded-lg text-xs font-bold">Cashier</span>;
       case 'admin':
         return <span className="bg-blue-100 text-blue-700 px-2.5 py-1 rounded-lg text-xs font-bold">Admin</span>;
       case 'staff':
