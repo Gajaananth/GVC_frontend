@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchApi } from '../services/api';
 import { Search, Plus, Edit, Trash2, Shield, UserCog } from 'lucide-react';
+import { usePermissions } from '../hooks/usePermissions';
 
 const Users = () => {
   const [page, setPage] = useState(1);
+  const { isOwner } = usePermissions();
 
   const { data: usersData, isLoading } = useQuery({
     queryKey: ['users', page],
@@ -35,10 +37,12 @@ const Users = () => {
           <h2 className="text-2xl font-bold text-gray-800">Staff & Users</h2>
           <p className="text-sm text-gray-500">Manage system access and roles.</p>
         </div>
-        <button className="bg-forest hover:bg-leaf text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-sm">
-          <Plus className="w-5 h-5" />
-          Add User
-        </button>
+        {isOwner && (
+          <button className="bg-forest hover:bg-leaf text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-sm">
+            <Plus className="w-5 h-5" />
+            Add User
+          </button>
+        )}
       </div>
 
       <div className="glass-card flex flex-col">
