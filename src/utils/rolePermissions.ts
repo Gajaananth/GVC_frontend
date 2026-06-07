@@ -1,0 +1,262 @@
+// src/utils/rolePermissions.ts
+
+export type UserRole = 'owner' | 'branch_manager' | 'admin' | 'cashier' | 'staff' | 'view_only';
+
+export interface Permission {
+  canViewBranchDashboard: boolean;
+  canViewBranchCustomers: boolean;
+  canCreateCustomer: boolean;
+  canEditCustomer: boolean;
+  canUploadDocuments: boolean;
+  canCreateLoan: boolean;
+  canEditLoan: boolean;
+  canManageLoan: boolean;
+  canManageSavings: boolean;
+  canRecordPayment: boolean;
+  canRecordDeposit: boolean;
+  canRecordWithdrawal: boolean;
+  canPrintReceipt: boolean;
+  canGenerateReport: boolean;
+  canViewTransaction: boolean;
+  canViewActivityLog: boolean;
+  canApproveLoan: boolean;
+  canRejectLoan: boolean;
+  canForwardLoan: boolean;
+  canCreateAdmin: boolean;
+  canCreateCashier: boolean;
+  canCreateStaff: boolean;
+  canEditBranchUser: boolean;
+  canAssignCustomer: boolean;
+  canViewAllBranches: boolean;
+  canViewAllCustomers: boolean;
+  canViewAllLoans: boolean;
+  canManageBranch: boolean;
+  canCreateBranch: boolean;
+  canConfigureSystem: boolean;
+  canViewOwnCollectionHistory: boolean;
+  canSubmitCollectionRecords: boolean;
+  canViewAssignedCustomers: boolean;
+}
+
+export const ROLE_PERMISSIONS: Record<UserRole, Permission> = {
+  owner: {
+    canViewBranchDashboard: true,
+    canViewBranchCustomers: true,
+    canCreateCustomer: true,
+    canEditCustomer: true,
+    canUploadDocuments: true,
+    canCreateLoan: true,
+    canEditLoan: true,
+    canManageLoan: true,
+    canManageSavings: true,
+    canRecordPayment: true,
+    canRecordDeposit: true,
+    canRecordWithdrawal: true,
+    canPrintReceipt: true,
+    canGenerateReport: true,
+    canViewTransaction: true,
+    canViewActivityLog: true,
+    canApproveLoan: true,
+    canRejectLoan: true,
+    canForwardLoan: true,
+    canCreateAdmin: true,
+    canCreateCashier: true,
+    canCreateStaff: true,
+    canEditBranchUser: true,
+    canAssignCustomer: true,
+    canViewAllBranches: true,
+    canViewAllCustomers: true,
+    canViewAllLoans: true,
+    canManageBranch: true,
+    canCreateBranch: true,
+    canConfigureSystem: true,
+    canViewOwnCollectionHistory: true,
+    canSubmitCollectionRecords: true,
+    canViewAssignedCustomers: true,
+  },
+  branch_manager: {
+    canViewBranchDashboard: true,
+    canViewBranchCustomers: true,
+    canCreateCustomer: true,
+    canEditCustomer: true,
+    canUploadDocuments: true,
+    canCreateLoan: true,
+    canEditLoan: true,
+    canManageLoan: true,
+    canManageSavings: true,
+    canRecordPayment: true,
+    canRecordDeposit: true,
+    canRecordWithdrawal: true,
+    canPrintReceipt: true,
+    canGenerateReport: true,
+    canViewTransaction: true,
+    canViewActivityLog: true,
+    canApproveLoan: false,
+    canRejectLoan: true,
+    canForwardLoan: true,
+    canCreateAdmin: true,
+    canCreateCashier: true,
+    canCreateStaff: true,
+    canEditBranchUser: true,
+    canAssignCustomer: true,
+    canViewAllBranches: false,
+    canViewAllCustomers: false,
+    canViewAllLoans: false,
+    canManageBranch: false,
+    canCreateBranch: false,
+    canConfigureSystem: false,
+    canViewOwnCollectionHistory: false,
+    canSubmitCollectionRecords: false,
+    canViewAssignedCustomers: false,
+  },
+  admin: {
+    canViewBranchDashboard: true,
+    canViewBranchCustomers: true,
+    canCreateCustomer: true,
+    canEditCustomer: true,
+    canUploadDocuments: true,
+    canCreateLoan: true,
+    canEditLoan: true,
+    canManageLoan: true,
+    canManageSavings: true,
+    canRecordPayment: true,
+    canRecordDeposit: true,
+    canRecordWithdrawal: true,
+    canPrintReceipt: true,
+    canGenerateReport: true,
+    canViewTransaction: true,
+    canViewActivityLog: true,
+    canApproveLoan: false,
+    canRejectLoan: false,
+    canForwardLoan: false,
+    canCreateAdmin: false,
+    canCreateCashier: false,
+    canCreateStaff: false,
+    canEditBranchUser: false,
+    canAssignCustomer: true,
+    canViewAllBranches: false,
+    canViewAllCustomers: false,
+    canViewAllLoans: false,
+    canManageBranch: false,
+    canCreateBranch: false,
+    canConfigureSystem: false,
+    canViewOwnCollectionHistory: false,
+    canSubmitCollectionRecords: false,
+    canViewAssignedCustomers: false,
+  },
+  cashier: {
+    canViewBranchDashboard: true,
+    canViewBranchCustomers: true,
+    canCreateCustomer: true,
+    canEditCustomer: true,
+    canUploadDocuments: true,
+    canCreateLoan: true,
+    canEditLoan: true,
+    canManageLoan: true,
+    canManageSavings: true,
+    canRecordPayment: true,
+    canRecordDeposit: true,
+    canRecordWithdrawal: true,
+    canPrintReceipt: true,
+    canGenerateReport: true,
+    canViewTransaction: true,
+    canViewActivityLog: true,
+    canApproveLoan: false,
+    canRejectLoan: false,
+    canForwardLoan: false,
+    canCreateAdmin: false,
+    canCreateCashier: false,
+    canCreateStaff: false,
+    canEditBranchUser: false,
+    canAssignCustomer: true,
+    canViewAllBranches: false,
+    canViewAllCustomers: false,
+    canViewAllLoans: false,
+    canManageBranch: false,
+    canCreateBranch: false,
+    canConfigureSystem: false,
+    canViewOwnCollectionHistory: false,
+    canSubmitCollectionRecords: false,
+    canViewAssignedCustomers: false,
+  },
+  staff: {
+    canViewBranchDashboard: false,
+    canViewBranchCustomers: false,
+    canCreateCustomer: false,
+    canEditCustomer: false,
+    canUploadDocuments: false,
+    canCreateLoan: false,
+    canEditLoan: false,
+    canManageLoan: false,
+    canManageSavings: false,
+    canRecordPayment: true,
+    canRecordDeposit: false,
+    canRecordWithdrawal: false,
+    canPrintReceipt: false,
+    canGenerateReport: false,
+    canViewTransaction: false,
+    canViewActivityLog: false,
+    canApproveLoan: false,
+    canRejectLoan: false,
+    canForwardLoan: false,
+    canCreateAdmin: false,
+    canCreateCashier: false,
+    canCreateStaff: false,
+    canEditBranchUser: false,
+    canAssignCustomer: false,
+    canViewAllBranches: false,
+    canViewAllCustomers: false,
+    canViewAllLoans: false,
+    canManageBranch: false,
+    canCreateBranch: false,
+    canConfigureSystem: false,
+    canViewOwnCollectionHistory: true,
+    canSubmitCollectionRecords: true,
+    canViewAssignedCustomers: true,
+  },
+  view_only: {
+    canViewBranchDashboard: true,
+    canViewBranchCustomers: true,
+    canCreateCustomer: false,
+    canEditCustomer: false,
+    canUploadDocuments: false,
+    canCreateLoan: false,
+    canEditLoan: false,
+    canManageLoan: false,
+    canManageSavings: false,
+    canRecordPayment: false,
+    canRecordDeposit: false,
+    canRecordWithdrawal: false,
+    canPrintReceipt: false,
+    canGenerateReport: true,
+    canViewTransaction: true,
+    canViewActivityLog: true,
+    canApproveLoan: false,
+    canRejectLoan: false,
+    canForwardLoan: false,
+    canCreateAdmin: false,
+    canCreateCashier: false,
+    canCreateStaff: false,
+    canEditBranchUser: false,
+    canAssignCustomer: false,
+    canViewAllBranches: false,
+    canViewAllCustomers: false,
+    canViewAllLoans: false,
+    canManageBranch: false,
+    canCreateBranch: false,
+    canConfigureSystem: false,
+    canViewOwnCollectionHistory: false,
+    canSubmitCollectionRecords: false,
+    canViewAssignedCustomers: false,
+  },
+};
+
+export function hasPermission(role: UserRole, permission: keyof Permission): boolean {
+  return ROLE_PERMISSIONS[role][permission] ?? false;
+}
+
+export function checkPermission(role: UserRole, permission: keyof Permission): void {
+  if (!hasPermission(role, permission)) {
+    throw new Error(`Permission denied: ${permission} not allowed for role ${role}`);
+  }
+}

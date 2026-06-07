@@ -42,9 +42,10 @@ CREATE TABLE IF NOT EXISTS users (
   email TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
   full_name TEXT NOT NULL,
-  role TEXT NOT NULL CHECK (role IN ('owner', 'admin', 'staff', 'view_only')),
+  role TEXT NOT NULL CHECK (role IN ('owner', 'branch_manager', 'admin', 'cashier', 'staff', 'view_only')),
   mobile TEXT,
   address TEXT,
+  branch_id UUID REFERENCES branches(id) ON DELETE SET NULL,
   avatar_url TEXT,
   is_active BOOLEAN DEFAULT TRUE,
   last_login_at TIMESTAMPTZ,
@@ -75,9 +76,15 @@ CREATE TABLE IF NOT EXISTS customers (
   gender TEXT CHECK (gender IN ('male', 'female', 'other')),
   occupation TEXT,
   monthly_income NUMERIC(15,2),
+  branch_id UUID REFERENCES branches(id) ON DELETE CASCADE,
   photo_url TEXT,
   nic_front_url TEXT,
   nic_back_url TEXT,
+  home_photo_url TEXT,
+  shop_photo_url TEXT,
+  application_form_url TEXT,
+  registered_by_staff_id UUID REFERENCES users(id),
+  assigned_staff_id UUID REFERENCES users(id),
   notes TEXT,
   is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -98,6 +105,15 @@ CREATE TABLE IF NOT EXISTS loans (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   loan_code TEXT UNIQUE NOT NULL DEFAULT generate_entity_id('LON', 'loan_seq'),
   customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE RESTRICT,
+  branch_id UUID REFERENCES branches(id) ON DELETE CASCADE,
+  applied_by UUID REFERENCES users(id),
+  in_charge_user_id UUID REFERENCES users(id),
+  approval_status TEXT NOT NULL DEFAULT 'pending_approval' CHECK (approval_status IN ('pending_approval', 'pending_manager_review', 'approved', 'rejected')),
+  approved_by UUID REFERENCES users(id),
+  approved_at TIMESTAMPTZ,
+  rejection_reason TEXT,
+  loan_form_url TEXT,
+  loan_application_url TEXT,
   
   -- Loan terms
   principal_amount NUMERIC(15,2) NOT NULL,
@@ -118,7 +134,7 @@ CREATE TABLE IF NOT EXISTS loans (
   late_fees NUMERIC(15,2) DEFAULT 0,
   
   -- Status
-  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'closed', 'overdue', 'restructured')),
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('pending_approval', 'active', 'closed', 'overdue', 'restructured')),
   is_fully_paid BOOLEAN DEFAULT FALSE,
   last_payment_date DATE,
   next_due_date DATE,
@@ -170,6 +186,7 @@ CREATE TABLE IF NOT EXISTS loan_payments (
   payment_code TEXT UNIQUE NOT NULL DEFAULT generate_entity_id('PAY', 'payment_seq'),
   loan_id UUID NOT NULL REFERENCES loans(id) ON DELETE RESTRICT,
   customer_id UUID NOT NULL REFERENCES customers(id),
+  branch_id UUID REFERENCES branches(id) ON DELETE CASCADE,
   
   payment_date DATE NOT NULL DEFAULT CURRENT_DATE,
   amount NUMERIC(15,2) NOT NULL,
@@ -200,6 +217,7 @@ CREATE TABLE IF NOT EXISTS savings_accounts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   account_code TEXT UNIQUE NOT NULL DEFAULT generate_entity_id('SAV', 'savings_seq'),
   customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE RESTRICT,
+  branch_id UUID REFERENCES branches(id) ON DELETE CASCADE,
   
   account_type TEXT NOT NULL DEFAULT 'regular' CHECK (account_type IN ('regular', 'fixed', 'recurring')),
   interest_rate NUMERIC(8,4) DEFAULT 0,       -- Annual interest rate %
@@ -230,6 +248,7 @@ CREATE TABLE IF NOT EXISTS savings_transactions (
   transaction_code TEXT UNIQUE NOT NULL DEFAULT generate_entity_id('STX', 'savings_tx_seq'),
   account_id UUID NOT NULL REFERENCES savings_accounts(id) ON DELETE RESTRICT,
   customer_id UUID NOT NULL REFERENCES customers(id),
+  branch_id UUID REFERENCES branches(id) ON DELETE CASCADE,
   
   transaction_type TEXT NOT NULL CHECK (transaction_type IN ('deposit', 'withdrawal', 'interest', 'fee')),
   amount NUMERIC(15,2) NOT NULL,
@@ -279,6 +298,7 @@ CREATE INDEX IF NOT EXISTS idx_reminders_customer ON due_reminders(customer_id);
 CREATE TABLE IF NOT EXISTS reports (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   report_code TEXT UNIQUE NOT NULL DEFAULT generate_entity_id('RPT', 'report_seq'),
+  branch_id UUID REFERENCES branches(id) ON DELETE CASCADE,
   report_type TEXT NOT NULL CHECK (report_type IN ('daily_collection', 'monthly_finance', 'loan_summary', 'savings_summary', 'customer_wise', 'income', 'due_payment')),
   report_name TEXT NOT NULL,
   
@@ -302,11 +322,14 @@ CREATE TABLE IF NOT EXISTS activity_logs (
   user_id UUID REFERENCES users(id),
   user_name TEXT,
   user_role TEXT,
+  branch_id UUID REFERENCES branches(id),
   
   action TEXT NOT NULL,                   -- 'CREATE', 'UPDATE', 'DELETE', 'VIEW', 'LOGIN', etc.
   entity_type TEXT NOT NULL,              -- 'customer', 'loan', 'payment', 'savings', 'user'
   entity_id TEXT,                         -- The ID of the affected record
   entity_code TEXT,                       -- Human-readable code
+  record_type TEXT,
+  record_id UUID,
   
   description TEXT,
   old_values JSONB,

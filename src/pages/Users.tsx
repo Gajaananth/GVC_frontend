@@ -19,8 +19,9 @@ const Users = () => {
     branch_id: ''
   });
   const [isCreating, setIsCreating] = useState(false);
-  const { isOwner, isAdmin } = usePermissions();
+  const { isOwner, isAdmin, isBranchManager } = usePermissions();
   const { user } = useAuthStore();
+  const canCreateUsers = isOwner || isBranchManager;
   const queryClient = useQueryClient();
 
   // Debug: log user and permissions
@@ -40,11 +41,16 @@ const Users = () => {
       return;
     }
 
+    const payload = {
+      ...formData,
+      branch_id: isBranchManager ? user?.branch_id || formData.branch_id : formData.branch_id
+    };
+
     setIsCreating(true);
     try {
       await fetchApi('/users', {
         method: 'POST',
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
       toast.success('User created successfully');
       setShowCreateModal(false);
@@ -81,9 +87,14 @@ const Users = () => {
           <h2 className="text-2xl font-bold text-gray-800">Staff & Users</h2>
           <p className="text-sm text-gray-500">Manage system access and roles.</p>
         </div>
-        {user && isOwner && (
+        {user && canCreateUsers && (
           <button 
-            onClick={() => setShowCreateModal(true)}
+            onClick={() => {
+              if (isBranchManager) {
+                setFormData(prev => ({ ...prev, branch_id: user?.branch_id || '' }));
+              }
+              setShowCreateModal(true);
+            }}
             className="bg-forest hover:bg-leaf text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-sm">
             <Plus className="w-5 h-5" />
             Add User
@@ -150,25 +161,36 @@ const Users = () => {
                   onChange={(e) => setFormData({...formData, role: e.target.value})}
                   className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
                 >
-                  <option value="owner">Owner</option>
-                  <option value="admin">Admin</option>
-                  <option value="branch_manager">Branch Manager</option>
-                  <option value="cashier">Cashier</option>
-                  <option value="staff">Staff</option>
-                  <option value="view_only">View Only</option>
+                  {isOwner ? (
+                    <>
+                      <option value="owner">Owner</option>
+                      <option value="admin">Admin</option>
+                      <option value="branch_manager">Branch Manager</option>
+                      <option value="cashier">Cashier</option>
+                      <option value="staff">Staff</option>
+                      <option value="view_only">View Only</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="admin">Admin</option>
+                      <option value="cashier">Cashier</option>
+                      <option value="staff">Staff</option>
+                      <option value="view_only">View Only</option>
+                    </>
+                  )}
                 </select>
               </div>
 
-              {formData.role !== 'owner' && (
+              {(isOwner && formData.role !== 'owner') && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Branch ID {formData.role !== 'owner' ? '*' : ''}</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Branch ID *</label>
                   <input
                     type="text"
                     placeholder="Select or enter branch UUID"
                     value={formData.branch_id}
                     onChange={(e) => setFormData({...formData, branch_id: e.target.value})}
                     className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
-                    required={formData.role !== 'owner'}
+                    required
                   />
                   <p className="text-xs text-gray-500 mt-1">Required for non-owner users</p>
                 </div>
