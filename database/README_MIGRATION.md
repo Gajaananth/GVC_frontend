@@ -9,6 +9,7 @@ Run `schema.sql` first, then migrations in order:
 6. `migrations/007_loan_form_url.sql`
 7. `migrations/008_loan_application_url.sql`
 8. `migrations/009_service_role_permissions.sql`
+9. `migrations/013_add_branch_id_to_missing_tables.sql` (adds branch_id to transactional tables)
 
 ## Supabase service_role grants (production step)
 
@@ -23,6 +24,10 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.physical_form_submissions TO serv
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.loan_assignment_changes TO service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.company_settings TO service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.collection_correction_requests TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.loan_payments TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.savings_transactions TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.staff_daily_reconciliations TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.customer_documents TO service_role;
 ```
 
 Notes:

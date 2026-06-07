@@ -20,24 +20,34 @@ export const usePermissions = () => {
     isCashier,
     isStaff,
     isViewOnly,
+    // Branch Management
+    canManageBranches: isOwner,
+    canViewBranches: !isViewOnly,
+    canViewOwnBranch: isOwner || isAdmin || isBranchManager || isCashier || isStaff,
+    // Customer Management
     canCreateCustomers: canManageCustomers,
     canEditCustomers: canManageCustomers,
-    canDeleteCustomers: isOwner || isAdmin || isBranchManager, // Usually delete is more restricted, but keeping it open per instructions if needed. Let's allow branch manager too.
+    canDeleteCustomers: isOwner || isAdmin || isBranchManager,
     canUploadDocuments: canManageCustomers,
     canViewOnly: isStaff || isViewOnly,
+    // Loan Management
     canIssueLoans: isOwner || isAdmin || isBranchManager || isCashier,
     canApproveLoans: isOwner,
     canChangeLoanStatus: isOwner || isAdmin || isBranchManager,
     canRequestInChargeChange: isOwner || isAdmin || isBranchManager,
+    // Collection Management
     canSubmitCollections: isStaff,
     canApproveCollections: isOwner || isAdmin || isBranchManager,
     canReconcileCollections: isOwner || isAdmin || isBranchManager,
     canExecuteCorrections: isOwner || isAdmin,
     canApproveCorrections: isOwner,
+    // Payments & Savings
     canRecordPaymentsDirect: isOwner || isAdmin || isBranchManager || isCashier,
     canManageSavingsAccounts: isOwner || isAdmin || isBranchManager,
+    // User & Settings Management
     canManageUsers: isOwner || isAdmin,
     canManageSettings: isOwner,
+    // Physical Forms
     canSubmitPhysicalForm: isStaff,
     canProcessPhysicalForms: isOwner || isAdmin || isBranchManager || isCashier,
     canEnterCustomerOrLoanData: isOwner || isAdmin || isBranchManager || isCashier,

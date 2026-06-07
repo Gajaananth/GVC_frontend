@@ -9,6 +9,8 @@ export interface User {
   role: 'owner' | 'admin' | 'staff' | 'view_only' | 'branch_manager' | 'cashier';
   mobile?: string;
   address?: string;
+  branch_id?: string;
+  branch_name?: string;
   avatar_url?: string;
 }
 

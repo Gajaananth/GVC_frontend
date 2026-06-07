@@ -17,7 +17,8 @@ import {
   FileInput,
   Bell,
   Database,
-  ShieldCheck
+  ShieldCheck,
+  Building2
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -37,6 +38,7 @@ const Sidebar = () => {
     { name: 'Due & Reminders', path: '/due', icon: CalendarClock, roles: ['owner', 'admin', 'staff', 'view_only'] },
     { name: 'Reports', path: '/reports', icon: FileText, roles: ['owner', 'admin', 'staff', 'view_only'] },
     { name: 'Owner Approvals', path: '/approvals', icon: ShieldCheck, roles: ['owner'] },
+    { name: 'Branches', path: '/branches', icon: Building2, roles: ['owner'] },
     { name: 'Staff & Users', path: '/users', icon: Users, roles: ['owner', 'admin'] },
     { name: 'Notifications', path: '/notifications', icon: Bell, roles: ['owner', 'admin'] },
     { name: 'Settings', path: '/settings', icon: Settings, roles: ['owner'] },

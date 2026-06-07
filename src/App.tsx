@@ -17,6 +17,7 @@ import Savings from './pages/Savings';
 import DueReminders from './pages/DueReminders';
 import Reports from './pages/Reports';
 import Users from './pages/Users';
+import Branches from './pages/Branches';
 import Settings from './pages/Settings';
 import ActivityLogs from './pages/ActivityLogs';
 import Approvals from './pages/Approvals';
@@ -96,6 +97,11 @@ function App() {
                   <Route path="/settings/*" element={
                     <ProtectedRoute allowedRoles={['owner']}>
                       <Settings />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/branches/*" element={
+                    <ProtectedRoute allowedRoles={['owner']}>
+                      <Branches />
                     </ProtectedRoute>
                   } />
                   <Route path="/logs/*" element={
