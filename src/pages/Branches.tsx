@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { usePermissions } from '../hooks/usePermissions';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { fetchApi } from '../services/api';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface Branch {
   id: string;
@@ -11,7 +13,7 @@ interface Branch {
   address: string;
   phone: string;
   email: string;
-  status: 'active' | 'inactive';
+  status: string;
   created_at: string;
   updated_at: string;
 }
@@ -24,7 +26,7 @@ interface BranchStats {
 }
 
 const Branches: React.FC = () => {
-  const { user, accessToken } = useAuthStore();
+  const { user } = useAuthStore();
   const { canManageBranches } = usePermissions();
   const navigate = useNavigate();
 
@@ -41,27 +43,23 @@ const Branches: React.FC = () => {
     address: '',
     phone: '',
     email: '',
-    status: 'active' as const
+    status: 'active'
   });
 
   // Fetch branches
   const fetchBranches = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5000/api/branches', {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      });
-      setBranches(response.data.data || []);
+      const response = await fetchApi('/branches');
+      setBranches(response.data || []);
 
       // Fetch stats for each branch
       if (canManageBranches) {
         const statsMap: Record<string, BranchStats> = {};
-        for (const branch of response.data.data || []) {
+        for (const branch of response.data || []) {
           try {
-            const statsRes = await axios.get(`http://localhost:5000/api/branches/${branch.id}/stats`, {
-              headers: { Authorization: `Bearer ${accessToken}` }
-            });
-            statsMap[branch.id] = statsRes.data.data;
+            const statsRes = await fetchApi(`/branches/${branch.id}/stats`);
+            statsMap[branch.id] = statsRes.data;
           } catch (err) {
             // Silently fail for stats
           }
@@ -71,7 +69,7 @@ const Branches: React.FC = () => {
 
       setError(null);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to fetch branches');
+      setError(err.message || 'Failed to fetch branches');
     } finally {
       setLoading(false);
     }
@@ -79,7 +77,7 @@ const Branches: React.FC = () => {
 
   useEffect(() => {
     if (!user || !canManageBranches) {
-      navigate('/dashboard');
+      navigate('/');
       return;
     }
     fetchBranches();
@@ -121,13 +119,15 @@ const Branches: React.FC = () => {
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/api/branches', formData, {
-        headers: { Authorization: `Bearer ${accessToken}` }
+      await fetchApi('/branches', {
+        method: 'POST',
+        body: JSON.stringify(formData)
       });
+      toast.success('Branch created successfully');
       setShowCreateModal(false);
       fetchBranches();
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to create branch');
+      toast.error(err.message || 'Failed to create branch');
     }
   };
 
@@ -136,14 +136,16 @@ const Branches: React.FC = () => {
     if (!selectedBranch) return;
 
     try {
-      await axios.put(`http://localhost:5000/api/branches/${selectedBranch.id}`, formData, {
-        headers: { Authorization: `Bearer ${accessToken}` }
+      await fetchApi(`/branches/${selectedBranch.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(formData)
       });
+      toast.success('Branch updated successfully');
       setShowEditModal(false);
       setSelectedBranch(null);
       fetchBranches();
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to update branch');
+      toast.error(err.message || 'Failed to update branch');
     }
   };
 
@@ -151,12 +153,13 @@ const Branches: React.FC = () => {
     if (!window.confirm('Are you sure you want to delete this branch?')) return;
 
     try {
-      await axios.delete(`http://localhost:5000/api/branches/${branchId}`, {
-        headers: { Authorization: `Bearer ${accessToken}` }
+      await fetchApi(`/branches/${branchId}`, {
+        method: 'DELETE'
       });
+      toast.success('Branch deleted successfully');
       fetchBranches();
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to delete branch');
+      toast.error(err.message || 'Failed to delete branch');
     }
   };
 
@@ -172,314 +175,304 @@ const Branches: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Branch Management</h1>
-          {user?.role === 'owner' && (
-            <button
-              onClick={handleCreateClick}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-            >
-              + Add Branch
-            </button>
-          )}
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800">Branch Management</h2>
+          <p className="text-sm text-gray-500">Create and manage business branches</p>
         </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
-          </div>
-        )}
-
-        {/* Loading State */}
-        {loading && (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin">
-              <div className="h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
-            </div>
-            <p className="text-gray-600 mt-2">Loading branches...</p>
-          </div>
-        )}
-
-        {/* Branches Table */}
-        {!loading && branches.length > 0 && (
-          <div className="bg-white shadow rounded-lg overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Code</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Name</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Address</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Contact</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Status</th>
-                  {user?.role === 'owner' && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Stats</th>}
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {branches.map(branch => (
-                  <tr key={branch.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{branch.branch_code}</td>
-                    <td className="px-6 py-4 text-sm text-gray-900">{branch.branch_name}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{branch.address}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      <div>{branch.phone}</div>
-                      <div className="text-xs text-gray-500">{branch.email}</div>
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        branch.status === 'active'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {branch.status === 'active' ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    {user?.role === 'owner' && (
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {stats[branch.id] && (
-                          <div className="text-xs">
-                            <div>Managers: {stats[branch.id].managers}</div>
-                            <div>Users: {stats[branch.id].users}</div>
-                            <div>Customers: {stats[branch.id].customers}</div>
-                            <div>Loans: {stats[branch.id].activeLoans}</div>
-                          </div>
-                        )}
-                      </td>
-                    )}
-                    <td className="px-6 py-4 text-sm">
-                      <div className="flex gap-2">
-                        {user?.role === 'owner' && (
-                          <>
-                            <button
-                              onClick={() => handleEditClick(branch)}
-                              className="text-blue-600 hover:text-blue-800 font-medium"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDelete(branch.id)}
-                              className="text-red-600 hover:text-red-800 font-medium"
-                            >
-                              Delete
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!loading && branches.length === 0 && (
-          <div className="bg-white shadow rounded-lg p-12 text-center">
-            <h3 className="text-lg font-medium text-gray-900">No Branches</h3>
-            <p className="text-gray-600 mt-2">
-              {user?.role === 'owner' ? 'Create your first branch to get started' : 'You do not have access to any branches'}
-            </p>
-          </div>
-        )}
-
-        {/* Create Modal */}
-        {showCreateModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-8 w-full max-w-md">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Create Branch</h2>
-              <form onSubmit={handleCreateSubmit}>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Branch Code</label>
-                    <input
-                      type="text"
-                      name="branch_code"
-                      value={formData.branch_code}
-                      onChange={handleFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Branch Name</label>
-                    <input
-                      type="text"
-                      name="branch_name"
-                      value={formData.branch_name}
-                      onChange={handleFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                    <textarea
-                      name="address"
-                      value={formData.address}
-                      onChange={handleFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      rows={2}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                    <select
-                      name="status"
-                      value={formData.status}
-                      onChange={handleFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="flex gap-3 mt-6">
-                  <button
-                    type="button"
-                    onClick={() => setShowCreateModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                  >
-                    Create
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* Edit Modal */}
-        {showEditModal && selectedBranch && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-8 w-full max-w-md">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Edit Branch</h2>
-              <form onSubmit={handleUpdateSubmit}>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Branch Code</label>
-                    <input
-                      type="text"
-                      name="branch_code"
-                      value={formData.branch_code}
-                      onChange={handleFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Branch Name</label>
-                    <input
-                      type="text"
-                      name="branch_name"
-                      value={formData.branch_name}
-                      onChange={handleFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                    <textarea
-                      name="address"
-                      value={formData.address}
-                      onChange={handleFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      rows={2}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                    <select
-                      name="status"
-                      value={formData.status}
-                      onChange={handleFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="flex gap-3 mt-6">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowEditModal(false);
-                      setSelectedBranch(null);
-                    }}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                  >
-                    Update
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+        <button
+          onClick={handleCreateClick}
+          className="bg-forest hover:bg-leaf text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-sm"
+        >
+          <Plus className="w-5 h-5" />
+          Add Branch
+        </button>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      )}
+
+      {/* Loading State */}
+      {loading && (
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin">
+            <div className="h-8 w-8 border-4 border-forest border-t-transparent rounded-full"></div>
+          </div>
+          <p className="text-gray-600 mt-2">Loading branches...</p>
+        </div>
+      )}
+
+      {/* Branches Table */}
+      {!loading && branches.length > 0 && (
+        <div className="glass-card overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-100">
+              <tr>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Code</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Name</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Address</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Contact</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Status</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Stats</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {branches.map(branch => (
+                <tr key={branch.id} className="hover:bg-gray-50/50">
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{branch.branch_code}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{branch.branch_name}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{branch.address}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    <div>{branch.phone}</div>
+                    <div className="text-xs text-gray-500">{branch.email}</div>
+                  </td>
+                  <td className="px-6 py-4 text-sm">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      branch.status === 'active'
+                        ? 'bg-green-100/80 text-green-700'
+                        : 'bg-red-100/80 text-red-700'
+                    }`}>
+                      {branch.status === 'active' ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    {stats[branch.id] && (
+                      <div className="text-xs space-y-0.5">
+                        <div>Managers: {stats[branch.id].managers}</div>
+                        <div>Users: {stats[branch.id].users}</div>
+                        <div>Customers: {stats[branch.id].customers}</div>
+                        <div>Loans: {stats[branch.id].activeLoans}</div>
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-sm">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEditClick(branch)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Edit"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(branch.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!loading && branches.length === 0 && (
+        <div className="glass-card p-12 text-center">
+          <h3 className="text-lg font-medium text-gray-900">No Branches</h3>
+          <p className="text-gray-600 mt-2">Create your first branch to get started</p>
+        </div>
+      )}
+
+      {/* Create Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Create Branch</h2>
+            <form onSubmit={handleCreateSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Branch Code *</label>
+                <input
+                  type="text"
+                  name="branch_code"
+                  value={formData.branch_code}
+                  onChange={handleFormChange}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Branch Name *</label>
+                <input
+                  type="text"
+                  name="branch_name"
+                  value={formData.branch_name}
+                  onChange={handleFormChange}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Address *</label>
+                <textarea
+                  name="address"
+                  value={formData.address}
+                  onChange={handleFormChange}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  rows={2}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleFormChange}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleFormChange}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleFormChange}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                >
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-forest text-white rounded-lg hover:bg-leaf transition-colors font-medium"
+                >
+                  Create
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && selectedBranch && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Edit Branch</h2>
+            <form onSubmit={handleUpdateSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Branch Code *</label>
+                <input
+                  type="text"
+                  name="branch_code"
+                  value={formData.branch_code}
+                  onChange={handleFormChange}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Branch Name *</label>
+                <input
+                  type="text"
+                  name="branch_name"
+                  value={formData.branch_name}
+                  onChange={handleFormChange}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Address *</label>
+                <textarea
+                  name="address"
+                  value={formData.address}
+                  onChange={handleFormChange}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  rows={2}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleFormChange}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleFormChange}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleFormChange}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                >
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setSelectedBranch(null);
+                  }}
+                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-forest text-white rounded-lg hover:bg-leaf transition-colors font-medium"
+                >
+                  Update
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
