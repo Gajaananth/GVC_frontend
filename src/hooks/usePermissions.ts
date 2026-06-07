@@ -12,6 +12,7 @@ export const usePermissions = () => {
   const isViewOnly = role === 'view_only';
 
   const canManageCustomers = isOwner || isAdmin || isBranchManager || isCashier;
+  const canManageUsers = isOwner || isAdmin || isBranchManager;
 
   return {
     isOwner,
@@ -24,6 +25,8 @@ export const usePermissions = () => {
     canManageBranches: isOwner,
     canViewBranches: !isViewOnly,
     canViewOwnBranch: isOwner || isAdmin || isBranchManager || isCashier || isStaff,
+    // User Management
+    canManageUsers,
     // Customer Management
     canCreateCustomers: canManageCustomers,
     canEditCustomers: canManageCustomers,

@@ -27,24 +27,26 @@ CREATE UNIQUE INDEX uniq_branch_manager_per_branch ON users (branch_id)
 WHERE role = 'branch_manager' AND is_active = true;
 
 -- 4. Add branch_id to core tables
-ALTER TABLE customers ADD COLUMN branch_id uuid REFERENCES branches(id) ON DELETE CASCADE;
-ALTER TABLE loans ADD COLUMN branch_id uuid REFERENCES branches(id) ON DELETE CASCADE;
-ALTER TABLE savings ADD COLUMN branch_id uuid REFERENCES branches(id) ON DELETE CASCADE;
-ALTER TABLE transactions ADD COLUMN branch_id uuid REFERENCES branches(id) ON DELETE CASCADE;
-ALTER TABLE reports ADD COLUMN branch_id uuid REFERENCES branches(id) ON DELETE CASCADE;
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS branch_id uuid REFERENCES branches(id) ON DELETE CASCADE;
+ALTER TABLE loans ADD COLUMN IF NOT EXISTS branch_id uuid REFERENCES branches(id) ON DELETE CASCADE;
+ALTER TABLE savings_accounts ADD COLUMN IF NOT EXISTS branch_id uuid REFERENCES branches(id) ON DELETE CASCADE;
+ALTER TABLE loan_payments ADD COLUMN IF NOT EXISTS branch_id uuid REFERENCES branches(id) ON DELETE CASCADE;
+ALTER TABLE savings_transactions ADD COLUMN IF NOT EXISTS branch_id uuid REFERENCES branches(id) ON DELETE CASCADE;
+ALTER TABLE reports ADD COLUMN IF NOT EXISTS branch_id uuid REFERENCES branches(id) ON DELETE CASCADE;
 
 -- 5. Extend activity_logs with branch_id and other fields
-ALTER TABLE activity_logs ADD COLUMN branch_id uuid REFERENCES branches(id);
-ALTER TABLE activity_logs ADD COLUMN record_type text; -- e.g., 'customer', 'loan', etc.
-ALTER TABLE activity_logs ADD COLUMN record_id uuid;
+ALTER TABLE activity_logs ADD COLUMN IF NOT EXISTS branch_id uuid REFERENCES branches(id);
+ALTER TABLE activity_logs ADD COLUMN IF NOT EXISTS record_type text; -- e.g., 'customer', 'loan', etc.
+ALTER TABLE activity_logs ADD COLUMN IF NOT EXISTS record_id uuid;
 
 -- 6. Add indexes for branch filtering
-CREATE INDEX idx_customers_branch ON customers (branch_id);
-CREATE INDEX idx_loans_branch ON loans (branch_id);
-CREATE INDEX idx_savings_branch ON savings (branch_id);
-CREATE INDEX idx_transactions_branch ON transactions (branch_id);
-CREATE INDEX idx_reports_branch ON reports (branch_id);
-CREATE INDEX idx_activity_logs_branch ON activity_logs (branch_id);
+CREATE INDEX IF NOT EXISTS idx_customers_branch ON customers (branch_id);
+CREATE INDEX IF NOT EXISTS idx_loans_branch ON loans (branch_id);
+CREATE INDEX IF NOT EXISTS idx_savings_branch ON savings_accounts (branch_id);
+CREATE INDEX IF NOT EXISTS idx_loan_payments_branch ON loan_payments (branch_id);
+CREATE INDEX IF NOT EXISTS idx_savings_tx_branch ON savings_transactions (branch_id);
+CREATE INDEX IF NOT EXISTS idx_reports_branch ON reports (branch_id);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_branch ON activity_logs (branch_id);
 
 -- 7. Optional: Add default branch assignment for existing records (assign to a default branch if needed)
 -- This step may require creating a default branch and updating existing rows.
@@ -59,8 +61,9 @@ WITH default_branch AS (
 UPDATE users SET branch_id = (SELECT id FROM default_branch) WHERE branch_id IS NULL;
 UPDATE customers SET branch_id = (SELECT id FROM default_branch) WHERE branch_id IS NULL;
 UPDATE loans SET branch_id = (SELECT id FROM default_branch) WHERE branch_id IS NULL;
-UPDATE savings SET branch_id = (SELECT id FROM default_branch) WHERE branch_id IS NULL;
-UPDATE transactions SET branch_id = (SELECT id FROM default_branch) WHERE branch_id IS NULL;
+UPDATE savings_accounts SET branch_id = (SELECT id FROM default_branch) WHERE branch_id IS NULL;
+UPDATE loan_payments SET branch_id = (SELECT id FROM default_branch) WHERE branch_id IS NULL;
+UPDATE savings_transactions SET branch_id = (SELECT id FROM default_branch) WHERE branch_id IS NULL;
 UPDATE reports SET branch_id = (SELECT id FROM default_branch) WHERE branch_id IS NULL;
 UPDATE activity_logs SET branch_id = (SELECT id FROM default_branch) WHERE branch_id IS NULL;
 
