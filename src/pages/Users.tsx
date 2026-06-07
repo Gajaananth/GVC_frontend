@@ -195,7 +195,6 @@ const Users = () => {
           </div>
         </div>
       )}
-      </div>
 
       <div className="glass-card flex flex-col">
         <div className="p-4 border-b border-gray-100">
