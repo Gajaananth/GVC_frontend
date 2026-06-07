@@ -47,8 +47,7 @@ export const usePermissions = () => {
     // Payments & Savings
     canRecordPaymentsDirect: isOwner || isAdmin || isBranchManager || isCashier,
     canManageSavingsAccounts: isOwner || isAdmin || isBranchManager,
-    // User & Settings Management
-    canManageUsers: isOwner || isAdmin,
+    // Settings Management
     canManageSettings: isOwner,
     // Physical Forms
     canSubmitPhysicalForm: isStaff,

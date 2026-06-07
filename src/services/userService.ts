@@ -6,8 +6,8 @@ export interface UserCreateRequest {
   email: string;
   password: string;
   full_name: string;
-  role: 'branch_manager' | 'admin' | 'cashier' | 'staff';
-  branch_id: string; // Required for all non-owner roles
+  role: User['role'];
+  branch_id?: string; // Required for all non-owner roles
   mobile?: string;
   address?: string;
   avatar_url?: string;
