@@ -1,19 +1,55 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchApi } from '../services/api';
-import { Search, Plus, Edit, Trash2, Shield, UserCog } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Shield, UserCog, X } from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
 import { useAuthStore } from '../store/authStore';
+import toast from 'react-hot-toast';
 
 const Users = () => {
   const [page, setPage] = useState(1);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    full_name: '',
+    password: '',
+    role: 'staff',
+    mobile: '',
+    address: ''
+  });
+  const [isCreating, setIsCreating] = useState(false);
   const { isOwner, isAdmin } = usePermissions();
   const { user } = useAuthStore();
+  const queryClient = useQueryClient();
 
   const { data: usersData, isLoading } = useQuery({
     queryKey: ['users', page],
     queryFn: () => fetchApi(`/users?page=${page}&limit=20`),
   });
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.email || !formData.full_name || !formData.password) {
+      toast.error('Email, name, and password are required');
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      await fetchApi('/users', {
+        method: 'POST',
+        body: JSON.stringify(formData)
+      });
+      toast.success('User created successfully');
+      setShowCreateModal(false);
+      setFormData({ email: '', full_name: '', password: '', role: 'staff', mobile: '', address: '' });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to create user');
+    } finally {
+      setIsCreating(false);
+    }
+  };
 
   const getRoleBadge = (role: string) => {
     switch (role) {
@@ -40,11 +76,125 @@ const Users = () => {
           <p className="text-sm text-gray-500">Manage system access and roles.</p>
         </div>
         {user && isOwner && (
-          <button className="bg-forest hover:bg-leaf text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-sm">
+          <button 
+            onClick={() => setShowCreateModal(true)}
+            className="bg-forest hover:bg-leaf text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-sm">
             <Plus className="w-5 h-5" />
             Add User
           </button>
         )}
+      </div>
+
+      {/* Create User Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-gray-800">Create New User</h3>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateUser} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.full_name}
+                  onChange={(e) => setFormData({...formData, full_name: e.target.value})}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  placeholder="John Doe"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                <input
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  placeholder="john@example.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Password *</label>
+                <input
+                  type="password"
+                  required
+                  minLength={8}
+                  value={formData.password}
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  placeholder="Min 8 characters"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Role *</label>
+                <select
+                  value={formData.role}
+                  onChange={(e) => setFormData({...formData, role: e.target.value})}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                >
+                  <option value="owner">Owner</option>
+                  <option value="admin">Admin</option>
+                  <option value="branch_manager">Branch Manager</option>
+                  <option value="cashier">Cashier</option>
+                  <option value="staff">Staff</option>
+                  <option value="view_only">View Only</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mobile</label>
+                <input
+                  type="tel"
+                  value={formData.mobile}
+                  onChange={(e) => setFormData({...formData, mobile: e.target.value})}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  placeholder="+94 123 456 789"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                <input
+                  type="text"
+                  value={formData.address}
+                  onChange={(e) => setFormData({...formData, address: e.target.value})}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  placeholder="Street address"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreating}
+                  className="flex-1 px-4 py-2 bg-forest text-white rounded-lg hover:bg-leaf transition-colors disabled:opacity-50"
+                >
+                  {isCreating ? 'Creating...' : 'Create User'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       </div>
 
       <div className="glass-card flex flex-col">
