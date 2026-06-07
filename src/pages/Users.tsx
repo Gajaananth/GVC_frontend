@@ -22,6 +22,11 @@ const Users = () => {
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
 
+  // Debug: log user and permissions
+  React.useEffect(() => {
+    console.log('Users page - user:', user, 'isOwner:', isOwner);
+  }, [user, isOwner]);
+
   const { data: usersData, isLoading } = useQuery({
     queryKey: ['users', page],
     queryFn: () => fetchApi(`/users?page=${page}&limit=20`),
