@@ -73,7 +73,7 @@ const Dashboard = () => {
   const pendingTotal = (summary.pending_loan_approvals || 0) + (summary.pending_assignment_approvals || 0) + (summary.pending_correction_requests || 0);
 
   return (
-    <div className="space-y-6 flex flex-col h-full max-w-7xl mx-auto px-4">
+    <div className="space-y-4 sm:space-y-6 flex flex-col h-full max-w-7xl mx-auto px-0 sm:px-4 min-w-0">
       {(user?.role === 'admin' || user?.role === 'owner') && (summary.pending_physical_forms || 0) > 0 && (
         <Link to="/physical-forms" className="block bg-orange-50 border border-orange-200 rounded-2xl p-4 hover:bg-orange-100 transition-colors mb-4">
           <div className="flex items-center gap-3">
@@ -113,19 +113,19 @@ const Dashboard = () => {
         </Link>
       )}
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 min-w-0">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-6 min-w-0">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div key={index} className="glass-card p-4 flex flex-row items-center gap-3 h-full w-full">
+            <div key={index} className="glass-card p-4 flex flex-row items-center gap-3 h-full w-full min-w-0">
               <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${stat.bgColor} group-hover:scale-110 transition-transform`}>
                 <Icon className={`w-5 h-5 ${stat.color}`} />
               </div>
               <div className="flex-1 min-w-0 flex flex-col justify-center">
-                <p className="text-[11px] sm:text-xs font-medium text-gray-500 mb-0.5 leading-tight break-all whitespace-normal" title={stat.title}>
+                <p className="text-xs font-medium text-gray-500 mb-0.5 leading-tight truncate" title={stat.title}>
                   {stat.title}
                 </p>
-                <h3 className="text-sm sm:text-base lg:text-sm xl:text-lg font-bold text-gray-900 break-all whitespace-normal" title={String(stat.value)}>
+                <h3 className="text-base lg:text-sm xl:text-lg font-bold text-gray-900 truncate" title={String(stat.value)}>
                   {loadingSummary ? <span className="animate-pulse bg-gray-200 text-transparent rounded">Loading...</span> : stat.value}
                 </h3>
               </div>
@@ -139,14 +139,14 @@ const Dashboard = () => {
 
       {/* Advanced Analytics Section */}
       {(user?.role === 'owner' || user?.role === 'admin') && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 flex-1 min-h-0 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 flex-1 min-h-0 mt-4 sm:mt-6">
           {/* Portfolio at Risk */}
-          <div className="glass-card p-6 flex flex-col items-center justify-center text-center">
+          <div className="glass-card p-5 sm:p-6 flex flex-col items-center justify-center text-center">
             <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
               <TrendingDown className="w-8 h-8 text-red-600" />
             </div>
             <h3 className="text-gray-500 font-medium mb-1">Portfolio at Risk (PAR)</h3>
-            <div className="text-4xl font-bold text-gray-900 mb-2">
+            <div className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
               {loadingMetrics ? '...' : `${metrics.portfolio_at_risk_pct?.toFixed(2) || 0}%`}
             </div>
             <p className="text-xs text-gray-400">
@@ -155,7 +155,7 @@ const Dashboard = () => {
           </div>
 
           {/* Top Overdue Loans */}
-          <div className="glass-card p-6 flex flex-col">
+          <div className="glass-card p-5 sm:p-6 flex flex-col">
             <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-orange-500" />
               Highest Overdue Loans
@@ -168,12 +168,12 @@ const Dashboard = () => {
               ) : (
                 <ul className="space-y-3">
                   {metrics.top_overdue?.map((loan: any, i: number) => (
-                    <li key={i} className="flex justify-between items-center bg-orange-50/50 p-3 rounded-xl border border-orange-100/50">
-                      <div>
+                    <li key={i} className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 bg-orange-50/50 p-3 rounded-xl border border-orange-100/50">
+                      <div className="min-w-0">
                         <p className="font-medium text-gray-800 text-sm">{loan.customer_name}</p>
                         <p className="text-xs text-orange-600 font-medium">{loan.days_overdue} days overdue</p>
                       </div>
-                      <p className="font-bold text-gray-900 text-sm">{formatLKR(loan.remaining_balance)}</p>
+                      <p className="font-bold text-gray-900 text-sm sm:text-right">{formatLKR(loan.remaining_balance)}</p>
                     </li>
                   ))}
                 </ul>
@@ -182,7 +182,7 @@ const Dashboard = () => {
           </div>
 
           {/* Staff Performance */}
-          <div className="glass-card p-6 flex flex-col">
+          <div className="glass-card p-5 sm:p-6 flex flex-col">
             <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
               <Award className="w-5 h-5 text-gold" />
               Top Staff (This Month)
@@ -195,14 +195,14 @@ const Dashboard = () => {
               ) : (
                 <ul className="space-y-3">
                   {metrics.staff_performance?.map((staff: any, i: number) => (
-                    <li key={i} className="flex justify-between items-center">
-                      <div className="flex items-center gap-3">
+                    <li key={i} className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                      <div className="flex items-center gap-3 min-w-0">
                         <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
                           {i + 1}
                         </div>
-                        <p className="font-medium text-gray-800 text-sm">{staff.name}</p>
+                        <p className="font-medium text-gray-800 text-sm truncate">{staff.name}</p>
                       </div>
-                      <p className="font-bold text-gray-900 text-sm text-leaf">{formatLKR(staff.total)}</p>
+                      <p className="font-bold text-gray-900 text-sm text-leaf sm:text-right">{formatLKR(staff.total)}</p>
                     </li>
                   ))}
                 </ul>
@@ -212,13 +212,13 @@ const Dashboard = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 min-h-0 mt-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 flex-1 min-h-0 mt-4 sm:mt-6">
         {/* Recent Transactions List */}
-        <div className="lg:col-span-2 glass-card flex flex-col p-6 gap-4">
-          <div className="p-6 border-b border-gray-100">
-            <h2 className="text-lg font-bold text-gray-800">Recent Transactions</h2>
+        <div className="lg:col-span-2 glass-card flex flex-col overflow-hidden">
+          <div className="p-4 sm:p-6 border-b border-gray-100">
+            <h2 className="text-base sm:text-lg font-bold text-gray-800">Recent Transactions</h2>
           </div>
-          <div className="p-0 overflow-y-auto flex-1 max-h-80 md:max-h-full">
+          <div className="overflow-y-auto flex-1 max-h-none lg:max-h-full">
             {loadingTxs ? (
               <div className="p-8 text-center text-gray-500 animate-pulse">Loading transactions...</div>
             ) : recentTxs?.data?.length === 0 ? (
@@ -230,9 +230,9 @@ const Dashboard = () => {
                   const isLoan = tx.category === 'loan_payment';
                   
                   return (
-                    <li key={i} className="p-4 hover:bg-gray-50/50 transition-colors flex items-center justify-between">
-                      <div className="flex items-center gap-4 min-w-0">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isDeposit ? 'bg-leaf/10 text-leaf' : 'bg-red-100 text-red-600'}`}>
+                    <li key={i} className="p-4 hover:bg-gray-50/50 transition-colors flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                        <div className={`shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ${isDeposit ? 'bg-leaf/10 text-leaf' : 'bg-red-100 text-red-600'}`}>
                           {isDeposit ? <ArrowDownRight className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
                         </div>
                         <div className="flex-1 min-w-0 overflow-hidden break-words">
@@ -240,8 +240,8 @@ const Dashboard = () => {
                           <p className="text-xs text-gray-500 capitalize">{tx.type.replace('_', ' ')} • {isLoan ? 'Loan' : 'Savings'}</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className={`font-bold ${isDeposit ? 'text-leaf' : 'text-gray-900'}`}>
+                      <div className="pl-12 sm:pl-0 sm:text-right min-w-0">
+                        <p className={`font-bold text-sm sm:text-base break-words ${isDeposit ? 'text-leaf' : 'text-gray-900'}`}>
                           {isDeposit ? '+' : '-'}{formatLKR(tx.amount)}
                         </p>
                         <p className="text-xs text-gray-400">{new Date(tx.date).toLocaleDateString()}</p>
@@ -255,11 +255,11 @@ const Dashboard = () => {
         </div>
 
         {/* Action Panel */}
-          <div className="glass-card flex flex-col p-6 gap-6 max-h-80 md:max-h-full overflow-y-auto">
-          <div className="bg-gradient-to-br from-forest to-leaf rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+          <div className="glass-card flex flex-col p-4 sm:p-6 gap-4 sm:gap-6 max-h-none lg:max-h-full overflow-y-auto">
+          <div className="bg-gradient-to-br from-forest to-leaf rounded-2xl p-5 sm:p-6 text-white shadow-lg relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10" />
             <h3 className="font-bold text-lg mb-2 relative z-10">Today's Collections</h3>
-            <p className="text-3xl font-bold relative z-10">
+            <p className="text-2xl sm:text-3xl font-bold relative z-10 break-words">
               {loadingSummary ? '...' : formatLKR(summary.today_collections || 0)}
             </p>
           </div>

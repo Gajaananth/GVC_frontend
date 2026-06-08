@@ -82,8 +82,8 @@ const Users = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
+      <div className="flex justify-between items-start flex-wrap gap-4">
+        <div className="min-w-0">
           <h2 className="text-2xl font-bold text-gray-800">Staff & Users</h2>
           <p className="text-sm text-gray-500">Manage system access and roles.</p>
         </div>
@@ -95,7 +95,7 @@ const Users = () => {
               }
               setShowCreateModal(true);
             }}
-            className="bg-forest hover:bg-leaf text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-sm">
+            className="bg-forest hover:bg-leaf text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 shadow-sm w-full sm:w-auto">
             <Plus className="w-5 h-5" />
             Add User
           </button>
@@ -104,8 +104,8 @@ const Users = () => {
 
       {/* Create User Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3">
+          <div className="bg-white rounded-2xl shadow-xl p-5 sm:p-8 max-w-md w-full max-h-[92vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-gray-800">Create New User</h3>
               <button

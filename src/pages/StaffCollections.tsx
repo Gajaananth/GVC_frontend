@@ -155,14 +155,14 @@ const StaffCollections = () => {
             <p className="text-gray-500 text-sm py-4 text-center">No loan installments due on this date for your portfolio.</p>
           ) : (
             dues?.collections?.map((item: any) => (
-              <div key={item.schedule_id} className="flex flex-wrap items-center justify-between gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                <div>
+              <div key={item.schedule_id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <div className="min-w-0">
                   <p className="font-medium">{item.customer?.full_name}</p>
                   <p className="text-xs text-gray-500">{item.loan_code} · {item.repayment_frequency} · Inst #{item.installment_number}</p>
                   <p className="text-xs text-gray-500 flex items-center gap-1"><Phone className="w-3 h-3" />{item.customer?.phone}</p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="font-bold text-forest">{formatLKR(item.amount_due)}</span>
+                <div className="flex items-center justify-between sm:justify-end gap-3">
+                  <span className="font-bold text-forest break-words">{formatLKR(item.amount_due)}</span>
                   <button type="button" onClick={() => pickDue(item)} className="text-xs px-3 py-1.5 bg-forest text-white rounded-lg">Collect</button>
                 </div>
               </div>
@@ -193,7 +193,7 @@ const StaffCollections = () => {
                 ))}
               </select>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="text-sm font-medium">Total *</label>
                 <input required type="number" className="input-field" value={loanForm.amount} onChange={e => setLoanForm({ ...loanForm, amount: e.target.value })} />
@@ -207,7 +207,7 @@ const StaffCollections = () => {
                 <input required type="number" className="input-field" value={loanForm.online_amount} onChange={e => setLoanForm({ ...loanForm, online_amount: e.target.value })} />
               </div>
             </div>
-            <button type="submit" disabled={submitLoan.isPending} className="px-4 py-2 bg-forest text-white rounded-xl flex items-center gap-2">
+            <button type="submit" disabled={submitLoan.isPending} className="w-full sm:w-auto px-4 py-2 bg-forest text-white rounded-xl flex items-center justify-center gap-2">
               <Send className="w-4 h-4" /> Submit for Admin Approval
             </button>
           </form>
@@ -230,12 +230,12 @@ const StaffCollections = () => {
                 <option value="withdrawal">Withdrawal</option>
               </select>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div><label className="text-sm font-medium">Total *</label><input required type="number" className="input-field" value={savingsForm.amount} onChange={e => setSavingsForm({ ...savingsForm, amount: e.target.value })} /></div>
               <div><label className="text-sm font-medium">Cash *</label><input required type="number" className="input-field" value={savingsForm.cash_amount} onChange={e => setSavingsForm({ ...savingsForm, cash_amount: e.target.value })} /></div>
               <div><label className="text-sm font-medium">Online *</label><input required type="number" className="input-field" value={savingsForm.online_amount} onChange={e => setSavingsForm({ ...savingsForm, online_amount: e.target.value })} /></div>
             </div>
-            <button type="submit" disabled={submitSavings.isPending} className="px-4 py-2 bg-forest text-white rounded-xl flex items-center gap-2">
+            <button type="submit" disabled={submitSavings.isPending} className="w-full sm:w-auto px-4 py-2 bg-forest text-white rounded-xl flex items-center justify-center gap-2">
               <Send className="w-4 h-4" /> Submit for Admin Approval
             </button>
           </form>
@@ -246,12 +246,12 @@ const StaffCollections = () => {
         <h3 className="font-semibold mb-4">My Submissions</h3>
         <div className="space-y-3 text-sm">
           {(myData?.data?.payments || []).map((p: any) => (
-            <div key={p.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-              <div>
+            <div key={p.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <div className="min-w-0">
                 <p className="font-medium">{p.payment_code} — {p.customers?.full_name}</p>
                 <p className="text-gray-500">{formatLKR(p.amount)} (Cash {formatLKR(p.cash_amount)} / Online {formatLKR(p.online_amount)}) · {formatDate(p.payment_date)}</p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className={`px-2 py-1 rounded text-xs capitalize ${p.approval_status === 'approved' ? 'bg-leaf/20 text-leaf' : p.approval_status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-800'}`}>
                   {p.approval_status?.replace('_', ' ')}
                 </span>
@@ -262,12 +262,12 @@ const StaffCollections = () => {
             </div>
           ))}
           {(myData?.data?.savings || []).map((s: any) => (
-            <div key={s.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-              <div>
+            <div key={s.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <div className="min-w-0">
                 <p className="font-medium capitalize">{s.transaction_type} — {s.transaction_code}</p>
                 <p className="text-gray-500">{formatLKR(s.amount)} · {formatDate(s.transaction_date)}</p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className={`px-2 py-1 rounded text-xs capitalize ${s.approval_status === 'approved' ? 'bg-leaf/20 text-leaf' : 'bg-amber-100 text-amber-800'}`}>
                   {s.approval_status?.replace('_', ' ')}
                 </span>
@@ -287,7 +287,7 @@ const StaffCollections = () => {
             <option value="amend">Wrong amount — needs correction</option>
           </select>
           <textarea required className="input-field mb-3" rows={4} placeholder="Explain the mistake in detail (like a formal letter)..." value={correctionForm.letter} onChange={e => setCorrectionForm({ ...correctionForm, letter: e.target.value })} />
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <button type="button" onClick={() => setShowCorrection(null)} className="px-4 py-2 text-gray-600">Cancel</button>
             <button
               type="button"

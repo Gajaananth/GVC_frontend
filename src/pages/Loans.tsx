@@ -46,8 +46,8 @@ const Loans = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center flex-wrap gap-4">
-        <div>
+      <div className="flex justify-between items-start flex-wrap gap-4">
+        <div className="min-w-0">
           <h2 className="text-2xl font-bold text-gray-800">Loans Portfolio</h2>
           <p className="text-sm text-gray-500">
             {isStaff
@@ -56,7 +56,7 @@ const Loans = () => {
           </p>
         </div>
         {canIssueLoans && (
-          <button onClick={() => setShowNew(true)} className="bg-forest hover:bg-leaf text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-sm">
+          <button onClick={() => setShowNew(true)} className="bg-forest hover:bg-leaf text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 shadow-sm w-full sm:w-auto">
             <Plus className="w-5 h-5" />
             New Loan
           </button>
@@ -65,7 +65,7 @@ const Loans = () => {
 
       <div className="glass-card flex flex-col">
         <div className="p-4 border-b border-gray-100 flex flex-wrap gap-4">
-          <div className="relative flex-1 min-w-[200px] max-w-md">
+          <div className="relative flex-1 min-w-full sm:min-w-[200px] max-w-md">
             <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
@@ -75,14 +75,14 @@ const Loans = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <select className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-600 outline-none" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+          <select className="w-full sm:w-auto px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-600 outline-none" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
             <option value="">All Statuses</option>
             <option value="pending_approval">Pending</option>
             <option value="active">Active</option>
             <option value="overdue">Overdue</option>
             <option value="closed">Closed</option>
           </select>
-          <select className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-600 outline-none" value={approvalFilter} onChange={e => setApprovalFilter(e.target.value)}>
+          <select className="w-full sm:w-auto px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-600 outline-none" value={approvalFilter} onChange={e => setApprovalFilter(e.target.value)}>
             <option value="">All Approvals</option>
             <option value="pending_approval">Awaiting Owner</option>
             <option value="approved">Approved</option>
@@ -148,7 +148,7 @@ const Loans = () => {
           </table>
         </div>
 
-        <div className="p-4 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
+        <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm text-gray-500">
           <p>Page {page} of {loansData?.totalPages || 1}</p>
           <div className="flex gap-2">
             <button className="px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Previous</button>

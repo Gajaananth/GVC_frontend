@@ -113,35 +113,37 @@ const Reports = () => {
       case 'daily_collection':
         return (
           <div className="space-y-4">
-            <div className="bg-forest/5 p-4 rounded-xl border border-forest/10 flex justify-between items-center">
+            <div className="bg-forest/5 p-4 rounded-xl border border-forest/10 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
               <div>
                 <h3 className="font-bold text-gray-800">Total Collected</h3>
                 <p className="text-sm text-gray-500">{formatDate(data.period.start)} to {formatDate(data.period.end)}</p>
               </div>
-              <p className="text-3xl font-bold text-forest">{formatLKR(data.total_collected)}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-forest break-words">{formatLKR(data.total_collected)}</p>
             </div>
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="py-2">Receipt</th>
-                  <th className="py-2">Date</th>
-                  <th className="py-2">Customer</th>
-                  <th className="py-2">Type</th>
-                  <th className="py-2 text-right">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.payments.map((p: any) => (
-                  <tr key={p.payment_code} className="border-b border-gray-100">
-                    <td className="py-2">{p.payment_code}</td>
-                    <td className="py-2">{formatDate(p.payment_date)}</td>
-                    <td className="py-2">{p.customers?.full_name}</td>
-                    <td className="py-2 capitalize">{p.payment_type}</td>
-                    <td className="py-2 text-right font-medium">{formatLKR(p.amount)}</td>
+            <div className="overflow-x-auto rounded-xl border border-gray-100 bg-white">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="p-3">Receipt</th>
+                    <th className="p-3">Date</th>
+                    <th className="p-3">Customer</th>
+                    <th className="p-3">Type</th>
+                    <th className="p-3 text-right">Amount</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {data.payments.map((p: any) => (
+                    <tr key={p.payment_code} className="border-b border-gray-100">
+                      <td className="p-3">{p.payment_code}</td>
+                      <td className="p-3">{formatDate(p.payment_date)}</td>
+                      <td className="p-3">{p.customers?.full_name}</td>
+                      <td className="p-3 capitalize">{p.payment_type}</td>
+                      <td className="p-3 text-right font-medium">{formatLKR(p.amount)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         );
 
@@ -172,7 +174,7 @@ const Reports = () => {
       case 'loan_summary':
         return (
           <div className="space-y-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
                 <p className="text-sm text-gray-500">Total Loans</p>
                 <p className="text-xl font-bold">{data.summary.total}</p>
@@ -187,7 +189,7 @@ const Reports = () => {
               </div>
               <div className="bg-leaf/10 p-4 rounded-xl border border-leaf/20">
                 <p className="text-sm text-forest">Outstanding Bal</p>
-                <p className="text-xl font-bold text-forest">{formatLKR(data.summary.total_outstanding)}</p>
+                <p className="text-xl font-bold text-forest break-words">{formatLKR(data.summary.total_outstanding)}</p>
               </div>
             </div>
           </div>
@@ -196,7 +198,7 @@ const Reports = () => {
       case 'savings_summary':
         return (
           <div className="space-y-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
                 <p className="text-sm text-gray-500">Total Accounts</p>
                 <p className="text-xl font-bold">{data.summary.total_accounts}</p>
@@ -207,11 +209,11 @@ const Reports = () => {
               </div>
               <div className="bg-leaf/10 p-4 rounded-xl border border-leaf/20">
                 <p className="text-sm text-forest">Total Balance</p>
-                <p className="text-xl font-bold text-forest">{formatLKR(data.summary.total_balance)}</p>
+                <p className="text-xl font-bold text-forest break-words">{formatLKR(data.summary.total_balance)}</p>
               </div>
               <div className="bg-amber-50 p-4 rounded-xl border border-amber-100">
                 <p className="text-sm text-amber-700">Total Deposited</p>
-                <p className="text-xl font-bold text-amber-800">{formatLKR(data.summary.total_deposited)}</p>
+                <p className="text-xl font-bold text-amber-800 break-words">{formatLKR(data.summary.total_deposited)}</p>
               </div>
             </div>
           </div>
@@ -250,14 +252,14 @@ const Reports = () => {
       case 'due_payment':
         return (
           <div className="space-y-4">
-            <div className="bg-forest/5 p-4 rounded-xl border border-forest/10 flex justify-between items-center">
+            <div className="bg-forest/5 p-4 rounded-xl border border-forest/10 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
               <div>
                 <h3 className="font-bold text-gray-800">Total Due Outstanding</h3>
               </div>
-              <p className="text-3xl font-bold text-forest">{formatLKR(data.total_outstanding)}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-forest break-words">{formatLKR(data.total_outstanding)}</p>
             </div>
             <div className="overflow-auto rounded-xl border border-gray-100 bg-white">
-              <table className="w-full text-left text-sm">
+              <table className="w-full min-w-[560px] text-left text-sm">
                 <thead>
                   <tr className="border-b border-gray-200">
                     <th className="py-2">Loan</th>
@@ -284,18 +286,18 @@ const Reports = () => {
       case 'income':
         return (
           <div className="space-y-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
                 <p className="text-sm text-gray-500">Income Period</p>
                 <p>{formatDate(data.period.start)} to {formatDate(data.period.end)}</p>
               </div>
               <div className="bg-forest/10 p-4 rounded-xl border border-forest/20">
                 <p className="text-sm text-forest">Interest Income</p>
-                <p className="text-2xl font-bold text-forest">{formatLKR(data.total_interest_income)}</p>
+                <p className="text-2xl font-bold text-forest break-words">{formatLKR(data.total_interest_income)}</p>
               </div>
             </div>
             <div className="overflow-auto rounded-xl border border-gray-100 bg-white">
-              <table className="w-full text-left text-sm">
+              <table className="w-full min-w-[480px] text-left text-sm">
                 <thead>
                   <tr className="border-b border-gray-200">
                     <th className="py-2">Date</th>
@@ -323,8 +325,8 @@ const Reports = () => {
   };
 
   return (
-    <div className="space-y-6 flex flex-col h-full">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 flex flex-col h-full min-w-0">
+      <div className="flex justify-between items-start flex-wrap gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Reports & Analytics</h2>
           <p className="text-sm text-gray-500">Generate, view, and export financial reports.</p>
@@ -333,7 +335,7 @@ const Reports = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-1 min-h-0">
         {/* Sidebar Filters */}
-        <div className="glass-card p-6 flex flex-col gap-6 lg:col-span-1 overflow-y-auto">
+        <div className="glass-card p-4 sm:p-6 flex flex-col gap-6 lg:col-span-1 overflow-y-auto">
           <div>
             <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
               <Filter className="w-4 h-4 text-forest" /> Report Type
@@ -393,30 +395,30 @@ const Reports = () => {
 
         {/* Preview Area */}
         <div className="glass-card flex flex-col lg:col-span-3 overflow-hidden">
-          <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-white/50">
-            <h3 className="font-bold text-lg text-gray-800">
+          <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 bg-white/50">
+            <h3 className="font-bold text-base sm:text-lg text-gray-800">
               {reportData ? reportData.data?.report_name || reportTypes.find(r => r.id === selectedReport)?.name : 'Report Preview'}
             </h3>
             
             {reportData && (
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                 <button 
                   onClick={handleEmailReport}
-                  className="px-4 py-2 bg-white border border-gray-200 hover:border-blue-500 hover:text-blue-500 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm"
+                  className="px-3 sm:px-4 py-2 bg-white border border-gray-200 hover:border-blue-500 hover:text-blue-500 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 shadow-sm flex-1 sm:flex-none"
                 >
                   <Mail className="w-4 h-4" />
                   Email
                 </button>
                 <button 
                   onClick={handleExportExcel}
-                  className="px-4 py-2 bg-white border border-gray-200 hover:border-green-500 hover:text-green-500 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm"
+                  className="px-3 sm:px-4 py-2 bg-white border border-gray-200 hover:border-green-500 hover:text-green-500 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 shadow-sm flex-1 sm:flex-none"
                 >
                   <FileSpreadsheet className="w-4 h-4" />
                   Excel
                 </button>
                 <button 
                   onClick={handleExportPDF}
-                  className="px-4 py-2 bg-white border border-gray-200 hover:border-red-500 hover:text-red-500 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm"
+                  className="px-3 sm:px-4 py-2 bg-white border border-gray-200 hover:border-red-500 hover:text-red-500 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 shadow-sm flex-1 sm:flex-none"
                 >
                   <Download className="w-4 h-4" />
                   PDF Export
@@ -425,7 +427,7 @@ const Reports = () => {
             )}
           </div>
           
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6">
             {isFetching ? (
               <div className="flex flex-col items-center justify-center h-full text-forest animate-pulse">
                 <FileText className="w-12 h-12 mb-4" />

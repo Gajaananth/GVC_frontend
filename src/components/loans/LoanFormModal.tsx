@@ -232,7 +232,7 @@ const LoanFormModal = ({ onClose }: Props) => {
                   min={termCfg.min}
                   max={termCfg.max}
                   required
-                  className="input-field w-24"
+                  className="input-field"
                   value={form.term_count}
                   onChange={e => setForm({ ...form, term_count: e.target.value })}
                 />
@@ -263,7 +263,7 @@ const LoanFormModal = ({ onClose }: Props) => {
               type="number"
               step="0.01"
               min="0"
-              className="input-field max-w-xs"
+              className="input-field"
               value={form.interest_rate_per_period}
               onChange={e => setForm({ ...form, interest_rate_per_period: e.target.value })}
             />
@@ -352,7 +352,7 @@ const LoanFormModal = ({ onClose }: Props) => {
             {applicationPdf && (
               <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 px-3 py-1.5 rounded-lg">
                 <FileCheck className="w-4 h-4" />
-                <span className="font-medium truncate max-w-[200px]">{applicationPdf.name}</span>
+                <span className="font-medium truncate">{applicationPdf.name}</span>
                 <span className="text-xs text-gray-400">({(applicationPdf.size / 1024).toFixed(0)} KB)</span>
                 <button type="button" onClick={() => setApplicationPdf(null)} className="text-red-400 hover:text-red-600 ml-1 text-xs">✕</button>
               </div>

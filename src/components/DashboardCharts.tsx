@@ -24,10 +24,10 @@ export const DashboardCharts = () => {
   const chartStatus = statusData?.data || [];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-4 sm:mt-6 min-w-0">
       {/* Monthly Collections Bar Chart */}
-      <div className="glass-card p-6 flex flex-col h-96">
-        <h2 className="text-lg font-bold text-gray-800 mb-4">6-Month Collections Trend</h2>
+      <div className="glass-card p-4 sm:p-6 flex flex-col h-80 sm:h-96 min-w-0">
+        <h2 className="text-base sm:text-lg font-bold text-gray-800 mb-4">6-Month Collections Trend</h2>
         <div className="flex-1 w-full h-full min-h-0">
           {loadingMonthly ? (
             <div className="flex items-center justify-center h-full text-gray-400 animate-pulse">Loading chart...</div>
@@ -55,8 +55,8 @@ export const DashboardCharts = () => {
       </div>
 
       {/* Portfolio Status Donut Chart */}
-      <div className="glass-card p-6 flex flex-col h-96">
-        <h2 className="text-lg font-bold text-gray-800 mb-4">Portfolio Status</h2>
+      <div className="glass-card p-4 sm:p-6 flex flex-col h-80 sm:h-96 min-w-0">
+        <h2 className="text-base sm:text-lg font-bold text-gray-800 mb-4">Portfolio Status</h2>
         <div className="flex-1 w-full h-full min-h-0">
           {loadingStatus ? (
             <div className="flex items-center justify-center h-full text-gray-400 animate-pulse">Loading chart...</div>

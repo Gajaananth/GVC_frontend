@@ -91,7 +91,7 @@ const CustomerDetailModal = ({ customerId, onClose }: Props) => {
             <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-4">
               <p className="text-xs text-gray-600 mb-3">Admin only: upload scanned forms and premises photos after customer fills paper forms.</p>
               <div className="flex flex-wrap gap-3 items-end">
-                <select className="input-field flex-1 min-w-[200px]" value={uploadType} onChange={e => setUploadType(e.target.value)}>
+                <select className="input-field flex-1" value={uploadType} onChange={e => setUploadType(e.target.value)}>
                   {DOC_TYPES.map(d => (
                     <option key={d.key} value={d.key}>{d.label}</option>
                   ))}

@@ -177,14 +177,14 @@ const Branches: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
+      <div className="flex justify-between items-start flex-wrap gap-4">
+        <div className="min-w-0">
           <h2 className="text-2xl font-bold text-gray-800">Branch Management</h2>
           <p className="text-sm text-gray-500">Create and manage business branches</p>
         </div>
         <button
           onClick={handleCreateClick}
-          className="bg-forest hover:bg-leaf text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-sm"
+          className="bg-forest hover:bg-leaf text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 shadow-sm w-full sm:w-auto"
         >
           <Plus className="w-5 h-5" />
           Add Branch
@@ -210,7 +210,7 @@ const Branches: React.FC = () => {
 
       {/* Branches Table */}
       {!loading && branches.length > 0 && (
-        <div className="glass-card overflow-hidden">
+        <div className="glass-card overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
@@ -287,8 +287,8 @@ const Branches: React.FC = () => {
 
       {/* Create Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3">
+          <div className="bg-white rounded-2xl shadow-xl p-5 sm:p-8 w-full max-w-md max-h-[92vh] overflow-y-auto">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Create Branch</h2>
             <form onSubmit={handleCreateSubmit} className="space-y-4">
               <div>
@@ -380,8 +380,8 @@ const Branches: React.FC = () => {
 
       {/* Edit Modal */}
       {showEditModal && selectedBranch && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3">
+          <div className="bg-white rounded-2xl shadow-xl p-5 sm:p-8 w-full max-w-md max-h-[92vh] overflow-y-auto">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Edit Branch</h2>
             <form onSubmit={handleUpdateSubmit} className="space-y-4">
               <div>

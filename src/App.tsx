@@ -33,7 +33,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => (
       <Sidebar />
       <div className="flex-1 flex flex-col h-screen overflow-hidden w-full relative">
         <TopBar />
-        <main className="flex-1 p-4 md:p-8 overflow-y-auto w-full">{children}</main>
+        <main className="flex-1 p-3 sm:p-4 md:p-8 overflow-y-auto w-full min-w-0">{children}</main>
       </div>
     </div>
   </SidebarProvider>

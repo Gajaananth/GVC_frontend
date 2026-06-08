@@ -119,7 +119,7 @@ const CollectionApprovals = () => {
           <div className="bg-gray-50 p-4 rounded-xl text-sm space-y-2">
             <p><strong>System totals</strong> (from staff entries): Cash {formatLKR(recon.system_cash_total)} · Online {formatLKR(recon.system_online_total)}</p>
             <p className="text-gray-500">{recon.pending_count} pending approval · {recon.entry_count} total entries</p>
-            <div className="grid grid-cols-2 gap-3 max-w-md pt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md pt-2">
               <div>
                 <label className="text-sm">Physical Cash Counted</label>
                 <input type="number" className="input-field" value={declaredCash} onChange={e => setDeclaredCash(e.target.value)} placeholder={String(recon.system_cash_total)} />
@@ -154,24 +154,24 @@ const CollectionApprovals = () => {
 
         <div className="space-y-3">
           {(pending?.data?.payments || []).map((p: any) => (
-            <div key={p.id} className="flex justify-between items-center p-4 border border-gray-100 rounded-xl">
-              <div>
+            <div key={p.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-4 border border-gray-100 rounded-xl">
+              <div className="min-w-0">
                 <p className="font-medium">Loan: {p.loans?.loan_code} — {p.customers?.full_name}</p>
                 <p className="text-sm text-gray-500">By {p.submitter?.full_name} · {formatLKR(p.amount)} (Cash {formatLKR(p.cash_amount)} / Online {formatLKR(p.online_amount)})</p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 shrink-0">
                 <button onClick={() => approvePayment.mutate(p.id)} className="p-2 bg-leaf/20 text-leaf rounded-lg" title="Approve"><CheckCircle className="w-5 h-5" /></button>
                 <button onClick={() => rejectPayment.mutate(p.id)} className="p-2 bg-red-100 text-red-600 rounded-lg"><XCircle className="w-5 h-5" /></button>
               </div>
             </div>
           ))}
           {(pending?.data?.savings || []).map((s: any) => (
-            <div key={s.id} className="flex justify-between items-center p-4 border border-gray-100 rounded-xl">
-              <div>
+            <div key={s.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-4 border border-gray-100 rounded-xl">
+              <div className="min-w-0">
                 <p className="font-medium capitalize">{s.transaction_type} — {s.savings_accounts?.account_code}</p>
                 <p className="text-sm text-gray-500">By {s.submitter?.full_name} · {formatLKR(s.amount)}</p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 shrink-0">
                 <button onClick={() => approveSavings.mutate(s.id)} className="p-2 bg-leaf/20 text-leaf rounded-lg"><CheckCircle className="w-5 h-5" /></button>
                 <button onClick={() => rejectSavings.mutate(s.id)} className="p-2 bg-red-100 text-red-600 rounded-lg"><XCircle className="w-5 h-5" /></button>
               </div>
@@ -192,7 +192,7 @@ const CollectionApprovals = () => {
               <p className="font-medium capitalize">{c.request_type} — {c.entity_type}</p>
               <p className="text-sm text-gray-500 italic mt-1">{c.letter_description}</p>
               {c.request_type === 'amend' && (
-                <div className="grid grid-cols-2 gap-3 mt-3 max-w-md">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 max-w-md">
                   <input type="date" className="input-field" placeholder="Corrected date"
                     value={execForm[c.id]?.date || ''}
                     onChange={e => setExecForm({ ...execForm, [c.id]: { ...execForm[c.id], date: e.target.value, amount: execForm[c.id]?.amount || '', void: false } })}

@@ -17,13 +17,13 @@ const Savings = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
+      <div className="flex justify-between items-start flex-wrap gap-4">
+        <div className="min-w-0">
           <h2 className="text-2xl font-bold text-gray-800">Savings Accounts</h2>
           <p className="text-sm text-gray-500">Manage customer deposits, withdrawals, and interest.</p>
         </div>
         {canManageSavingsAccounts && (
-          <button className="bg-forest hover:bg-leaf text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-sm">
+          <button className="bg-forest hover:bg-leaf text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 shadow-sm w-full sm:w-auto">
             <Plus className="w-5 h-5" />
             Open Account
           </button>
@@ -114,7 +114,7 @@ const Savings = () => {
         </div>
 
         {/* Pagination */}
-        <div className="p-4 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
+        <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm text-gray-500">
           <p>Showing page {page} of {savingsData?.totalPages || 1}</p>
           <div className="flex gap-2">
             <button 
