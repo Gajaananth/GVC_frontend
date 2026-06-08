@@ -34,6 +34,11 @@ const Users = () => {
     queryFn: () => fetchApi(`/users?page=${page}&limit=20`),
   });
 
+  const { data: branchesData, isLoading: branchesLoading } = useQuery({
+    queryKey: ['branches'],
+    queryFn: () => fetchApi('/branches'),
+  });
+
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.email || !formData.full_name || !formData.password) {
@@ -88,8 +93,17 @@ const Users = () => {
           <p className="text-sm text-gray-500">Manage system access and roles.</p>
         </div>
         {user && canCreateUsers && (
-          <button 
+          <button
             onClick={() => {
+              setFormData({
+                email: '',
+                full_name: '',
+                password: '',
+                role: 'staff',
+                mobile: '',
+                address: '',
+                branch_id: ''
+              });
               if (isBranchManager) {
                 setFormData(prev => ({ ...prev, branch_id: user?.branch_id || '' }));
               }
@@ -183,15 +197,23 @@ const Users = () => {
 
               {(isOwner && formData.role !== 'owner') && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Branch ID *</label>
-                  <input
-                    type="text"
-                    placeholder="Select or enter branch UUID"
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Branch *</label>
+                  <select
                     value={formData.branch_id}
                     onChange={(e) => setFormData({...formData, branch_id: e.target.value})}
                     className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                    disabled={branchesLoading}
                     required
-                  />
+                  >
+                    <option value="">Select branch</option>
+                    {branchesData?.data
+                      ?.sort((a, b) => a.branch_name.localeCompare(b.branch_name))
+                      ?.map(branch => (
+                        <option key={branch.id} value={branch.id}>
+                          {branch.branch_name} ({branch.branch_code})
+                        </option>
+                      ))}
+                  </select>
                   <p className="text-xs text-gray-500 mt-1">Required for non-owner users</p>
                 </div>
               )}
