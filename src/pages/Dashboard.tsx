@@ -73,7 +73,7 @@ const Dashboard = () => {
   const pendingTotal = (summary.pending_loan_approvals || 0) + (summary.pending_assignment_approvals || 0) + (summary.pending_correction_requests || 0);
 
   return (
-    <div className="space-y-4 sm:space-y-6 flex flex-col h-full max-w-7xl mx-auto px-0 sm:px-4 min-w-0">
+    <div className="space-y-4 sm:space-y-6 flex flex-col h-full max-w-7xl mx-auto px-0 sm:px-4 min-w-0 min-h-0">
       {(user?.role === 'admin' || user?.role === 'owner') && (summary.pending_physical_forms || 0) > 0 && (
         <Link to="/physical-forms" className="block bg-orange-50 border border-orange-200 rounded-2xl p-4 hover:bg-orange-100 transition-colors mb-4">
           <div className="flex items-center gap-3">
@@ -117,7 +117,7 @@ const Dashboard = () => {
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div key={index} className="glass-card p-4 flex flex-row items-center gap-3 h-full w-full min-w-0">
+            <div key={index} className="glass-card p-4 flex flex-row items-center gap-3 w-full min-w-0">
               <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${stat.bgColor} group-hover:scale-110 transition-transform`}>
                 <Icon className={`w-5 h-5 ${stat.color}`} />
               </div>
