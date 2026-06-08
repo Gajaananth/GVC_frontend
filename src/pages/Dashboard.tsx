@@ -214,7 +214,7 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 flex-1 min-h-0 mt-4 sm:mt-6">
         {/* Recent Transactions List */}
-        <div className="lg:col-span-2 glass-card flex flex-col flex-1 overflow-hidden">
+        <div className="lg:col-span-2 glass-card flex flex-col overflow-hidden">
           <div className="p-4 sm:p-6 border-b border-gray-100">
             <h2 className="text-base sm:text-lg font-bold text-gray-800">Recent Transactions</h2>
           </div>
@@ -255,7 +255,7 @@ const Dashboard = () => {
         </div>
 
         {/* Action Panel */}
-          <div className="glass-card flex flex-col flex-1 p-4 sm:p-6 gap-4 sm:gap-6 max-h-none lg:max-h-full overflow-y-auto">
+          <div className="glass-card flex flex-col p-4 sm:p-6 gap-4 sm:gap-6 max-h-none lg:max-h-full overflow-y-auto">
           <div className="bg-gradient-to-br from-forest to-leaf rounded-2xl p-5 sm:p-6 text-white shadow-lg relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10" />
             <h3 className="font-bold text-lg mb-2 relative z-10">Today's Collections</h3>
