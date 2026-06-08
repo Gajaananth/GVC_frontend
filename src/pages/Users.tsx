@@ -5,6 +5,7 @@ import { Search, Plus, Edit, Trash2, Shield, UserCog, X } from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
 import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
+import { Branch } from '../services/branchService';
 
 const Users = () => {
   const [page, setPage] = useState(1);
@@ -206,9 +207,9 @@ const Users = () => {
                     required
                   >
                     <option value="">Select branch</option>
-                    {branchesData?.data
-                      ?.sort((a, b) => a.branch_name.localeCompare(b.branch_name))
-                      ?.map(branch => (
+                    {branchesData?.data ?? []
+                      .sort((a: Branch, b: Branch) => a.branch_name.localeCompare(b.branch_name))
+                      .map((branch: Branch) => (
                         <option key={branch.id} value={branch.id}>
                           {branch.branch_name} ({branch.branch_code})
                         </option>
