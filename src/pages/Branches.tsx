@@ -210,14 +210,14 @@ const Branches: React.FC = () => {
 
       {/* Branches Table */}
       {!loading && branches.length > 0 && (
-        <div className="glass-card overflow-x-auto">
-          <table className="w-full">
+        <div className="glass-card max-h-[60vh] overflow-y-auto">
+          <table className="w-full min-w-full">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">UUID</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Code</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Name</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Address</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">UUID</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Contact</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Status</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Stats</th>
@@ -227,10 +227,10 @@ const Branches: React.FC = () => {
             <tbody className="divide-y divide-gray-50">
               {branches.map(branch => (
                 <tr key={branch.id} className="hover:bg-gray-50/50">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{branch.id}</td>
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">{branch.branch_code}</td>
                   <td className="px-6 py-4 text-sm text-gray-900">{branch.branch_name}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">{branch.address}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{branch.id}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">
                     <div>{branch.phone}</div>
                     <div className="text-xs text-gray-500">{branch.email}</div>
