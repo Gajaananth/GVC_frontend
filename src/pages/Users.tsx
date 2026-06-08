@@ -211,7 +211,7 @@ const Users = () => {
                       .sort((a: Branch, b: Branch) => a.branch_name.localeCompare(b.branch_name))
                       .map((branch: Branch) => (
                         <option key={branch.id} value={branch.id}>
-                          {branch.branch_name} ({branch.branch_code})
+                          {(branch.branch_name || branch.id)} ({branch.branch_code || ''})
                         </option>
                       ))}
                   </select>
