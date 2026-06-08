@@ -37,7 +37,7 @@ const Users = () => {
 
   const { data: branchesData, isLoading: branchesLoading } = useQuery({
     queryKey: ['branches'],
-    queryFn: () => fetchApi('/branches'),
+    queryFn: () => fetchApi('/api/branches'),
   });
 
   const handleCreateUser = async (e: React.FormEvent) => {
