@@ -214,6 +214,7 @@ const Branches: React.FC = () => {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">UUID</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Code</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Name</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Address</th>
@@ -226,6 +227,7 @@ const Branches: React.FC = () => {
             <tbody className="divide-y divide-gray-50">
               {branches.map(branch => (
                 <tr key={branch.id} className="hover:bg-gray-50/50">
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{branch.id}</td>
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">{branch.branch_code}</td>
                   <td className="px-6 py-4 text-sm text-gray-900">{branch.branch_name}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">{branch.address}</td>
