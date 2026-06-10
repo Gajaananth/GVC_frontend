@@ -25,7 +25,7 @@ export interface UserUpdateRequest {
 export const userService = {
   // Login
   async login(email: string, password: string): Promise<{ user: User; accessToken: string }> {
-    return fetchApi('/api/auth/login', {
+    return fetchApi('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
@@ -33,17 +33,17 @@ export const userService = {
 
   // Get current user
   async getCurrentUser(): Promise<User> {
-    return fetchApi('/api/auth/me');
+    return fetchApi('/auth/me');
   },
 
   // Get user by ID
   async getUser(userId: string): Promise<User> {
-    return fetchApi(`/api/users/${userId}`);
+    return fetchApi(`/users/${userId}`);
   },
 
   // Get branch users (Branch Manager and Admin can see branch users)
   async getBranchUsers(branchId: string): Promise<User[]> {
-    return fetchApi(`/api/branches/${branchId}/users`);
+    return fetchApi(`/branches/${branchId}/users`);
   },
 
   // Create user - must specify branch for non-owner roles
@@ -51,7 +51,7 @@ export const userService = {
     if (!data.branch_id && data.role !== 'owner') {
       throw new Error('Branch selection is mandatory for non-owner users');
     }
-    return fetchApi('/api/users', {
+    return fetchApi('/users', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -59,7 +59,7 @@ export const userService = {
 
   // Update user
   async updateUser(userId: string, data: UserUpdateRequest): Promise<User> {
-    return fetchApi(`/api/users/${userId}`, {
+    return fetchApi(`/users/${userId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
@@ -67,14 +67,14 @@ export const userService = {
 
   // Delete user (Owner only)
   async deleteUser(userId: string): Promise<void> {
-    return fetchApi(`/api/users/${userId}`, {
+    return fetchApi(`/users/${userId}`, {
       method: 'DELETE',
     });
   },
 
   // Promote user to Branch Manager (removes existing manager first)
   async promoteToBranchManager(userId: string, branchId: string): Promise<User> {
-    return fetchApi(`/api/users/${userId}/promote`, {
+    return fetchApi(`/users/${userId}/promote`, {
       method: 'POST',
       body: JSON.stringify({ new_role: 'branch_manager', branch_id: branchId }),
     });
@@ -82,7 +82,7 @@ export const userService = {
 
   // Demote Branch Manager to another role
   async demoteFromBranchManager(userId: string, newRole: 'admin' | 'cashier' | 'staff'): Promise<User> {
-    return fetchApi(`/api/users/${userId}/demote`, {
+    return fetchApi(`/users/${userId}/demote`, {
       method: 'POST',
       body: JSON.stringify({ new_role: newRole }),
     });
@@ -90,7 +90,7 @@ export const userService = {
 
   // Transfer user to another branch (Admin/Owner only)
   async transferUserToBranch(userId: string, newBranchId: string): Promise<User> {
-    return fetchApi(`/api/users/${userId}/transfer`, {
+    return fetchApi(`/users/${userId}/transfer`, {
       method: 'POST',
       body: JSON.stringify({ branch_id: newBranchId }),
     });
@@ -98,21 +98,21 @@ export const userService = {
 
   // Deactivate user
   async deactivateUser(userId: string): Promise<User> {
-    return fetchApi(`/api/users/${userId}/deactivate`, {
+    return fetchApi(`/users/${userId}/deactivate`, {
       method: 'POST',
     });
   },
 
   // Reactivate user
   async reactivateUser(userId: string): Promise<User> {
-    return fetchApi(`/api/users/${userId}/reactivate`, {
+    return fetchApi(`/users/${userId}/reactivate`, {
       method: 'POST',
     });
   },
 
   // Logout
   async logout(): Promise<void> {
-    return fetchApi('/api/auth/logout', {
+    return fetchApi('/auth/logout', {
       method: 'POST',
     });
   },

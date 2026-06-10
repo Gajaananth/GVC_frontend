@@ -27,7 +27,7 @@ export const activityLogService = {
       });
     }
     const queryStr = query.toString();
-    return fetchApi(`/api/activity-logs${queryStr ? '?' + queryStr : ''}`);
+    return fetchApi(`/activity-logs${queryStr ? '?' + queryStr : ''}`);
   },
 
   // Get branch activity logs
@@ -40,7 +40,7 @@ export const activityLogService = {
         }
       });
     }
-    return fetchApi(`/api/activity-logs?${query.toString()}`);
+    return fetchApi(`/activity-logs?${query.toString()}`);
   },
 
   // Get user activity logs
@@ -49,7 +49,7 @@ export const activityLogService = {
     if (limit) {
       query.append('limit', limit.toString());
     }
-    return fetchApi(`/api/activity-logs?${query.toString()}`);
+    return fetchApi(`/activity-logs?${query.toString()}`);
   },
 
   // Get activity logs by record type
@@ -58,7 +58,7 @@ export const activityLogService = {
     if (recordId) {
       query.append('record_id', recordId);
     }
-    return fetchApi(`/api/activity-logs?${query.toString()}`);
+    return fetchApi(`/activity-logs?${query.toString()}`);
   },
 
   // Get activity logs for specific date range
@@ -67,6 +67,6 @@ export const activityLogService = {
     if (branchId) {
       query.append('branch_id', branchId);
     }
-    return fetchApi(`/api/activity-logs?${query.toString()}`);
+    return fetchApi(`/activity-logs?${query.toString()}`);
   },
 };

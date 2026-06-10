@@ -40,7 +40,7 @@ export interface FaceDetectionResult {
 export const customerService = {
   // Get customer by ID
   async getCustomer(customerId: string): Promise<Customer> {
-    return fetchApi(`/api/customers/${customerId}`);
+    return fetchApi(`/customers/${customerId}`);
   },
 
   // Get customers in branch
@@ -54,12 +54,12 @@ export const customerService = {
       });
     }
     const queryStr = query.toString();
-    return fetchApi(`/api/customers?branch_id=${branchId}${queryStr ? '&' + queryStr : ''}`);
+    return fetchApi(`/customers?branch_id=${branchId}${queryStr ? '&' + queryStr : ''}`);
   },
 
   // Get assigned customers for Staff
   async getAssignedCustomers(staffId: string): Promise<Customer[]> {
-    return fetchApi(`/api/staff/${staffId}/customers`);
+    return fetchApi(`/staff/${staffId}/customers`);
   },
 
   // Create customer - requires face photo validation
@@ -67,7 +67,7 @@ export const customerService = {
     if (!data.photo_url || !data.nic_front_url || !data.nic_back_url) {
       throw new Error('Customer face photo, NIC front, and NIC back are mandatory');
     }
-    return fetchApi('/api/customers', {
+    return fetchApi('/customers', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -75,7 +75,7 @@ export const customerService = {
 
   // Update customer
   async updateCustomer(customerId: string, data: Partial<Customer>): Promise<Customer> {
-    return fetchApi(`/api/customers/${customerId}`, {
+    return fetchApi(`/customers/${customerId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
@@ -87,7 +87,7 @@ export const customerService = {
     formData.append('document_type', document_type);
     formData.append('file', file);
 
-    return fetchApi(`/api/customers/${customerId}/documents`, {
+    return fetchApi(`/customers/${customerId}/documents`, {
       method: 'POST',
       body: formData,
       headers: { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` },
@@ -96,7 +96,7 @@ export const customerService = {
 
   // Validate face detection on uploaded photo
   async validateFaceDetection(customerId: string, photo_url: string): Promise<FaceDetectionResult> {
-    return fetchApi(`/api/customers/${customerId}/validate-face`, {
+    return fetchApi(`/customers/${customerId}/validate-face`, {
       method: 'POST',
       body: JSON.stringify({ photo_url }),
     });
@@ -104,7 +104,7 @@ export const customerService = {
 
   // Assign customer to staff member
   async assignCustomerToStaff(customerId: string, staffId: string): Promise<Customer> {
-    return fetchApi(`/api/customers/${customerId}/assign`, {
+    return fetchApi(`/customers/${customerId}/assign`, {
       method: 'POST',
       body: JSON.stringify({ staff_id: staffId }),
     });
@@ -112,12 +112,12 @@ export const customerService = {
 
   // Get customer portfolio (all loans and savings)
   async getCustomerPortfolio(customerId: string): Promise<any> {
-    return fetchApi(`/api/customers/${customerId}/portfolio`);
+    return fetchApi(`/customers/${customerId}/portfolio`);
   },
 
   // Deactivate customer
   async deactivateCustomer(customerId: string): Promise<Customer> {
-    return fetchApi(`/api/customers/${customerId}/deactivate`, {
+    return fetchApi(`/customers/${customerId}/deactivate`, {
       method: 'POST',
     });
   },

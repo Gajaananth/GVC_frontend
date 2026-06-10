@@ -33,7 +33,7 @@ export interface PaymentCreateRequest {
 export const paymentService = {
   // Record payment (Cashier/Admin/BranchManager/Staff can record)
   async recordPayment(data: PaymentCreateRequest): Promise<Payment> {
-    return fetchApi('/api/payments', {
+    return fetchApi('/payments', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -41,12 +41,12 @@ export const paymentService = {
 
   // Get loan payments
   async getLoanPayments(loanId: string): Promise<Payment[]> {
-    return fetchApi(`/api/loans/${loanId}/payments`);
+    return fetchApi(`/loans/${loanId}/payments`);
   },
 
   // Get customer payment history
   async getCustomerPaymentHistory(customerId: string): Promise<Payment[]> {
-    return fetchApi(`/api/customers/${customerId}/payments`);
+    return fetchApi(`/customers/${customerId}/payments`);
   },
 
   // Get branch payments
@@ -59,12 +59,12 @@ export const paymentService = {
         }
       });
     }
-    return fetchApi(`/api/payments?${query.toString()}`);
+    return fetchApi(`/payments?${query.toString()}`);
   },
 
   // Get payment by ID
   async getPayment(paymentId: string): Promise<Payment> {
-    return fetchApi(`/api/payments/${paymentId}`);
+    return fetchApi(`/payments/${paymentId}`);
   },
 
   // Print receipt
@@ -79,6 +79,6 @@ export const paymentService = {
 
   // Get daily collection summary (for Staff)
   async getDailyCollectionSummary(staffId: string, date: string): Promise<any> {
-    return fetchApi(`/api/staff/${staffId}/daily-collection?date=${date}`);
+    return fetchApi(`/staff/${staffId}/daily-collection?date=${date}`);
   },
 };

@@ -50,7 +50,7 @@ export interface LoanCreateRequest {
 export const loanService = {
   // Get loan by ID
   async getLoan(loanId: string): Promise<Loan> {
-    return fetchApi(`/api/loans/${loanId}`);
+    return fetchApi(`/loans/${loanId}`);
   },
 
   // Get branch loans
@@ -63,12 +63,12 @@ export const loanService = {
         }
       });
     }
-    return fetchApi(`/api/loans?${query.toString()}`);
+    return fetchApi(`/loans?${query.toString()}`);
   },
 
   // Get customer loans
   async getCustomerLoans(customerId: string): Promise<Loan[]> {
-    return fetchApi(`/api/customers/${customerId}/loans`);
+    return fetchApi(`/customers/${customerId}/loans`);
   },
 
   // Create loan (Admin/Cashier/BranchManager)
@@ -79,7 +79,7 @@ export const loanService = {
     if (!data.loan_application_url) {
       throw new Error('Signed Loan Application PDF is required');
     }
-    return fetchApi('/api/loans', {
+    return fetchApi('/loans', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -89,7 +89,7 @@ export const loanService = {
 
   // 1. Branch Manager reviews (if manager exists)
   async reviewLoanAsManager(loanId: string, action: 'forward' | 'reject', notes?: string): Promise<Loan> {
-    return fetchApi(`/api/loans/${loanId}/manager-review`, {
+    return fetchApi(`/loans/${loanId}/manager-review`, {
       method: 'POST',
       body: JSON.stringify({ action, notes }),
     });
@@ -97,13 +97,13 @@ export const loanService = {
 
   // 2. Owner approves or rejects (final decision)
   async approveLoan(loanId: string): Promise<Loan> {
-    return fetchApi(`/api/loans/${loanId}/approve`, {
+    return fetchApi(`/loans/${loanId}/approve`, {
       method: 'POST',
     });
   },
 
   async rejectLoan(loanId: string, rejection_reason: string): Promise<Loan> {
-    return fetchApi(`/api/loans/${loanId}/reject`, {
+    return fetchApi(`/loans/${loanId}/reject`, {
       method: 'POST',
       body: JSON.stringify({ rejection_reason }),
     });
@@ -117,22 +117,22 @@ export const loanService = {
     if (branchId) {
       query.append('branch_id', branchId);
     }
-    return fetchApi(`/api/loans/pending?${query.toString()}`);
+    return fetchApi(`/loans/pending?${query.toString()}`);
   },
 
   // Get loans awaiting manager review
   async getLoansAwaitingManagerReview(branchId: string): Promise<Loan[]> {
-    return fetchApi(`/api/loans?branch_id=${branchId}&approval_status=pending_manager_review`);
+    return fetchApi(`/loans?branch_id=${branchId}&approval_status=pending_manager_review`);
   },
 
   // Get loans awaiting owner approval
   async getLoansAwaitingOwnerApproval(): Promise<Loan[]> {
-    return fetchApi('/api/loans?approval_status=pending_owner_approval');
+    return fetchApi('/loans?approval_status=pending_owner_approval');
   },
 
   // Update loan
   async updateLoan(loanId: string, data: Partial<Loan>): Promise<Loan> {
-    return fetchApi(`/api/loans/${loanId}`, {
+    return fetchApi(`/loans/${loanId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
@@ -140,11 +140,11 @@ export const loanService = {
 
   // Get loan payment history
   async getLoanPaymentHistory(loanId: string): Promise<any[]> {
-    return fetchApi(`/api/loans/${loanId}/payments`);
+    return fetchApi(`/loans/${loanId}/payments`);
   },
 
   // Get loan schedule
   async getLoanSchedule(loanId: string): Promise<any[]> {
-    return fetchApi(`/api/loans/${loanId}/schedule`);
+    return fetchApi(`/loans/${loanId}/schedule`);
   },
 };

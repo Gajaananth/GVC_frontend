@@ -25,17 +25,17 @@ export interface BranchManager {
 export const branchService = {
   // Get all branches (Owner only)
   async getAllBranches(): Promise<Branch[]> {
-    return fetchApi('/api/branches');
+    return fetchApi('/branches');
   },
 
   // Get branch by ID
   async getBranch(branchId: string): Promise<Branch> {
-    return fetchApi(`/api/branches/${branchId}`);
+    return fetchApi(`/branches/${branchId}`);
   },
 
   // Create branch (Owner only)
   async createBranch(data: Omit<Branch, 'id' | 'created_at' | 'updated_at'>): Promise<Branch> {
-    return fetchApi('/api/branches', {
+    return fetchApi('/branches', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -43,7 +43,7 @@ export const branchService = {
 
   // Update branch (Owner only)
   async updateBranch(branchId: string, data: Partial<Branch>): Promise<Branch> {
-    return fetchApi(`/api/branches/${branchId}`, {
+    return fetchApi(`/branches/${branchId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
@@ -51,12 +51,12 @@ export const branchService = {
 
   // Get branch manager (if exists)
   async getBranchManager(branchId: string): Promise<BranchManager | null> {
-    return fetchApi(`/api/branches/${branchId}/manager`);
+    return fetchApi(`/branches/${branchId}/manager`);
   },
 
   // Assign manager to branch - removes existing manager first
   async assignBranchManager(branchId: string, userId: string): Promise<void> {
-    return fetchApi(`/api/branches/${branchId}/manager`, {
+    return fetchApi(`/branches/${branchId}/manager`, {
       method: 'POST',
       body: JSON.stringify({ user_id: userId }),
     });
@@ -64,6 +64,6 @@ export const branchService = {
 
   // Get branch statistics
   async getBranchStats(branchId: string): Promise<any> {
-    return fetchApi(`/api/branches/${branchId}/stats`);
+    return fetchApi(`/branches/${branchId}/stats`);
   },
 };
