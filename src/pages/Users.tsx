@@ -211,7 +211,10 @@ const Users = () => {
                       .sort((a: Branch, b: Branch) => a.branch_name.localeCompare(b.branch_name))
                       .map((branch: Branch) => (
                         <option key={branch.id} value={branch.id}>
-                          {(branch.branch_name || branch.id)} ({branch.branch_code || ''})
+                          {typeof branch.branch_name === 'string' ? branch.branch_name :
+                           typeof branch.id === 'string' ? branch.id : ''}
+                          {typeof branch.branch_code === 'string' ?
+                            `(${branch.branch_code})` : ''}
                         </option>
                       ))}
                   </select>
@@ -293,16 +296,16 @@ const Users = () => {
                   <tr key={u.id} className="border-b border-gray-50 hover:bg-gray-50/50">
                     <td className="p-4 flex gap-3 items-center">
                       <div className="w-10 h-10 rounded-full bg-forest text-white flex items-center justify-center font-bold">
-                        {u.full_name.charAt(0)}
+                        {typeof u.full_name === 'string' && u.full_name.length > 0 ? u.full_name.charAt(0) : ''}
                       </div>
                       <div>
-                        <p className="font-bold text-gray-900">{u.full_name}</p>
-                        <p className="text-xs text-gray-500">{u.user_code}</p>
+                        <p className="font-bold text-gray-900">{typeof u.full_name === 'string' ? u.full_name : ''}</p>
+                        <p className="text-xs text-gray-500">{typeof u.user_code === 'string' ? u.user_code : ''}</p>
                       </div>
                     </td>
                     <td className="p-4">
-                      <p className="text-gray-900">{u.email}</p>
-                      <p className="text-xs text-gray-500">{u.mobile || 'No mobile'}</p>
+                      <p className="text-gray-900">{typeof u.email === 'string' ? u.email : ''}</p>
+                      <p className="text-xs text-gray-500">{typeof u.mobile === 'string' ? u.mobile : 'No mobile'}</p>
                     </td>
                     <td className="p-4">{getRoleBadge(u.role)}</td>
                     <td className="p-4">
