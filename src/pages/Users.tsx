@@ -207,7 +207,7 @@ const Users = () => {
                     required
                   >
                     <option value="">Select branch</option>
-                    {branchesData?.data ?? []
+                    {(branchesData?.data ?? [])
                       .sort((a: Branch, b: Branch) => a.branch_name.localeCompare(b.branch_name))
                       .map((branch: Branch) => (
                         <option key={branch.id} value={branch.id}>
