@@ -7,6 +7,16 @@ import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
 import { Branch } from '../services/branchService';
 
+interface EditFormData {
+  email: string;
+  full_name: string;
+  role: string;
+  mobile: string;
+  address: string;
+  branch_id: string;
+  password: string;
+}
+
 const Users = () => {
   const [page, setPage] = useState(1);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -28,22 +38,14 @@ const Users = () => {
   // Edit modal state
   const [showEditModal, setShowEditModal] = useState(false);
   const [editUserId, setEditUserId] = useState<string | null>(null);
-  const [editFormData, setEditFormData] = useState<{
-    email: string;
-    full_name: string;
-    role: string;
-    mobile: string;
-    address: string;
-    branch_id: string;
-    password: string;
-  }>({
+  const [editFormData, setEditFormData] = useState<EditFormData>({
     email: '',
     full_name: '',
     role: 'staff',
     mobile: '',
     address: '',
     branch_id: '',
-    password: ''
+    password: '',
   });
   const [isUpdating, setIsUpdating] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
@@ -132,10 +134,8 @@ const Users = () => {
         mobile: editFormData.mobile,
         address: editFormData.address,
         branch_id: isBranchManager ? user?.branch_id || editFormData.branch_id : editFormData.branch_id,
+        password: editFormData.password,
       };
-      if (editFormData.password) {
-        payload.password = editFormData.password;
-      }
       return fetchApi(`/users/${editUserId}`, {
         method: 'PUT',
         body: JSON.stringify(payload)
