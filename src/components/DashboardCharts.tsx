@@ -13,11 +13,13 @@ export const DashboardCharts = () => {
   const { data: monthlyData, isLoading: loadingMonthly } = useQuery({
     queryKey: ['monthly-chart'],
     queryFn: () => fetchApi('/dashboard/monthly-chart'),
+    staleTime: 1000 * 60, // 1 minute
   });
 
   const { data: statusData, isLoading: loadingStatus } = useQuery({
     queryKey: ['loan-status-chart'],
     queryFn: () => fetchApi('/dashboard/loan-status-chart'),
+    staleTime: 1000 * 60, // 1 minute
   });
 
   const chartMonthly = monthlyData?.data || [];

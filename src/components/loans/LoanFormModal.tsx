@@ -19,11 +19,13 @@ const LoanFormModal = ({ onClose }: Props) => {
   const { data: customersData } = useQuery({
     queryKey: ['customers-all'],
     queryFn: () => fetchApi('/customers?limit=500&status=active'),
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   const { data: usersData } = useQuery({
     queryKey: ['staff-users'],
     queryFn: () => fetchApi('/users'),
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   const staffUsers = (usersData?.data || []).filter((u: any) => u.is_active && ['staff', 'admin'].includes(u.role));

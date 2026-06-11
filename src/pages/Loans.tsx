@@ -21,6 +21,7 @@ const Loans = () => {
     queryFn: () => fetchApi(
       `/loans?page=${page}&limit=10&search=${searchTerm}${statusFilter ? `&status=${statusFilter}` : ''}${approvalFilter ? `&approval_status=${approvalFilter}` : ''}`
     ),
+    staleTime: 1000 * 30, // 30 seconds
   });
 
   const getStatusBadge = (loan: any) => {

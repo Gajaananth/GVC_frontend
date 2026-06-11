@@ -18,6 +18,7 @@ const CustomerFormModal = ({ customer, onClose }: Props) => {
     queryKey: ['staff-users'],
     queryFn: () => fetchApi('/users?role=staff&limit=100'),
     enabled: !isEdit,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   const [form, setForm] = useState({

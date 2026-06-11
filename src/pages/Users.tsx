@@ -33,11 +33,13 @@ const Users = () => {
   const { data: usersData, isLoading } = useQuery({
     queryKey: ['users', page],
     queryFn: () => fetchApi(`/users?page=${page}&limit=20`),
+    staleTime: 1000 * 30, // 30 seconds
   });
 
   const { data: branchesData, isLoading: branchesLoading } = useQuery({
     queryKey: ['branches'],
     queryFn: () => fetchApi('/branches'),
+    staleTime: 1000 * 30, // 30 seconds
   });
 
   const handleCreateUser = async (e: React.FormEvent) => {

@@ -23,17 +23,20 @@ const Dashboard = () => {
   const { data: summaryData, isLoading: loadingSummary } = useQuery({
     queryKey: ['dashboard-summary'],
     queryFn: () => fetchApi('/dashboard/summary'),
+    staleTime: 1000 * 30, // 30 seconds
   });
 
   const { data: recentTxs, isLoading: loadingTxs } = useQuery({
     queryKey: ['recent-transactions'],
     queryFn: () => fetchApi('/dashboard/recent-transactions'),
+    staleTime: 1000 * 30, // 30 seconds
   });
 
   const { data: advancedMetrics, isLoading: loadingMetrics } = useQuery({
     queryKey: ['advanced-metrics'],
     queryFn: () => fetchApi('/dashboard/advanced-metrics'),
-    enabled: user?.role === 'owner' || user?.role === 'admin'
+    enabled: user?.role === 'owner' || user?.role === 'admin',
+    staleTime: 1000 * 30, // 30 seconds
   });
 
   const summary = summaryData?.data || {};
