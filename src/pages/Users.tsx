@@ -25,6 +25,25 @@ const Users = () => {
   const canCreateUsers = isOwner || isBranchManager;
   const queryClient = useQueryClient();
 
+  // Edit modal state
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editUserId, setEditUserId] = useState<string | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    email: '',
+    full_name: '',
+    role: 'staff',
+    mobile: '',
+    address: '',
+    branch_id: ''
+  });
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
+
+  // Delete modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Debug: log user and permissions
   React.useEffect(() => {
     console.log('Users page - user:', user, 'isOwner:', isOwner);
@@ -70,6 +89,67 @@ const Users = () => {
       setIsCreating(false);
     }
   };
+
+  // Fetch user data for edit
+  const fetchUserForEdit = async (id: string) => {
+    setEditLoading(true);
+    try {
+      const userData = await fetchApi(`/users/${id}`);
+      const data = userData.data || {};
+      setEditFormData({
+        email: data.email || '',
+        full_name: data.full_name || '',
+        role: data.role || 'staff',
+        mobile: data.mobile || '',
+        address: data.address || '',
+        branch_id: data.branch_id || ''
+      });
+      setEditUserId(id);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to load user');
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const updateUserMutation = useMutation({
+    mutationFn: async () => {
+      if (!editUserId) throw new Error('No user ID');
+      const payload = {
+        ...editFormData,
+        branch_id: isBranchManager ? user?.branch_id || editFormData.branch_id : editFormData.branch_id
+      };
+      return fetchApi(`/users/${editUserId}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+      });
+    },
+    onSuccess: () => {
+      toast.success('User updated successfully');
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setShowEditModal(false);
+    },
+    onError: (err: any) => {
+      toast.error(err.message || 'Failed to update user');
+    }
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async () => {
+      if (!deleteUserId) throw new Error('No user ID');
+      return fetchApi(`/users/${deleteUserId}`, {
+        method: 'DELETE'
+      });
+    },
+    onSuccess: () => {
+      toast.success('User deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setShowDeleteModal(false);
+    },
+    onError: (err: any) => {
+      toast.error(err.message || 'Failed to delete user');
+    }
+  });
 
   const getRoleBadge = (role: string) => {
     switch (role) {
@@ -267,6 +347,178 @@ const Users = () => {
         </div>
       )}
 
+      {/* Edit User Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3">
+          <div className="bg-white rounded-2xl shadow-xl p-5 sm:p-8 max-w-md w-full max-h-[92vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-gray-800">Edit User</h3>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={(e) => { e.preventDefault(); updateUserMutation.mutate(); }} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={editFormData.full_name}
+                  onChange={(e) => setEditFormData({...editFormData, full_name: e.target.value})}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                <input
+                  type="email"
+                  required
+                  value={editFormData.email}
+                  onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                />
+              </div>
+
+              {/* Password optional for edit */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Password (leave blank to keep current)</label>
+                <input
+                  type="password"
+                  value={editFormData.password || ''}
+                  onChange={(e) => setEditFormData({...editFormData, password: e.target.value})}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  placeholder="••••••••"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Role *</label>
+                <select
+                  value={editFormData.role}
+                  onChange={(e) => setEditFormData({...editFormData, role: e.target.value})}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                >
+                  {isOwner ? (
+                    <>
+                      <option value="owner">Owner</option>
+                      <option value="admin">Admin</option>
+                      <option value="branch_manager">Branch Manager</option>
+                      <option value="cashier">Cashier</option>
+                      <option value="staff">Staff</option>
+                      <option value="view_only">View Only</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="admin">Admin</option>
+                      <option value="cashier">Cashier</option>
+                      <option value="staff">Staff</option>
+                      <option value="view_only">View Only</option>
+                    </>
+                  )}
+                </select>
+              </div>
+
+              {(isOwner && editFormData.role !== 'owner') && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Branch *</label>
+                  <select
+                    value={editFormData.branch_id}
+                    onChange={(e) => setEditFormData({...editFormData, branch_id: e.target.value})}
+                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                    disabled={branchesLoading}
+                    required
+                  >
+                    <option value="">Select branch</option>
+                    {(branchesData?.data ?? [])
+                      .sort((a: Branch, b: Branch) => a.branch_name.localeCompare(b.branch_name))
+                      .map((branch: Branch) => (
+                        <option key={branch.id} value={branch.id}>
+                          {typeof branch.branch_name === 'string' ? branch.branch_name :
+                           typeof branch.id === 'string' ? branch.id : ''}
+                          {typeof branch.branch_code === 'string' ?
+                            `(${branch.branch_code})` : ''}
+                        </option>
+                      ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">Required for non-owner users</p>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mobile</label>
+                <input
+                  type="tel"
+                  value={editFormData.mobile}
+                  onChange={(e) => setEditFormData({...editFormData, mobile: e.target.value})}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                <input
+                  type="text"
+                  value={editFormData.address}
+                  onChange={(e) => setEditFormData({...editFormData, address: e.target.value})}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdating || updateUserMutation.isPending}
+                  className="flex-1 px-4 py-2 bg-forest text-white rounded-lg hover:bg-leaf transition-colors disabled:opacity-50"
+                >
+                  {updateUserMutation.isPending ? 'Updating...' : 'Update User'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3">
+          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full">
+            <div className="space-y-5">
+              <h3 className="text-xl font-bold text-gray-800">Delete User</h3>
+              <p className="text-gray-600">
+                Are you sure you want to delete this user? This action cannot be undone.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => deleteUserMutation.mutate()}
+                  disabled={isDeleting || deleteUserMutation.isPending}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                >
+                  {deleteUserMutation.isPending ? 'Deleting...' : 'Delete User'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="glass-card flex flex-col">
         <div className="p-4 border-b border-gray-100">
           <div className="relative max-w-md">
@@ -316,8 +568,27 @@ const Users = () => {
                       </span>
                     </td>
                     <td className="p-4 text-right">
-                      <button className="p-2 text-gray-400 hover:text-blue-600 transition-colors"><Edit className="w-4 h-4" /></button>
-                      <button className="p-2 text-gray-400 hover:text-red-600 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                      {/* Edit Button */}
+                      <button
+                        onClick={() => {
+                          fetchUserForEdit(u.id);
+                        }}
+                        className="p-2 text-gray-400 hover:text-blue-600 transition-colors disabled:opacity-50"
+                        disabled={editLoading}
+                      >
+                        {editLoading ? <span className="animate-spin w-4 h-4" /> : <Edit className="w-4 h-4" />}
+                      </button>
+                      {/* Delete Button */}
+                      <button
+                        onClick={() => {
+                          setDeleteUserId(u.id);
+                          setShowDeleteModal(true);
+                        }}
+                        className="p-2 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                        disabled={isDeleting}
+                      >
+                        {isDeleting ? <span className="animate-spin w-4 h-4" /> : <Trash2 className="w-4 h-4" />}
+                      </button>
                     </td>
                   </tr>
                 ))
