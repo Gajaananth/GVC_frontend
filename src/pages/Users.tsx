@@ -28,13 +28,22 @@ const Users = () => {
   // Edit modal state
   const [showEditModal, setShowEditModal] = useState(false);
   const [editUserId, setEditUserId] = useState<string | null>(null);
-  const [editFormData, setEditFormData] = useState({
+  const [editFormData, setEditFormData] = useState<{
+    email: string;
+    full_name: string;
+    role: string;
+    mobile: string;
+    address: string;
+    branch_id: string;
+    password: string;
+  }>({
     email: '',
     full_name: '',
     role: 'staff',
     mobile: '',
     address: '',
-    branch_id: ''
+    branch_id: '',
+    password: ''
   });
   const [isUpdating, setIsUpdating] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
@@ -102,7 +111,8 @@ const Users = () => {
         role: data.role || 'staff',
         mobile: data.mobile || '',
         address: data.address || '',
-        branch_id: data.branch_id || ''
+        branch_id: data.branch_id || '',
+        password: ''
       });
       setEditUserId(id);
     } catch (err: any) {
@@ -116,9 +126,16 @@ const Users = () => {
     mutationFn: async () => {
       if (!editUserId) throw new Error('No user ID');
       const payload = {
-        ...editFormData,
-        branch_id: isBranchManager ? user?.branch_id || editFormData.branch_id : editFormData.branch_id
+        email: editFormData.email,
+        full_name: editFormData.full_name,
+        role: editFormData.role,
+        mobile: editFormData.mobile,
+        address: editFormData.address,
+        branch_id: isBranchManager ? user?.branch_id || editFormData.branch_id : editFormData.branch_id,
       };
+      if (editFormData.password) {
+        payload.password = editFormData.password;
+      }
       return fetchApi(`/users/${editUserId}`, {
         method: 'PUT',
         body: JSON.stringify(payload)
