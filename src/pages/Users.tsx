@@ -127,15 +127,19 @@ const Users = () => {
   const updateUserMutation = useMutation({
     mutationFn: async () => {
       if (!editUserId) throw new Error('No user ID');
-      const payload = {
+      const payload: Record<string, any> = {
         email: editFormData.email,
         full_name: editFormData.full_name,
         role: editFormData.role,
         mobile: editFormData.mobile,
         address: editFormData.address,
         branch_id: isBranchManager ? user?.branch_id || editFormData.branch_id : editFormData.branch_id,
-        password: editFormData.password,
       };
+      
+      if (editFormData.password) {
+        payload.password = editFormData.password;
+      }
+      
       return fetchApi(`/users/${editUserId}`, {
         method: 'PUT',
         body: JSON.stringify(payload)
