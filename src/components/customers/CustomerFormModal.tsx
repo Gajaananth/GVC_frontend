@@ -4,6 +4,7 @@ import { fetchApi } from '../../services/api';
 import Modal from '../Modal';
 import toast from 'react-hot-toast';
 import * as faceapi from 'face-api.js';
+import { useAuthStore } from '../../store/authStore';
 
 interface Props {
   customer?: any;
@@ -13,6 +14,15 @@ interface Props {
 const CustomerFormModal = ({ customer, onClose }: Props) => {
   const queryClient = useQueryClient();
   const isEdit = !!customer;
+  const { user } = useAuthStore();
+  const isOwner = user?.role === 'owner';
+
+  const { data: branchesData } = useQuery({
+    queryKey: ['branches'],
+    queryFn: () => fetchApi('/branches'),
+    enabled: isOwner && !isEdit,
+    staleTime: 1000 * 60 * 5,
+  });
 
   const { data: staffList } = useQuery({
     queryKey: ['staff-users'],
@@ -31,6 +41,7 @@ const CustomerFormModal = ({ customer, onClose }: Props) => {
     monthly_income: customer?.monthly_income || '',
     notes: customer?.notes || '',
     registered_by_staff_id: '',
+    branch_id: customer?.branch_id || '',
   });
 
   const [photo, setPhoto] = useState<File | null>(null);
@@ -62,20 +73,11 @@ const CustomerFormModal = ({ customer, onClose }: Props) => {
       if (isEdit) {
         return fetchApi(`/customers/${customer.id}`, { method: 'PUT', body: JSON.stringify(formData) });
       } else {
-        const token = localStorage.getItem('token');
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/customers`, {
+        return fetchApi('/customers', {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`
-            // Note: Don't set Content-Type, browser sets it with boundary for FormData
-          },
+          // Do NOT set Content-Type here; fetchApi will skip it for FormData
           body: formData as FormData
         });
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.error || 'Failed to create customer');
-        }
-        return res.json();
       }
     },
     onSuccess: () => {
@@ -186,6 +188,26 @@ const CustomerFormModal = ({ customer, onClose }: Props) => {
           <label className="text-sm font-medium text-gray-700">Address *</label>
           <textarea required className="input-field" rows={2} value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} />
         </div>
+        
+        {isOwner && !isEdit && (
+          <div>
+            <label className="text-sm font-medium text-gray-700">Branch *</label>
+            <select
+              required
+              className="input-field"
+              value={form.branch_id}
+              onChange={e => setForm({ ...form, branch_id: e.target.value })}
+            >
+              <option value="">Select branch</option>
+              {(branchesData?.data || []).map((branch: any) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.branch_name} ({branch.branch_code})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-medium text-gray-700">Occupation</label>
