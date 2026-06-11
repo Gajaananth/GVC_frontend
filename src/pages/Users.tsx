@@ -101,7 +101,6 @@ const Users = () => {
     }
   };
 
-  // Fetch user data for edit
   const fetchUserForEdit = async (id: string) => {
     setEditLoading(true);
     try {
@@ -117,6 +116,7 @@ const Users = () => {
         password: ''
       });
       setEditUserId(id);
+      setShowEditModal(true);
     } catch (err: any) {
       toast.error(err.message || 'Failed to load user');
     } finally {
