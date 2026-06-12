@@ -5,16 +5,17 @@ import Modal from '../Modal';
 import { formatLKR } from '../../utils/format';
 import { getTermConfig, type RepaymentFrequency } from '../../utils/loanTermConfig';
 import toast from 'react-hot-toast';
-import { Calculator, Upload, FileCheck } from 'lucide-react';
+import { Calculator, Upload, FileCheck, Search } from 'lucide-react';
 
 interface Props {
   onClose: () => void;
 }
 
-const LoanFormModal = ({ onClose }: Props) => {
   const queryClient = useQueryClient();
   const [preview, setPreview] = useState<any>(null);
   const [applicationPdf, setApplicationPdf] = useState<File | null>(null);
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
 
   const { data: customersData } = useQuery({
     queryKey: ['customers-all'],
@@ -51,6 +52,17 @@ const LoanFormModal = ({ onClose }: Props) => {
     [form.repayment_frequency]
   );
 
+  const selectedCustomer = customersData?.data?.find((c: any) => c.id === form.customer_id);
+
+  const filteredCustomers = useMemo(() => {
+    const search = customerSearch.toLowerCase();
+    return (customersData?.data || []).filter((c: any) => 
+      c.full_name.toLowerCase().includes(search) || 
+      (c.nic_number && c.nic_number.toLowerCase().includes(search)) ||
+      c.customer_code.toLowerCase().includes(search)
+    ).slice(0, 50);
+  }, [customersData?.data, customerSearch]);
+
   useEffect(() => {
     const cfg = getTermConfig(form.repayment_frequency);
     setForm(f => ({ ...f, term_count: String(cfg.default) }));
@@ -82,9 +94,17 @@ const LoanFormModal = ({ onClose }: Props) => {
   });
 
   useEffect(() => {
-    if (form.gross_loan_amount && Number(form.gross_loan_amount) > 0) {
+    const gross = Number(form.gross_loan_amount);
+    const docFee = Number(form.documentation_fee) || 0;
+    const insFixed = Number(form.insurance_fee_amount) || 0;
+    const insPercent = Number(form.insurance_fee_percent) || 0;
+    const totalFees = docFee + insFixed + (gross * insPercent / 100);
+
+    if (gross > 0 && gross > totalFees) {
       const t = setTimeout(() => calcMutation.mutate(), 400);
       return () => clearTimeout(t);
+    } else if (gross > 0) {
+      setPreview(null);
     }
   }, [
     form.gross_loan_amount,
@@ -162,14 +182,50 @@ const LoanFormModal = ({ onClose }: Props) => {
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
+          <div className="relative">
             <label className="text-sm font-medium text-gray-700">Customer *</label>
-            <select required className="input-field" value={form.customer_id} onChange={e => setForm({ ...form, customer_id: e.target.value })}>
-              <option value="">Select customer</option>
-              {(customersData?.data || []).map((c: any) => (
-                <option key={c.id} value={c.id}>{c.full_name} — {c.customer_code}</option>
-              ))}
-            </select>
+            {form.customer_id && selectedCustomer ? (
+              <div className="flex items-center justify-between input-field bg-gray-50 border-gray-200">
+                <span className="truncate pr-2 font-medium">{selectedCustomer.full_name} <span className="text-gray-500 font-normal">({selectedCustomer.nic_number || selectedCustomer.customer_code})</span></span>
+                <button type="button" onClick={() => setForm({ ...form, customer_id: '' })} className="text-gray-400 hover:text-red-500 focus:outline-none">✕</button>
+              </div>
+            ) : (
+              <div className="relative mt-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by name, NIC or code..."
+                  className="w-full px-3 py-2 pl-9 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-leaf focus:border-leaf outline-none transition-all text-sm"
+                  value={customerSearch}
+                  onChange={e => { setCustomerSearch(e.target.value); setShowCustomerDropdown(true); }}
+                  onFocus={() => setShowCustomerDropdown(true)}
+                  onBlur={() => setTimeout(() => setShowCustomerDropdown(false), 200)}
+                />
+                {showCustomerDropdown && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl max-h-60 overflow-auto">
+                    {filteredCustomers.length === 0 ? (
+                      <div className="p-3 text-sm text-gray-500 text-center">No customers found</div>
+                    ) : (
+                      filteredCustomers.map((c: any) => (
+                        <div
+                          key={c.id}
+                          className="px-4 py-2 hover:bg-forest/5 cursor-pointer border-b border-gray-50 last:border-0"
+                          onClick={() => {
+                            setForm({ ...form, customer_id: c.id });
+                            setCustomerSearch('');
+                            setShowCustomerDropdown(false);
+                          }}
+                        >
+                          <div className="font-medium text-gray-800">{c.full_name}</div>
+                          <div className="text-xs text-gray-500 font-mono mt-0.5">NIC: {c.nic_number || 'N/A'} | {c.customer_code}</div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+            <input type="text" required value={form.customer_id} className="opacity-0 absolute w-0 h-0 pointer-events-none" onChange={() => {}} tabIndex={-1} />
           </div>
           <div>
             <label className="text-sm font-medium text-gray-700">Credit Date (cash to customer) *</label>
