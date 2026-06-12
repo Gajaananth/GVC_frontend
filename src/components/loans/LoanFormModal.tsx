@@ -10,7 +10,7 @@ import { Calculator, Upload, FileCheck, Search } from 'lucide-react';
 interface Props {
   onClose: () => void;
 }
-
+const LoanFormModal = ({ onClose }: Props) => {
   const queryClient = useQueryClient();
   const [preview, setPreview] = useState<any>(null);
   const [applicationPdf, setApplicationPdf] = useState<File | null>(null);
