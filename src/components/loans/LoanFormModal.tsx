@@ -6,12 +6,16 @@ import { formatLKR } from '../../utils/format';
 import { getTermConfig, type RepaymentFrequency } from '../../utils/loanTermConfig';
 import toast from 'react-hot-toast';
 import { Calculator, Upload, FileCheck, Search } from 'lucide-react';
+import { useAuthStore } from '../../store/authStore';
 
 interface Props {
   onClose: () => void;
 }
 const LoanFormModal = ({ onClose }: Props) => {
   const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+  const isOwner = user?.role === 'owner';
+  
   const [preview, setPreview] = useState<any>(null);
   const [applicationPdf, setApplicationPdf] = useState<File | null>(null);
   const [customerSearch, setCustomerSearch] = useState('');
@@ -147,8 +151,8 @@ const LoanFormModal = ({ onClose }: Props) => {
       }
       return res.json();
     },
-    onSuccess: () => {
-      toast.success('Loan submitted for owner approval');
+    onSuccess: (data) => {
+      toast.success(data.message || 'Loan submitted successfully');
       queryClient.invalidateQueries({ queryKey: ['loans'] });
       onClose();
     },
@@ -178,7 +182,7 @@ const LoanFormModal = ({ onClose }: Props) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <p className="text-sm text-amber-800 bg-amber-50 p-3 rounded-lg">
           Choose collection type and loan length in <strong>days / weeks / 14-day periods / months</strong>.
-          Schedule is built from credit date. Owner approves before the loan goes live.
+          Schedule is built from credit date. {!isOwner && "Owner approves before the loan goes live."}
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -443,7 +447,7 @@ const LoanFormModal = ({ onClose }: Props) => {
         <div className="flex justify-end gap-3">
           <button type="button" onClick={onClose} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl">Cancel</button>
           <button type="submit" disabled={mutation.isPending || !preview || !applicationPdf} className="px-4 py-2 bg-forest text-white rounded-xl hover:bg-leaf disabled:opacity-50">
-            {mutation.isPending ? 'Submitting...' : 'Submit for Owner Approval'}
+            {mutation.isPending ? 'Submitting...' : isOwner ? 'Create Loan' : 'Submit for Owner Approval'}
           </button>
         </div>
       </form>
