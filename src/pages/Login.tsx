@@ -39,7 +39,7 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { accessToken, user } = await fetchApi('/auth/login', {
+      const { accessToken, refreshToken, user } = await fetchApi('/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
@@ -50,7 +50,7 @@ const LoginPage = () => {
         return;
       }
 
-      setAuth(user, accessToken);
+      setAuth(user, accessToken, refreshToken);
       toast.success('Welcome back!');
       navigate('/');
     } catch (error) {

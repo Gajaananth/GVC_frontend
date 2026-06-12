@@ -3,30 +3,97 @@ import toast from 'react-hot-toast';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
+// Mutex to prevent multiple simultaneous refresh attempts
+let isRefreshing = false;
+let refreshPromise: Promise<string | null> | null = null;
+
+async function refreshAccessToken(): Promise<string | null> {
+  const { refreshToken } = useAuthStore.getState();
+  if (!refreshToken) return null;
+
+  try {
+    const response = await fetch(`${API_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken }),
+    });
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    if (data.accessToken) {
+      // Update the store with the new access token, keeping existing user & refresh token
+      useAuthStore.setState({ accessToken: data.accessToken });
+      return data.accessToken;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export const fetchApi = async (endpoint: string, options: RequestInit = {}) => {
   const { accessToken, logout } = useAuthStore.getState();
 
-  const headers = new Headers(options.headers || {});
-  if (accessToken) {
-    headers.set('Authorization', `Bearer ${accessToken}`);
-  }
-  if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
-    headers.set('Content-Type', 'application/json');
-  }
+  const buildHeaders = (token: string | null) => {
+    const headers = new Headers(options.headers || {});
+    if (token) {
+      headers.set('Authorization', `Bearer ${token}`);
+    }
+    if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
+      headers.set('Content-Type', 'application/json');
+    }
+    return headers;
+  };
 
   try {
     const response = await fetch(`${API_URL}${endpoint}`, {
       ...options,
-      headers,
+      headers: buildHeaders(accessToken),
     });
+
+    // If 401 and not a login/refresh request, try refreshing the token
+    if (response.status === 401 && !endpoint.includes('/auth/')) {
+      // Use a shared promise so concurrent 401s only trigger one refresh
+      if (!isRefreshing) {
+        isRefreshing = true;
+        refreshPromise = refreshAccessToken().finally(() => {
+          isRefreshing = false;
+          refreshPromise = null;
+        });
+      }
+
+      const newToken = await (refreshPromise || refreshAccessToken());
+
+      if (newToken) {
+        // Retry the original request with the new token
+        const retryResponse = await fetch(`${API_URL}${endpoint}`, {
+          ...options,
+          headers: buildHeaders(newToken),
+        });
+
+        const retryData = await retryResponse.json().catch(() => ({}));
+
+        if (!retryResponse.ok) {
+          if (retryResponse.status === 401) {
+            logout();
+            window.location.href = '/login';
+          }
+          throw new Error(retryData.error || 'API request failed');
+        }
+
+        return retryData;
+      } else {
+        // Refresh failed — force logout
+        logout();
+        window.location.href = '/login';
+        throw new Error('Session expired. Please log in again.');
+      }
+    }
 
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      if (response.status === 401 && !endpoint.includes('/auth/login')) {
-        logout();
-        window.location.href = '/login';
-      }
       throw new Error(data.error || 'API request failed');
     }
 
