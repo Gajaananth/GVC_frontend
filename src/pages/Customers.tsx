@@ -84,10 +84,10 @@ const Customers = () => {
           </button>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-auto max-h-[calc(100vh-280px)]">
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 text-gray-500 text-sm border-b border-gray-100">
+            <thead className="sticky top-0 z-10 bg-gray-50 shadow-sm">
+              <tr className="text-gray-500 text-sm border-b border-gray-100">
                 <th className="p-4 font-medium">Customer</th>
                 <th className="p-4 font-medium">NIC Number</th>
                 <th className="p-4 font-medium">Contact</th>
