@@ -139,7 +139,7 @@ const LoanFormModal = ({ onClose }: Props) => {
       if (form.notes) formData.append('notes', form.notes);
       if (applicationPdf) formData.append('loan_application_pdf', applicationPdf);
 
-      const token = localStorage.getItem('token');
+      const token = useAuthStore.getState().accessToken;
       const res = await fetch(`${import.meta.env.VITE_API_URL}/loans`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
@@ -154,7 +154,11 @@ const LoanFormModal = ({ onClose }: Props) => {
     onSuccess: (data) => {
       toast.success(data.message || 'Loan submitted successfully');
       queryClient.invalidateQueries({ queryKey: ['loans'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-loans'] });
       onClose();
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to submit loan');
     },
   });
 
