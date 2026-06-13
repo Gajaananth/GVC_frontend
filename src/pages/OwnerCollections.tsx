@@ -44,61 +44,27 @@ function tempId() {
   return Math.random().toString(36).slice(2);
 }
 
-// ─── PDF download (client‑side via pdfmake style — uses the reports export endpoint) ──
 async function downloadCollectionFile(
   format: 'pdf' | 'excel',
   results: SubmitResult[],
   summary: any,
   accessToken: string
 ) {
-  // We encode the results into query params and hit a dedicated export endpoint.
-  // Since the data is already on the client, we build the file client‑side for xlsx
-  // and use the backend for PDF (reuse existing infrastructure).
-  if (format === 'excel') {
-    // Dynamic import of sheetjs (already likely in node_modules via exceljs on backend)
-    // Since we're in the browser, use a simple CSV approach that opens as Excel
-    const headers = ['Receipt', 'Date', 'Loan Code', 'Customer', 'Amount (LKR)', 'Cash', 'Online', 'Type', 'Status'];
-    const rows = results.map(r => [
-      r.payment_code || '',
-      r.payment_date || summary.collection_date,
-      r.loan_code || '',
-      r.customer_name || '',
-      r.amount ?? '',
-      r.cash_amount ?? '',
-      r.online_amount ?? '',
-      '',
-      r.error ? 'FAILED' : 'OK',
-    ]);
-    // totals row
-    rows.push(['', '', '', 'TOTAL', summary.total_collected, summary.total_cash, summary.total_online, '', '']);
-
-    const csv = [headers, ...rows].map(r => r.map((v: any) => `"${v}"`).join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `collection-${summary.collection_date}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-    return;
-  }
-
-  // PDF: use the backend export
-  const url = `${API_URL}/reports/daily_collection/export/pdf?start_date=${summary.collection_date}&end_date=${summary.collection_date}`;
+  // Use the backend export endpoint for both PDF and Excel
+  const url = `${API_URL}/reports/daily_collection/export/${format}?start_date=${summary.collection_date}&end_date=${summary.collection_date}`;
   const response = await fetch(url, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   if (!response.ok) {
-    toast.error('Failed to download PDF');
+    toast.error(`Failed to download ${format.toUpperCase()}`);
     return;
   }
   const blob = await response.blob();
   const blobUrl = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = blobUrl;
-  a.download = `collection-${summary.collection_date}.pdf`;
+  const ext = format === 'excel' ? 'xlsx' : 'pdf';
+  a.download = `collection-${summary.collection_date}.${ext}`;
   document.body.appendChild(a);
   a.click();
   a.remove();
