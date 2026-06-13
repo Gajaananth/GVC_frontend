@@ -62,6 +62,14 @@ export const customerService = {
     return fetchApi(`/staff/${staffId}/customers`);
   },
 
+  // Create customer (JSON payload for cases where files are uploaded separately)
+  async createCustomer(data: Partial<Customer> & { photo_url?: string; nic_front_url?: string; nic_back_url?: string; branch_id: string; }): Promise<Customer> {
+    return fetchApi('/customers', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
   // Create customer using multipart form data so documents upload in one request.
   async createCustomerWithFiles(data: {
     full_name: string;
@@ -124,6 +132,7 @@ export const customerService = {
     return fetchApi(`/customers/${customerId}/documents`, {
       method: 'POST',
       body: formData,
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` },
     });
   },
 
@@ -135,18 +144,6 @@ export const customerService = {
     });
   },
 
-  // Upload customer document and validate (especially face detection)
-  async uploadDocument(customerId: string, document_type: 'face_photo' | 'nic_front' | 'nic_back', file: File): Promise<any> {
-    const formData = new FormData();
-    formData.append('document_type', document_type);
-    formData.append('file', file);
-
-    return fetchApi(`/customers/${customerId}/documents`, {
-      method: 'POST',
-      body: formData,
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` },
-    });
-  },
 
   // Validate face detection on uploaded photo
   async validateFaceDetection(customerId: string, photo_url: string): Promise<FaceDetectionResult> {
