@@ -369,7 +369,10 @@ const OwnerCollections = () => {
                 max={remaining}
                 className="input-field"
                 value={addForm.amount}
-                onChange={e => setAddForm(f => ({ ...f, amount: e.target.value }))}
+                onChange={e => {
+                  const val = e.target.value;
+                  setAddForm(f => ({ ...f, amount: val, cash_amount: val, online_amount: '0' }));
+                }}
               />
             </div>
             <div>

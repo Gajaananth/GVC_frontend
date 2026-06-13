@@ -124,7 +124,12 @@ const CollectPaymentModal = ({
       <div className="space-y-4">
         <div>
           <label className="block text-sm text-gray-600">Amount</label>
-          <input type="number" value={amount} onChange={e => setAmount(Number(e.target.value))} className="input-field" />
+          <input type="number" value={amount} onChange={e => {
+              const val = Number(e.target.value);
+              setAmount(val);
+              setCash(val);
+              setOnline(0);
+          }} className="input-field" />
           {defaultAmount !== undefined && (
             <p className="text-xs text-gray-500 mt-1">Maximum allowed amount is {formatLKR(defaultAmount)}</p>
           )}

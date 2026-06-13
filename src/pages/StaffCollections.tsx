@@ -307,7 +307,10 @@ const StaffCollections = () => {
                     className="input-field" 
                     max={selectedLoanRemaining || undefined}
                     value={loanForm.amount} 
-                    onChange={e => setLoanForm({ ...loanForm, amount: e.target.value })} 
+                    onChange={e => {
+                      const val = e.target.value;
+                      setLoanForm(f => ({ ...f, amount: val, cash_amount: val, online_amount: '0' }));
+                    }} 
                   />
                   {amountExceedsBalance && (
                     <p className="mt-1 text-xs text-red-600">Amount cannot exceed remaining balance.</p>
