@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Modal from './Modal';
 import { fetchApi } from '../services/api';
 import toast from 'react-hot-toast';
+import { formatLKR } from '../utils/format';
 
 export type PaymentMode = 'direct' | 'queue';
 
@@ -60,6 +61,9 @@ const CollectPaymentModal = ({
 
   const submit = async () => {
     if (amount <= 0) return toast.error('Enter a valid amount');
+    if (defaultAmount !== undefined && amount > defaultAmount) {
+      return toast.error(`Amount cannot exceed ${formatLKR(defaultAmount)}`);
+    }
     if (Math.abs((cash || 0) + (online || 0) - amount) > 0.01) return toast.error('Cash + online must equal total amount');
     setLoading(true);
 
@@ -121,6 +125,9 @@ const CollectPaymentModal = ({
         <div>
           <label className="block text-sm text-gray-600">Amount</label>
           <input type="number" value={amount} onChange={e => setAmount(Number(e.target.value))} className="input-field" />
+          {defaultAmount !== undefined && (
+            <p className="text-xs text-gray-500 mt-1">Maximum allowed amount is {formatLKR(defaultAmount)}</p>
+          )}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>

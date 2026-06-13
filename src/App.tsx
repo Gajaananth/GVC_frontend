@@ -24,6 +24,7 @@ import ActivityLogs from './pages/ActivityLogs';
 import Approvals from './pages/Approvals';
 import StaffCollections from './pages/StaffCollections';
 import CollectionApprovals from './pages/CollectionApprovals';
+import OwnerCollections from './pages/OwnerCollections';
 import PhysicalForms from './pages/PhysicalForms';
 import Notifications from './pages/Notifications';
 import ImportExport from './pages/ImportExport';
@@ -82,6 +83,11 @@ function App() {
                   <Route path="/collection-approvals/*" element={
                     <ProtectedRoute allowedRoles={['owner', 'admin']}>
                       <CollectionApprovals />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/owner-collections/*" element={
+                    <ProtectedRoute allowedRoles={['owner']}>
+                      <OwnerCollections />
                     </ProtectedRoute>
                   } />
                   <Route path="/physical-forms/*" element={

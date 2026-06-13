@@ -18,7 +18,8 @@ import {
   Bell,
   Database,
   ShieldCheck,
-  Building2
+  Building2,
+  ShoppingCart
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -33,6 +34,7 @@ const Sidebar = () => {
     { name: 'Savings', path: '/savings', icon: PiggyBank, roles: ['owner', 'admin', 'staff', 'view_only'] },
     { name: 'Fixed Deposits', path: '/fixed-deposits', icon: Wallet, roles: ['owner', 'admin', 'staff', 'view_only'] },
     { name: 'Collections', path: '/collections', icon: Banknote, roles: ['staff'] },
+    { name: 'Owner Collections', path: '/owner-collections', icon: ShoppingCart, roles: ['owner'] },
     { name: 'Approve Collections', path: '/collection-approvals', icon: ClipboardCheck, roles: ['owner', 'admin'] },
     { name: 'Physical Forms', path: '/physical-forms', icon: FileInput, roles: ['owner', 'admin'] },
     { name: 'Import/Export', path: '/import-export', icon: Database, roles: ['owner'] },

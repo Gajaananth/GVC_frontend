@@ -54,6 +54,10 @@ const CustomerDetailModal = ({ customerId, onClose }: Props) => {
   });
 
   const customer = data?.data;
+  const today = new Date().toISOString().slice(0, 10);
+  const isDueToday = selectedLoanData?.data?.schedule?.some((row: any) =>
+    row.due_date === today && ['pending', 'partial', 'overdue'].includes(row.status)
+  );
 
   if (isLoading) {
     return (
@@ -186,12 +190,18 @@ const CustomerDetailModal = ({ customerId, onClose }: Props) => {
                   <p className="text-sm text-gray-500">Selected Loan</p>
                   <p className="font-semibold text-gray-900">{selectedLoanData.data.loan_code}</p>
                 </div>
-                <button
-                  onClick={() => setShowCollectModal(true)}
-                  className="bg-forest hover:bg-leaf text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
-                >
-                  Collect Payment
-                </button>
+                {isDueToday ? (
+                  <button
+                    onClick={() => setShowCollectModal(true)}
+                    className="bg-forest hover:bg-leaf text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                  >
+                    Collect Payment
+                  </button>
+                ) : (
+                  <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-semibold text-gray-500">
+                    Payment entry only allowed for today's due installment
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 text-sm text-gray-700">
@@ -265,7 +275,7 @@ const CustomerDetailModal = ({ customerId, onClose }: Props) => {
             </div>
           </div>
         )}
-        {showCollectModal && selectedLoanData?.data && (
+        {showCollectModal && selectedLoanData?.data && isDueToday && (
           <CollectPaymentModal
             loanId={selectedLoanData.data.id}
             customerId={customer.id}
