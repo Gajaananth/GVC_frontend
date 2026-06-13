@@ -6,7 +6,9 @@ import { formatLKR, formatDate } from '../utils/format';
 import { usePermissions } from '../hooks/usePermissions';
 import { ResponsiveTable, TableRow, TableCell } from '../components/ResponsiveTable';
 import FixedDepositFormModal from '../components/fixed_deposits/FixedDepositFormModal';
+import FDEarlyCloseModal from '../components/fixed_deposits/FDEarlyCloseModal';
 import { useAuthStore } from '../store/authStore';
+import { API_URL } from '../config/env';
 
 const FixedDeposits = () => {
   const { user } = useAuthStore();
@@ -14,6 +16,7 @@ const FixedDeposits = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
+  const [showCloseModal, setShowCloseModal] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState('');
 
   const { data: fdData, isLoading } = useQuery({
@@ -115,7 +118,34 @@ const FixedDeposits = () => {
                     <button className="p-1.5 text-gray-400 hover:text-forest bg-gray-50 hover:bg-green-50 rounded-lg transition-colors" title="View Details">
                       <MoreVertical className="w-4 h-4" />
                     </button>
-                    {/* Add approval buttons if needed here or handle in Approval Dashboard */}
+                    {(fd.status === 'active' || fd.status === 'matured') && (
+                      <>
+                        <button 
+                          onClick={() => {
+                            const url = `${API_URL}/fixed-deposits/${fd.id}/certificate`;
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `FD-Certificate-${fd.fd_code}.pdf`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                          }}
+                          className="p-1.5 text-gray-400 hover:text-blue-600 bg-gray-50 hover:bg-blue-50 rounded-lg transition-colors" 
+                          title="Print Certificate"
+                        >
+                          <Download className="w-4 h-4" />
+                        </button>
+                        {isAdminOrOwner && (
+                          <button 
+                            onClick={() => setShowCloseModal(fd)}
+                            className="p-1.5 text-gray-400 hover:text-red-600 bg-gray-50 hover:bg-red-50 rounded-lg transition-colors" 
+                            title="Close / Cancel FD"
+                          >
+                            <Ban className="w-4 h-4" />
+                          </button>
+                        )}
+                      </>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -125,6 +155,7 @@ const FixedDeposits = () => {
       </div>
 
       {showModal && <FixedDepositFormModal onClose={() => setShowModal(false)} />}
+      {showCloseModal && <FDEarlyCloseModal fd={showCloseModal} onClose={() => setShowCloseModal(null)} />}
     </div>
   );
 };

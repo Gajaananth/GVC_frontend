@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchApi } from '../../services/api';
 import Modal from '../Modal';
 import toast from 'react-hot-toast';
+import { Plus } from 'lucide-react';
+import FDCustomerFormModal from './FDCustomerFormModal';
 
 interface Props {
   onClose: () => void;
@@ -25,6 +27,8 @@ const FixedDepositFormModal = ({ onClose }: Props) => {
     payout_method: 'cash',
     notes: '',
   });
+
+  const [showAddCustomer, setShowAddCustomer] = useState(false);
 
   const mutation = useMutation({
     mutationFn: (data: any) => fetchApi('/fixed-deposits', {
@@ -58,24 +62,46 @@ const FixedDepositFormModal = ({ onClose }: Props) => {
     });
   };
 
+  if (showAddCustomer) {
+    return (
+      <FDCustomerFormModal 
+        onClose={() => setShowAddCustomer(false)} 
+        onSuccess={(newCustomerId) => {
+          setForm({ ...form, customer_id: newCustomerId });
+          setShowAddCustomer(false);
+        }} 
+      />
+    );
+  }
+
   return (
     <Modal title="New Fixed Deposit" onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Customer *</label>
-          <select
-            required
-            className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-leaf focus:border-leaf outline-none"
-            value={form.customer_id}
-            onChange={(e) => setForm({ ...form, customer_id: e.target.value })}
-          >
-            <option value="">Select a customer</option>
-            {customersData?.data?.map((c: any) => (
-              <option key={c.id} value={c.id}>
-                {c.customer_code} - {c.full_name} ({c.nic_number})
-              </option>
-            ))}
-          </select>
+          <div className="flex gap-2">
+            <select
+              required
+              className="flex-1 p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-leaf focus:border-leaf outline-none"
+              value={form.customer_id}
+              onChange={(e) => setForm({ ...form, customer_id: e.target.value })}
+            >
+              <option value="">Select a customer</option>
+              {customersData?.data?.map((c: any) => (
+                <option key={c.id} value={c.id}>
+                  {c.customer_code} - {c.full_name} ({c.nic_number})
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={() => setShowAddCustomer(true)}
+              className="p-2.5 bg-forest/10 text-forest rounded-xl hover:bg-forest/20 flex items-center justify-center"
+              title="Add New FD Customer"
+            >
+              <Plus size={20} />
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
