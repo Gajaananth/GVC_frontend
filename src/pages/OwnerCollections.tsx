@@ -383,7 +383,10 @@ const OwnerCollections = () => {
                 min="0"
                 className="input-field"
                 value={addForm.cash_amount}
-                onChange={e => setAddForm(f => ({ ...f, cash_amount: e.target.value }))}
+                onChange={e => {
+                  const val = e.target.value;
+                  setAddForm(f => ({ ...f, cash_amount: val, online_amount: String(Math.max(0, Number(f.amount) - Number(val))) }));
+                }}
               />
             </div>
             <div>
@@ -394,7 +397,10 @@ const OwnerCollections = () => {
                 min="0"
                 className="input-field"
                 value={addForm.online_amount}
-                onChange={e => setAddForm(f => ({ ...f, online_amount: e.target.value }))}
+                onChange={e => {
+                  const val = e.target.value;
+                  setAddForm(f => ({ ...f, online_amount: val, cash_amount: String(Math.max(0, Number(f.amount) - Number(val))) }));
+                }}
               />
             </div>
           </div>

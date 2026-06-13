@@ -321,11 +321,17 @@ const StaffCollections = () => {
                 </div>
                 <div>
                   <label className="text-sm font-medium">Cash *</label>
-                  <input required type="number" min="0" step="0.01" className="input-field" value={loanForm.cash_amount} onChange={e => setLoanForm({ ...loanForm, cash_amount: e.target.value })} />
+                  <input required type="number" min="0" step="0.01" className="input-field" value={loanForm.cash_amount} onChange={e => {
+                    const val = e.target.value;
+                    setLoanForm(f => ({ ...f, cash_amount: val, online_amount: String(Math.max(0, Number(f.amount) - Number(val))) }));
+                  }} />
                 </div>
                 <div>
                   <label className="text-sm font-medium">Online *</label>
-                  <input required type="number" min="0" step="0.01" className="input-field" value={loanForm.online_amount} onChange={e => setLoanForm({ ...loanForm, online_amount: e.target.value })} />
+                  <input required type="number" min="0" step="0.01" className="input-field" value={loanForm.online_amount} onChange={e => {
+                    const val = e.target.value;
+                    setLoanForm(f => ({ ...f, online_amount: val, cash_amount: String(Math.max(0, Number(f.amount) - Number(val))) }));
+                  }} />
                 </div>
               </div>
               <div>

@@ -146,11 +146,19 @@ const CollectPaymentModal = ({
           </div>
           <div>
             <label className="block text-sm text-gray-600">Cash</label>
-            <input type="number" value={cash} onChange={e => setCash(Number(e.target.value))} className="input-field" />
+          <input type="number" value={cash} onChange={e => {
+              const val = Number(e.target.value);
+              setCash(val);
+              setOnline(Math.max(0, amount - val));
+          }} className="input-field" />
           </div>
           <div>
             <label className="block text-sm text-gray-600">Online</label>
-            <input type="number" value={online} onChange={e => setOnline(Number(e.target.value))} className="input-field" />
+          <input type="number" value={online} onChange={e => {
+              const val = Number(e.target.value);
+              setOnline(val);
+              setCash(Math.max(0, amount - val));
+          }} className="input-field" />
           </div>
         </div>
         <div>
