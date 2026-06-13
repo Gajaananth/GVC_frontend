@@ -89,13 +89,25 @@ const FDEarlyCloseModal = ({ fd, onClose }: Props) => {
     });
   };
 
+  const penalty = Number(fd.total_maturity_amount) - Number(payoutAmount);
+  const isEarlyClosure = fd.status === 'active';
+
   return (
     <Modal title={`Close Fixed Deposit: ${fd.fd_code}`} onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200 text-sm text-yellow-800">
-          <p className="font-semibold mb-1">Status: {fd.status === 'active' ? 'Early Closure' : 'Maturity Closure'}</p>
-          <p>Principal: {formatLKR(fd.principal_amount)}</p>
-          <p>Target Maturity: {formatLKR(fd.total_maturity_amount)}</p>
+        <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200 text-sm">
+          <p className="font-semibold mb-2 text-yellow-900">
+            Status: {isEarlyClosure ? 'Early Closure' : 'Maturity Closure'}
+          </p>
+          <div className="space-y-1 text-gray-700">
+            <p>Principal: <span className="font-medium">{formatLKR(fd.principal_amount)}</span></p>
+            <p>Target Maturity Amount: <span className="font-medium">{formatLKR(fd.total_maturity_amount)}</span></p>
+            {isEarlyClosure && (
+              <p className="mt-2 pt-2 border-t border-yellow-300 text-red-600">
+                Early Closure Penalty: <span className="font-bold">{formatLKR(Math.max(0, penalty))}</span>
+              </p>
+            )}
+          </div>
         </div>
 
         <div>
@@ -108,7 +120,11 @@ const FDEarlyCloseModal = ({ fd, onClose }: Props) => {
             value={payoutAmount}
             onChange={(e) => setPayoutAmount(e.target.value)}
           />
-          <p className="text-xs text-gray-500 mt-1">Adjust if penalty applies for early withdrawal.</p>
+          <p className="text-xs text-gray-500 mt-1">
+            {isEarlyClosure 
+              ? `Adjust if penalty applies for early withdrawal. Penalty: ${formatLKR(Math.max(0, penalty))}` 
+              : 'Full maturity amount should be paid.'}
+          </p>
         </div>
 
         <div>
