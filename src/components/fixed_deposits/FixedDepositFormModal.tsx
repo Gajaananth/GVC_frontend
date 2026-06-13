@@ -5,6 +5,7 @@ import Modal from '../Modal';
 import toast from 'react-hot-toast';
 import { Plus } from 'lucide-react';
 import FDCustomerFormModal from './FDCustomerFormModal';
+import SearchableSelect from '../SearchableSelect';
 
 interface Props {
   onClose: () => void;
@@ -79,24 +80,26 @@ const FixedDepositFormModal = ({ onClose }: Props) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Customer *</label>
-          <div className="flex gap-2">
-            <select
-              required
-              className="flex-1 p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-leaf focus:border-leaf outline-none"
-              value={form.customer_id}
-              onChange={(e) => setForm({ ...form, customer_id: e.target.value })}
-            >
-              <option value="">Select a customer</option>
-              {customersData?.data?.map((c: any) => (
-                <option key={c.id} value={c.id}>
-                  {c.customer_code} - {c.full_name} ({c.nic_number})
-                </option>
-              ))}
-            </select>
+          <div className="flex gap-2 flex-col sm:flex-row">
+            <div className="flex-1 min-w-0">
+              <SearchableSelect
+                options={
+                  customersData?.data?.map((c: any) => ({
+                    id: c.id,
+                    label: `${c.customer_code} - ${c.full_name} (${c.nic_number})`,
+                    value: c.id
+                  })) || []
+                }
+                value={form.customer_id}
+                onChange={(value) => setForm({ ...form, customer_id: String(value) })}
+                placeholder="Search by name, code, or NIC..."
+                isLoading={!customersData}
+              />
+            </div>
             <button
               type="button"
               onClick={() => setShowAddCustomer(true)}
-              className="p-2.5 bg-forest/10 text-forest rounded-xl hover:bg-forest/20 flex items-center justify-center"
+              className="p-2.5 bg-forest/10 text-forest rounded-xl hover:bg-forest/20 flex items-center justify-center flex-shrink-0"
               title="Add New FD Customer"
             >
               <Plus size={20} />
@@ -104,8 +107,8 @@ const FixedDepositFormModal = ({ onClose }: Props) => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+          <div className="min-w-0">
             <label className="block text-sm font-medium text-gray-700 mb-1">Principal Amount (LKR) *</label>
             <input
               type="number"
@@ -117,7 +120,7 @@ const FixedDepositFormModal = ({ onClose }: Props) => {
             />
           </div>
 
-          <div>
+          <div className="min-w-0">
             <label className="block text-sm font-medium text-gray-700 mb-1">Annual Interest Rate (%) *</label>
             <input
               type="number"
@@ -130,7 +133,7 @@ const FixedDepositFormModal = ({ onClose }: Props) => {
             />
           </div>
 
-          <div>
+          <div className="min-w-0">
             <label className="block text-sm font-medium text-gray-700 mb-1">Term (Months) *</label>
             <input
               type="number"
@@ -142,7 +145,7 @@ const FixedDepositFormModal = ({ onClose }: Props) => {
             />
           </div>
 
-          <div>
+          <div className="min-w-0">
             <label className="block text-sm font-medium text-gray-700 mb-1">Payout Method *</label>
             <select
               required
@@ -157,7 +160,7 @@ const FixedDepositFormModal = ({ onClose }: Props) => {
           </div>
         </div>
 
-        <div>
+        <div className="min-w-0">
           <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
           <textarea
             rows={3}
@@ -168,7 +171,7 @@ const FixedDepositFormModal = ({ onClose }: Props) => {
           ></textarea>
         </div>
 
-        <div className="pt-4 border-t border-gray-100 flex justify-end gap-3 mt-6">
+        <div className="pt-4 border-t border-gray-100 flex flex-col-reverse sm:flex-row justify-end gap-3 mt-6">
           <button
             type="button"
             onClick={onClose}

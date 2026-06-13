@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchApi } from '../../services/api';
+import { fetchApi, API_URL } from '../../services/api';
+import { useAuthStore } from '../../store/authStore';
 import Modal from '../Modal';
 import toast from 'react-hot-toast';
 import { formatLKR } from '../../utils/format';
@@ -20,15 +21,60 @@ const FDEarlyCloseModal = ({ fd, onClose }: Props) => {
       method: 'POST',
       body: JSON.stringify(data)
     }),
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['fixed-deposits'] });
       toast.success('Fixed Deposit closed successfully');
+      await downloadClosureCertificate();
       onClose();
     },
     onError: (err: any) => {
       toast.error(err.message || 'Failed to close fixed deposit');
     }
   });
+
+  const downloadClosureCertificate = async () => {
+    const toastId = toast.loading('Downloading closure certificate...');
+    try {
+      const { accessToken } = useAuthStore.getState();
+      if (!accessToken) {
+        toast.dismiss(toastId);
+        toast.error('Not authenticated. Please login again.');
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/fixed-deposits/${fd.id}/closure-certificate`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Failed to generate closure certificate');
+      }
+
+      const blob = await response.blob();
+      if (blob.size === 0) {
+        throw new Error('Closure certificate file is empty');
+      }
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `FD-Closure-Certificate-${fd.fd_code}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.dismiss(toastId);
+      toast.success('Closure certificate downloaded successfully');
+    } catch (err: any) {
+      toast.dismiss(toastId);
+      toast.error(err.message || 'Failed to download closure certificate');
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

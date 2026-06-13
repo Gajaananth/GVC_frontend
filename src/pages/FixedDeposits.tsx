@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchApi } from '../services/api';
-import { Search, Plus, MoreVertical, ShieldCheck, Download, Ban } from 'lucide-react';
+import { Search, Plus, Download, XCircle, MoreVertical, Lock, LockOpen } from 'lucide-react';
 import { formatLKR, formatDate } from '../utils/format';
 import { usePermissions } from '../hooks/usePermissions';
 import { ResponsiveTable, TableRow, TableCell } from '../components/ResponsiveTable';
@@ -9,15 +9,18 @@ import FixedDepositFormModal from '../components/fixed_deposits/FixedDepositForm
 import FDEarlyCloseModal from '../components/fixed_deposits/FDEarlyCloseModal';
 import { useAuthStore } from '../store/authStore';
 import { API_URL } from '../services/api';
+import toast from 'react-hot-toast';
 
 const FixedDeposits = () => {
   const { user } = useAuthStore();
+  const queryClient = useQueryClient();
   const isAdminOrOwner = ['admin', 'owner'].includes(user?.role || '');
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState('');
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const { data: fdData, isLoading } = useQuery({
     queryKey: ['fixed-deposits', page, searchTerm, statusFilter],
@@ -27,6 +30,81 @@ const FixedDeposits = () => {
       return fetchApi(url);
     },
   });
+
+  // Toggle block status mutation
+  const toggleBlockMutation = useMutation({
+    mutationFn: async (fd: any) => {
+      const newStatus = fd.is_blocked ? 'unblock' : 'block';
+      return fetchApi(`/fixed-deposits/${fd.id}/${newStatus}`, {
+        method: 'POST',
+        body: JSON.stringify({ reason: newStatus === 'block' ? 'Blocked by user' : 'Unblocked' })
+      });
+    },
+    onSuccess: (data, fd) => {
+      queryClient.invalidateQueries({ queryKey: ['fixed-deposits'] });
+      toast.success(fd.is_blocked ? 'FD unblocked successfully' : 'FD blocked successfully');
+      setOpenMenuId(null);
+    },
+    onError: (err: any) => {
+      toast.error(err.message || 'Failed to update block status');
+    }
+  });
+
+  const handleDownloadCertificate = async (fd: any) => {
+    try {
+      const toastId = toast.loading('Generating certificate...');
+      const { accessToken } = useAuthStore.getState();
+      
+      if (!accessToken) {
+        toast.dismiss(toastId);
+        toast.error('Not authenticated. Please login again.');
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/fixed-deposits/${fd.id}/certificate`, {
+        method: 'GET',
+        headers: { 
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+
+      if (response.status === 401 || response.status === 403) {
+        toast.dismiss(toastId);
+        toast.error('Access denied. You do not have permission to download this certificate.');
+        return;
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Certificate error:', errorText);
+        toast.dismiss(toastId);
+        toast.error('Failed to generate certificate');
+        return;
+      }
+
+      const blob = await response.blob();
+      if (blob.size === 0) {
+        toast.dismiss(toastId);
+        toast.error('Certificate file is empty');
+        return;
+      }
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `FD-Certificate-${fd.fd_code}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast.dismiss(toastId);
+      toast.success('Certificate downloaded successfully');
+    } catch (err: any) {
+      console.error('Download error:', err);
+      toast.error('Failed to download certificate: ' + (err.message || 'Unknown error'));
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -114,35 +192,57 @@ const FixedDeposits = () => {
                   <div className="text-sm font-bold text-gray-900">{formatLKR(fd.total_maturity_amount)}</div>
                 </TableCell>
                 <TableCell>
-                  <div className="flex justify-end gap-2">
-                    <button className="p-1.5 text-gray-400 hover:text-forest bg-gray-50 hover:bg-green-50 rounded-lg transition-colors" title="View Details">
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
+                  <div className="flex justify-end gap-2 relative">
                     {(fd.status === 'active' || fd.status === 'matured') && (
                       <>
                         <button 
-                          onClick={() => {
-                            const url = `${API_URL}/fixed-deposits/${fd.id}/certificate`;
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = `FD-Certificate-${fd.fd_code}.pdf`;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                          }}
+                          onClick={() => handleDownloadCertificate(fd)}
                           className="p-1.5 text-gray-400 hover:text-blue-600 bg-gray-50 hover:bg-blue-50 rounded-lg transition-colors" 
-                          title="Print Certificate"
+                          title="Download Certificate"
                         >
                           <Download className="w-4 h-4" />
                         </button>
                         {isAdminOrOwner && (
-                          <button 
-                            onClick={() => setShowCloseModal(fd)}
-                            className="p-1.5 text-gray-400 hover:text-red-600 bg-gray-50 hover:bg-red-50 rounded-lg transition-colors" 
-                            title="Close / Cancel FD"
-                          >
-                            <Ban className="w-4 h-4" />
-                          </button>
+                          <>
+                            <button 
+                              onClick={() => setShowCloseModal(fd)}
+                              className="p-1.5 text-gray-400 hover:text-red-600 bg-gray-50 hover:bg-red-50 rounded-lg transition-colors" 
+                              title="Close / Cancel FD"
+                            >
+                              <XCircle className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => setOpenMenuId(openMenuId === fd.id ? null : fd.id)}
+                              className="p-1.5 text-gray-400 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                              title="More options"
+                            >
+                              <MoreVertical className="w-4 h-4" />
+                            </button>
+                            {/* Dropdown Menu */}
+                            {openMenuId === fd.id && (
+                              <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-max">
+                                <button
+                                  onClick={() => {
+                                    toggleBlockMutation.mutate(fd);
+                                  }}
+                                  disabled={toggleBlockMutation.isPending}
+                                  className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 first:rounded-t-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  {fd.is_blocked ? (
+                                    <>
+                                      <LockOpen className="w-4 h-4 text-green-600" />
+                                      <span>Unblock FD</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Lock className="w-4 h-4 text-red-600" />
+                                      <span>Block FD</span>
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            )}
+                          </>
                         )}
                       </>
                     )}
