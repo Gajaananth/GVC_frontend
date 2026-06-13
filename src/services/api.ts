@@ -1,7 +1,7 @@
 import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
 
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+export const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 // Mutex to prevent multiple simultaneous refresh attempts
 let isRefreshing = false;

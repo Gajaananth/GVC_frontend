@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchApi } from '../../services/api';
 import Modal from '../Modal';
 import toast from 'react-hot-toast';
-import { formatLKR } from '../../utils/formatters';
+import { formatLKR } from '../../utils/format';
 
 interface Props {
   fd: any;

@@ -8,7 +8,7 @@ import { ResponsiveTable, TableRow, TableCell } from '../components/ResponsiveTa
 import FixedDepositFormModal from '../components/fixed_deposits/FixedDepositFormModal';
 import FDEarlyCloseModal from '../components/fixed_deposits/FDEarlyCloseModal';
 import { useAuthStore } from '../store/authStore';
-import { API_URL } from '../config/env';
+import { API_URL } from '../services/api';
 
 const FixedDeposits = () => {
   const { user } = useAuthStore();
