@@ -29,6 +29,7 @@ interface QueueItem {
 
 interface SubmitResult {
   payment_code?: string;
+  loan_id?: string;
   loan_code?: string;
   customer_name?: string;
   amount?: number;
@@ -572,7 +573,7 @@ const OwnerCollections = () => {
                   )}
                 </div>
                 {!r.error && (
-                  <p className="font-bold text-forest shrink-0">{formatLKR(r.amount)}</p>
+                  <p className="font-bold text-forest shrink-0">{formatLKR(r.amount ?? 0)}</p>
                 )}
               </div>
             ))}
