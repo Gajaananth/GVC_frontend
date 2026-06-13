@@ -14,6 +14,7 @@ import Dashboard from './pages/Dashboard';
 import Customers from './pages/Customers';
 import Loans from './pages/Loans';
 import Savings from './pages/Savings';
+import FixedDeposits from './pages/FixedDeposits';
 import DueReminders from './pages/DueReminders';
 import Reports from './pages/Reports';
 import Users from './pages/Users';
@@ -65,6 +66,7 @@ function App() {
                   <Route path="/customers/*" element={<Customers />} />
                   <Route path="/loans/*" element={<Loans />} />
                   <Route path="/savings/*" element={<Savings />} />
+                  <Route path="/fixed-deposits/*" element={<FixedDeposits />} />
                   <Route path="/due/*" element={<DueReminders />} />
                   <Route path="/reports/*" element={<Reports />} />
                   <Route path="/approvals/*" element={

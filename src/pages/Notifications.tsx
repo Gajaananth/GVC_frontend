@@ -5,6 +5,7 @@ import { Bell, Send, User } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatDate } from '../utils/format';
 import { usePermissions } from '../hooks/usePermissions';
+import { ResponsiveTable, TableRow, TableCell } from '../components/ResponsiveTable';
 
 const Notifications = () => {
   const { isAdmin } = usePermissions();
@@ -103,42 +104,31 @@ const Notifications = () => {
             <Bell className="w-5 h-5 text-forest" />
             <h3 className="font-semibold">Notification History</h3>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50 text-gray-500 text-sm border-b border-gray-100">
-                  <th className="p-4 font-medium">Date</th>
-                  <th className="p-4 font-medium">Customer</th>
-                  <th className="p-4 font-medium">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {isLoading ? (
-                  <tr><td colSpan={3} className="p-8 text-center text-gray-500 animate-pulse">Loading history...</td></tr>
-                ) : historyData?.data?.length === 0 ? (
-                  <tr><td colSpan={3} className="p-8 text-center text-gray-500">No notifications sent yet.</td></tr>
-                ) : (
-                  historyData?.data?.map((notif: any) => (
-                    <tr key={notif.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                      <td className="p-4 whitespace-nowrap text-sm">{formatDate(notif.created_at)}</td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <User className="w-4 h-4 text-gray-400" />
-                          <span className="font-medium">{notif.customers?.full_name}</span>
-                        </div>
-                        <span className="text-xs text-gray-500 ml-6">{notif.customers?.phone}</span>
-                      </td>
-                      <td className="p-4">
-                        <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-leaf/20 text-leaf capitalize">
-                          {notif.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+          <ResponsiveTable headers={['Date', 'Customer', 'Status']}>
+            {isLoading ? (
+              <TableRow><TableCell className="p-8 text-center text-gray-500 animate-pulse" colSpan={3}>Loading history...</TableCell></TableRow>
+            ) : historyData?.data?.length === 0 ? (
+              <TableRow><TableCell className="p-8 text-center text-gray-500" colSpan={3}>No notifications sent yet.</TableCell></TableRow>
+            ) : (
+              historyData?.data?.map((notif: any) => (
+                <TableRow key={notif.id}>
+                  <TableCell>{formatDate(notif.created_at)}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4 text-gray-400" />
+                      <span className="font-medium">{notif.customers?.full_name}</span>
+                    </div>
+                    <span className="text-xs text-gray-500 ml-6">{notif.customers?.phone}</span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-leaf/20 text-leaf capitalize">
+                      {notif.status}
+                    </span>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </ResponsiveTable>
         </div>
       </div>
     </div>

@@ -4,6 +4,7 @@ import { fetchApi } from '../services/api';
 import { AlertTriangle, Clock, Search, Send, Calendar as CalendarIcon, CheckCircle2 } from 'lucide-react';
 import { formatLKR, formatDate } from '../utils/format';
 import toast from 'react-hot-toast';
+import { ResponsiveTable, TableRow, TableCell } from '../components/ResponsiveTable';
 
 const DueReminders = () => {
   const [activeTab, setActiveTab] = useState<'today' | 'overdue' | 'upcoming'>('today');
@@ -132,46 +133,33 @@ const DueReminders = () => {
                   <p className="text-gray-500">There are no overdue loans.</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto rounded-xl border border-gray-100">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-red-50 text-red-800 text-sm border-b border-red-100">
-                      <th className="p-4 font-bold">Customer & Loan</th>
-                      <th className="p-4 font-bold">Days Overdue</th>
-                      <th className="p-4 font-bold">Outstanding Balance</th>
-                      <th className="p-4 font-bold">Late Fees</th>
-                      <th className="p-4 font-bold text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {overdueLoans?.data?.map((loan: any) => (
-                      <tr key={loan.id} className="border-b border-gray-50 hover:bg-red-50/30 transition-colors">
-                        <td className="p-4">
-                          <p className="font-bold text-gray-900">{loan.customer_name}</p>
-                          <p className="text-xs text-gray-500">{loan.loan_code} • {loan.customer_phone}</p>
-                        </td>
-                        <td className="p-4">
-                          <span className="bg-red-100 text-red-700 font-bold px-3 py-1 rounded-lg text-sm flex items-center gap-1.5 w-max">
-                            <AlertTriangle className="w-4 h-4" />
-                            {loan.days_overdue} Days
-                          </span>
-                        </td>
-                        <td className="p-4 font-bold text-gray-900">{formatLKR(loan.remaining_balance)}</td>
-                        <td className="p-4 text-red-600 font-medium">{formatLKR(loan.late_fees || 0)}</td>
-                        <td className="p-4 text-right">
-                          <button 
-                            onClick={() => handleSendReminder(loan.id, loan.customer_id)}
-                            className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ml-auto"
-                          >
-                            <Send className="w-4 h-4" />
-                            Send Notice
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                </div>
+                <ResponsiveTable headers={['Customer & Loan', 'Days Overdue', 'Outstanding Balance', 'Late Fees', 'Actions']}>
+                  {overdueLoans?.data?.map((loan: any) => (
+                    <TableRow key={loan.id} className="hover:bg-red-50/30">
+                      <TableCell>
+                        <p className="font-bold text-gray-900">{loan.customer_name}</p>
+                        <p className="text-xs text-gray-500">{loan.loan_code} • {loan.customer_phone}</p>
+                      </TableCell>
+                      <TableCell>
+                        <span className="bg-red-100 text-red-700 font-bold px-3 py-1 rounded-lg text-sm flex items-center gap-1.5 w-max">
+                          <AlertTriangle className="w-4 h-4" />
+                          {loan.days_overdue} Days
+                        </span>
+                      </TableCell>
+                      <TableCell className="font-bold text-gray-900">{formatLKR(loan.remaining_balance)}</TableCell>
+                      <TableCell className="text-red-600 font-medium">{formatLKR(loan.late_fees || 0)}</TableCell>
+                      <TableCell className="text-right">
+                        <button 
+                          onClick={() => handleSendReminder(loan.id, loan.customer_id)}
+                          className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ml-auto"
+                        >
+                          <Send className="w-4 h-4" />
+                          Send Notice
+                        </button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </ResponsiveTable>
               )}
             </div>
           )}

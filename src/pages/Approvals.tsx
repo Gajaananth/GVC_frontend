@@ -25,6 +25,11 @@ const Approvals = () => {
     queryFn: () => fetchApi('/collections/corrections/pending'),
   });
 
+  const { data: pendingFDs, isLoading: loadingFDs } = useQuery({
+    queryKey: ['pending-fds'],
+    queryFn: () => fetchApi('/fixed-deposits?status=pending'),
+  });
+
   const approveLoan = useMutation({
     mutationFn: ({ id, credit_date }: { id: string; credit_date?: string }) =>
       fetchApi(`/approvals/loans/${id}/approve`, {
@@ -65,21 +70,43 @@ const Approvals = () => {
   });
 
   const approveCorrection = useMutation({
-    mutationFn: (id: string) => fetchApi(`/collections/corrections/${id}/approve`, { method: 'POST', body: JSON.stringify({}) }),
+    mutationFn: (id: string) => fetchApi(`/collections/corrections/${id}/execute`, { method: 'POST' }),
     onSuccess: () => {
-      toast.success('Correction approved — admin can now fix amount/date');
+      toast.success('Correction executed and approved');
       queryClient.invalidateQueries({ queryKey: ['pending-corrections'] });
     },
   });
 
   const rejectCorrection = useMutation({
-    mutationFn: (id: string) => fetchApi(`/collections/corrections/${id}/reject`, { method: 'POST', body: JSON.stringify({ owner_notes: 'Rejected' }) }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['pending-corrections'] }),
+    mutationFn: (id: string) => fetchApi(`/collections/corrections/${id}/reject`, { method: 'POST' }),
+    onSuccess: () => {
+      toast.success('Correction rejected');
+      queryClient.invalidateQueries({ queryKey: ['pending-corrections'] });
+    },
+  });
+
+  const approveFD = useMutation({
+    mutationFn: (id: string) => fetchApi(`/fixed-deposits/${id}/approve`, { method: 'POST' }),
+    onSuccess: () => {
+      toast.success('Fixed deposit approved');
+      queryClient.invalidateQueries({ queryKey: ['pending-fds'] });
+      queryClient.invalidateQueries({ queryKey: ['fixed-deposits'] });
+    },
+  });
+
+  const rejectFD = useMutation({
+    mutationFn: (id: string) => fetchApi(`/fixed-deposits/${id}/reject`, { method: 'POST' }),
+    onSuccess: () => {
+      toast.success('Fixed deposit rejected');
+      queryClient.invalidateQueries({ queryKey: ['pending-fds'] });
+      queryClient.invalidateQueries({ queryKey: ['fixed-deposits'] });
+    },
   });
 
   const loans = pendingLoans?.data || [];
   const assignments = pendingAssignments?.data || [];
   const corrections = pendingCorrections?.data || [];
+  const fds = pendingFDs?.data || [];
 
   return (
     <div className="space-y-8">
@@ -110,6 +137,35 @@ const Approvals = () => {
                 <div className="flex gap-2 mt-3">
                   <button onClick={() => approveCorrection.mutate(c.id)} className="px-4 py-2 bg-leaf text-white rounded-xl text-sm">Approve Correction</button>
                   <button onClick={() => rejectCorrection.mutate(c.id)} className="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl text-sm">Reject</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="glass-card p-6">
+        <h3 className="text-lg font-semibold mb-4 text-forest">Pending Fixed Deposits ({fds.length})</h3>
+        {loadingFDs ? (
+          <p className="text-gray-500 animate-pulse">Loading...</p>
+        ) : fds.length === 0 ? (
+          <p className="text-gray-500">No fixed deposits awaiting approval.</p>
+        ) : (
+          <div className="space-y-4">
+            {fds.map((fd: any) => (
+              <div key={fd.id} className="border border-green-100 bg-green-50/30 rounded-xl p-4 flex flex-col md:flex-row justify-between gap-4">
+                <div>
+                  <p className="font-semibold">{fd.fd_code} — {fd.customers?.full_name}</p>
+                  <p className="text-sm text-gray-600">Principal: {formatLKR(fd.principal_amount)} @ {fd.interest_rate}% for {fd.term_months} months</p>
+                  <p className="text-sm text-gray-600">Maturity Date: {fd.maturity_date} | Total: {formatLKR(fd.total_maturity_amount)}</p>
+                </div>
+                <div className="flex gap-2 items-center">
+                  <button onClick={() => approveFD.mutate(fd.id)} disabled={approveFD.isPending} className="px-4 py-2 bg-leaf text-white rounded-xl text-sm flex items-center gap-1">
+                    <CheckCircle className="w-4 h-4" /> Approve
+                  </button>
+                  <button onClick={() => rejectFD.mutate(fd.id)} disabled={rejectFD.isPending} className="px-4 py-2 bg-red-100 text-red-700 rounded-xl text-sm flex items-center gap-1 hover:bg-red-200">
+                    <XCircle className="w-4 h-4" /> Reject
+                  </button>
                 </div>
               </div>
             ))}

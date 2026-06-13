@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchApi } from '../services/api';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { ResponsiveTable, TableRow, TableCell } from '../components/ResponsiveTable';
 
 interface Branch {
   id: string;
@@ -210,73 +211,57 @@ const Branches: React.FC = () => {
 
       {/* Branches Table */}
       {!loading && branches.length > 0 && (
-        <div className="glass-card max-h-[60vh] overflow-y-auto">
-          <table className="w-full min-w-full">
-            <thead className="bg-gray-50 border-b border-gray-100">
-              <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Code</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Name</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Address</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">UUID</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Contact</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Status</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Stats</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {branches.map(branch => (
-                <tr key={branch.id} className="hover:bg-gray-50/50">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{branch.branch_code}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{branch.branch_name}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{branch.address}</td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{branch.id}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    <div>{branch.phone}</div>
-                    <div className="text-xs text-gray-500">{branch.email}</div>
-                  </td>
-                  <td className="px-6 py-4 text-sm">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      branch.status === 'active'
-                        ? 'bg-green-100/80 text-green-700'
-                        : 'bg-red-100/80 text-red-700'
-                    }`}>
-                      {branch.status === 'active' ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {stats[branch.id] && (
-                      <div className="text-xs space-y-0.5">
-                        <div>Managers: {stats[branch.id].managers}</div>
-                        <div>Users: {stats[branch.id].users}</div>
-                        <div>Customers: {stats[branch.id].customers}</div>
-                        <div>Loans: {stats[branch.id].activeLoans}</div>
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-sm">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleEditClick(branch)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Edit"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(branch.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <ResponsiveTable headers={['Code', 'Name', 'Address', 'UUID', 'Contact', 'Status', 'Stats', 'Actions']} maxHeight="max-h-[60vh]">
+          {branches.map(branch => (
+            <TableRow key={branch.id}>
+              <TableCell className="font-medium text-gray-900">{branch.branch_code}</TableCell>
+              <TableCell className="text-gray-900">{branch.branch_name}</TableCell>
+              <TableCell className="text-gray-600">{branch.address}</TableCell>
+              <TableCell className="font-medium text-gray-900">{branch.id}</TableCell>
+              <TableCell className="text-gray-600">
+                <div>{branch.phone}</div>
+                <div className="text-xs text-gray-500">{branch.email}</div>
+              </TableCell>
+              <TableCell>
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  branch.status === 'active'
+                    ? 'bg-green-100/80 text-green-700'
+                    : 'bg-red-100/80 text-red-700'
+                }`}>
+                  {branch.status === 'active' ? 'Active' : 'Inactive'}
+                </span>
+              </TableCell>
+              <TableCell className="text-gray-600">
+                {stats[branch.id] && (
+                  <div className="text-xs space-y-0.5">
+                    <div>Managers: {stats[branch.id].managers}</div>
+                    <div>Users: {stats[branch.id].users}</div>
+                    <div>Customers: {stats[branch.id].customers}</div>
+                    <div>Loans: {stats[branch.id].activeLoans}</div>
+                  </div>
+                )}
+              </TableCell>
+              <TableCell>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEditClick(branch)}
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Edit"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(branch.id)}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Delete"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </ResponsiveTable>
       )}
 
       {/* Empty State */}

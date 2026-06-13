@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { fetchApi } from '../services/api';
 import { formatLKR, formatDate } from '../utils/format';
-import { Wallet, PiggyBank, AlertTriangle, Send, CalendarDays, Phone } from 'lucide-react';
+import { Wallet, PiggyBank, AlertTriangle, Send, CalendarDays, Phone, Info, Clock } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
 
@@ -12,6 +12,7 @@ const StaffCollections = () => {
   const [tab, setTab] = useState<'loan' | 'savings'>('loan');
   const [showCorrection, setShowCorrection] = useState<string | null>(null);
   const [correctionForm, setCorrectionForm] = useState({ letter: '', type: 'void' as 'void' | 'amend' });
+  const [globalSearch, setGlobalSearch] = useState('');
 
   const { data: dailyDues } = useQuery({
     queryKey: ['daily-dues', collectionDate],
@@ -20,7 +21,7 @@ const StaffCollections = () => {
 
   const { data: loansData } = useQuery({
     queryKey: ['loans-active'],
-    queryFn: () => fetchApi('/loans?status=active&limit=200'),
+    queryFn: () => fetchApi('/loans?status=active&limit=1000'),
   });
 
   const { data: savingsData } = useQuery({
@@ -41,6 +42,26 @@ const StaffCollections = () => {
     payment_type: 'regular',
     notes: '',
   });
+
+  const selectedLoanQuery = useQuery({
+    queryKey: ['loan-detail', loanForm.loan_id],
+    queryFn: () => fetchApi(`/loans/${loanForm.loan_id}`),
+    enabled: !!loanForm.loan_id,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const selectedLoan = selectedLoanQuery.data?.data;
+  const selectedLoanRemaining = Number(selectedLoan?.remaining_balance ?? 0);
+  const selectedLoanOverdueAmount = selectedLoan?.schedule?.reduce((sum: number, item: any) => {
+    if (item.status !== 'overdue') return sum;
+    return sum + Math.max(0, Number(item.installment_amount) - Number(item.paid_amount || 0));
+  }, 0) ?? 0;
+  const selectedLoanTotalPayable = Number(selectedLoan?.total_payable ?? 0);
+  const selectedLoanTotalPaid = Number(selectedLoan?.amount_paid ?? 0);
+  const selectedLoanNextDue = selectedLoan?.next_due_date || selectedLoan?.schedule?.find((item: any) => ['pending', 'partial', 'overdue'].includes(item.status))?.due_date;
+  const amountValue = Number(loanForm.amount || 0);
+  const amountExceedsBalance = loanForm.loan_id !== '' && amountValue > selectedLoanRemaining + 1;
+  const fullSettlementMismatch = loanForm.payment_type === 'full_settlement' && selectedLoan && Math.abs(amountValue - selectedLoanRemaining) > 1;
 
   const [savingsForm, setSavingsForm] = useState({
     account_id: '',
@@ -114,6 +135,14 @@ const StaffCollections = () => {
   });
 
   const activeLoans = (loansData?.data || []).filter((l: any) => l.approval_status === 'approved');
+  const filteredLoans = activeLoans.filter((l: any) => {
+    if (!globalSearch) return true;
+    const term = globalSearch.toLowerCase();
+    return l.loan_code.toLowerCase().includes(term) ||
+           l.customers?.full_name?.toLowerCase().includes(term) ||
+           l.customers?.nic_number?.toLowerCase().includes(term) ||
+           l.customers?.phone?.toLowerCase().includes(term);
+  });
   const dues = dailyDues?.data;
 
   const pickDue = (item: any) => {
@@ -183,31 +212,131 @@ const StaffCollections = () => {
       <div className="glass-card p-6">
         {tab === 'loan' ? (
           <form onSubmit={e => { e.preventDefault(); submitLoan.mutate(); }} className="space-y-4 max-w-xl">
-            <div className="bg-blue-50 text-blue-800 text-xs p-3 rounded-lg">Collection date: <strong>{formatDate(new Date().toISOString())}</strong> (cannot be changed)</div>
+            <div className="bg-blue-50 text-blue-800 text-xs p-3 rounded-lg">Collection date: <strong>{formatDate(new Date().toISOString())}</strong> (locked)</div>
+            <div className="flex flex-col gap-4 sm:flex-row">
+              <div className="flex-1">
+                <label className="text-sm font-medium">Search Customer/Loan</label>
+                <input 
+                  type="text" 
+                  className="input-field" 
+                  placeholder="NIC, Name, Phone, Loan No..." 
+                  value={globalSearch} 
+                  onChange={e => setGlobalSearch(e.target.value)} 
+                />
+              </div>
+              <div className="flex-1">
+                <label className="text-sm font-medium">Loan *</label>
+                <select required className="input-field" value={loanForm.loan_id} onChange={e => setLoanForm({ ...loanForm, loan_id: e.target.value })}>
+                  <option value="">Select loan</option>
+                  {filteredLoans.map((l: any) => (
+                    <option key={l.id} value={l.id}>{l.loan_code} — {l.customers?.full_name} (Bal {formatLKR(l.remaining_balance)})</option>
+                  ))}
+                </select>
+              </div>
+            </div>
             <div>
-              <label className="text-sm font-medium">Loan *</label>
-              <select required className="input-field" value={loanForm.loan_id} onChange={e => setLoanForm({ ...loanForm, loan_id: e.target.value })}>
-                <option value="">Select loan</option>
-                {activeLoans.map((l: any) => (
-                  <option key={l.id} value={l.id}>{l.loan_code} — {l.customers?.full_name} (Bal {formatLKR(l.remaining_balance)})</option>
-                ))}
+              <label className="text-sm font-medium">Payment Type *</label>
+              <select
+                required
+                className="input-field"
+                value={loanForm.payment_type}
+                onChange={e => {
+                  const value = e.target.value as 'regular' | 'partial' | 'advance' | 'full_settlement';
+                  setLoanForm(f => ({
+                    ...f,
+                    payment_type: value,
+                    amount: value === 'full_settlement' && selectedLoan ? String(selectedLoanRemaining) : f.amount
+                  }));
+                }}
+              >
+                <option value="regular">Regular</option>
+                <option value="partial">Partial</option>
+                <option value="advance">Advance</option>
+                <option value="full_settlement">Full Settlement</option>
               </select>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <label className="text-sm font-medium">Total *</label>
-                <input required type="number" className="input-field" value={loanForm.amount} onChange={e => setLoanForm({ ...loanForm, amount: e.target.value })} />
+            <div className="grid grid-cols-1 gap-4">
+              {selectedLoan && (
+                <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-200 text-sm text-gray-700">
+                  <div className="flex items-center gap-2">
+                    <Info className="w-4 h-4 text-blue-600" />
+                    <div>
+                      <p className="text-gray-500">Total Payable</p>
+                      <p className="font-semibold">{formatLKR(selectedLoanTotalPayable)}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Info className="w-4 h-4 text-green-600" />
+                    <div>
+                      <p className="text-gray-500">Total Paid</p>
+                      <p className="font-semibold">{formatLKR(selectedLoanTotalPaid)}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Info className="w-4 h-4 text-red-600" />
+                    <div>
+                      <p className="text-gray-500">Remaining</p>
+                      <p className="font-semibold">{formatLKR(selectedLoanRemaining)}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-orange-600" />
+                    <div>
+                      <p className="text-gray-500">Next Due</p>
+                      <p className="font-semibold">{selectedLoanNextDue ? formatDate(selectedLoanNextDue) : '—'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Info className="w-4 h-4 text-red-700" />
+                    <div>
+                      <p className="text-gray-500">Overdue Amount</p>
+                      <p className="font-semibold">{formatLKR(selectedLoanOverdueAmount)}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-sm font-medium">Total *</label>
+                  <input 
+                    required 
+                    type="number" 
+                    step="0.01"
+                    min="0"
+                    className="input-field" 
+                    max={selectedLoanRemaining || undefined}
+                    value={loanForm.amount} 
+                    onChange={e => setLoanForm({ ...loanForm, amount: e.target.value })} 
+                  />
+                  {amountExceedsBalance && (
+                    <p className="mt-1 text-xs text-red-600">Amount cannot exceed remaining balance.</p>
+                  )}
+                  {fullSettlementMismatch && (
+                    <p className="mt-1 text-xs text-red-600">Full settlement amount must match remaining balance.</p>
+                  )}
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Cash *</label>
+                  <input required type="number" min="0" step="0.01" className="input-field" value={loanForm.cash_amount} onChange={e => setLoanForm({ ...loanForm, cash_amount: e.target.value })} />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Online *</label>
+                  <input required type="number" min="0" step="0.01" className="input-field" value={loanForm.online_amount} onChange={e => setLoanForm({ ...loanForm, online_amount: e.target.value })} />
+                </div>
               </div>
               <div>
-                <label className="text-sm font-medium">Cash *</label>
-                <input required type="number" className="input-field" value={loanForm.cash_amount} onChange={e => setLoanForm({ ...loanForm, cash_amount: e.target.value })} />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Online *</label>
-                <input required type="number" className="input-field" value={loanForm.online_amount} onChange={e => setLoanForm({ ...loanForm, online_amount: e.target.value })} />
+                <label className="text-sm font-medium">Notes</label>
+                <textarea
+                  rows={3}
+                  className="input-field"
+                  placeholder="Optional notes for this collection"
+                  value={loanForm.notes}
+                  onChange={e => setLoanForm({ ...loanForm, notes: e.target.value })}
+                />
               </div>
             </div>
-            <button type="submit" disabled={submitLoan.isPending} className="w-full sm:w-auto px-4 py-2 bg-forest text-white rounded-xl flex items-center justify-center gap-2">
+            <button type="submit" disabled={submitLoan.isPending || amountExceedsBalance || fullSettlementMismatch} className="w-full sm:w-auto px-4 py-2 bg-forest text-white rounded-xl flex items-center justify-center gap-2">
               <Send className="w-4 h-4" /> Submit for Admin Approval
             </button>
           </form>

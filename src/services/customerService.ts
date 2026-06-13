@@ -62,14 +62,68 @@ export const customerService = {
     return fetchApi(`/staff/${staffId}/customers`);
   },
 
-  // Create customer - requires face photo validation
-  async createCustomer(data: Omit<Customer, 'id' | 'customer_code' | 'created_at' | 'updated_at' | 'branch_id'> & { branch_id: string }): Promise<Customer> {
-    if (!data.photo_url || !data.nic_front_url || !data.nic_back_url) {
-      throw new Error('Customer face photo, NIC front, and NIC back are mandatory');
+  // Create customer using multipart form data so documents upload in one request.
+  async createCustomerWithFiles(data: {
+    full_name: string;
+    nic_number: string;
+    phone: string;
+    email?: string;
+    address: string;
+    date_of_birth?: string;
+    gender?: 'male' | 'female' | 'other';
+    occupation?: string;
+    monthly_income?: number;
+    branch_id: string;
+    registered_by_staff_id?: string;
+    assigned_staff_id?: string;
+    notes?: string;
+    photo: File;
+    nic_front: File;
+    nic_back: File;
+    home_photo?: File;
+    shop_photo?: File;
+    application_form?: File;
+    other_files?: File[];
+  }): Promise<Customer> {
+    const formData = new FormData();
+    formData.append('full_name', data.full_name);
+    formData.append('nic_number', data.nic_number);
+    formData.append('phone', data.phone);
+    formData.append('address', data.address);
+    if (data.email) formData.append('email', data.email);
+    if (data.date_of_birth) formData.append('date_of_birth', data.date_of_birth);
+    if (data.gender) formData.append('gender', data.gender);
+    if (data.occupation) formData.append('occupation', data.occupation);
+    if (data.monthly_income !== undefined) formData.append('monthly_income', String(data.monthly_income));
+    formData.append('branch_id', data.branch_id);
+    if (data.registered_by_staff_id) formData.append('registered_by_staff_id', data.registered_by_staff_id);
+    if (data.assigned_staff_id) formData.append('assigned_staff_id', data.assigned_staff_id);
+    if (data.notes) formData.append('notes', data.notes);
+    formData.append('photo', data.photo);
+    formData.append('nic_front', data.nic_front);
+    formData.append('nic_back', data.nic_back);
+    if (data.home_photo) formData.append('home_photo', data.home_photo);
+    if (data.shop_photo) formData.append('shop_photo', data.shop_photo);
+    if (data.application_form) formData.append('application_form', data.application_form);
+    if (data.other_files?.length) {
+      data.other_files.forEach((file, index) => formData.append(`other_photo_${index + 1}`, file));
     }
+
     return fetchApi('/customers', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: formData,
+    });
+  },
+
+  // Upload customer document and validate (especially face detection)
+  async uploadDocument(customerId: string, document_type: 'face_photo' | 'nic_front' | 'nic_back', file: File): Promise<any> {
+    const formData = new FormData();
+    formData.append('document_type', document_type);
+    formData.append('file', file);
+
+    return fetchApi(`/customers/${customerId}/documents`, {
+      method: 'POST',
+      body: formData,
     });
   },
 

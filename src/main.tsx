@@ -4,11 +4,11 @@ import App from './App';
 import './index.css';
 
 // Prevent scrolling on number inputs globally to avoid accidental value changes
-document.addEventListener('wheel', () => {
+document.addEventListener('wheel', (e) => {
   if (document.activeElement && (document.activeElement as HTMLInputElement).type === 'number') {
-    (document.activeElement as HTMLElement).blur();
+    e.preventDefault();
   }
-});
+}, { passive: false });
 
 createRoot(document.getElementById('app')!).render(
   <StrictMode>

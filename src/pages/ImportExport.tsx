@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Upload, Download, FileText, CheckCircle, AlertCircle } from 'lucide-react';
 import { fetchApi } from '../services/api';
+import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 
@@ -15,6 +16,8 @@ const ImportExport = () => {
     }
   };
 
+  const { accessToken } = useAuthStore.getState();
+
   const handleUpload = async () => {
     if (!file) return;
     setUploading(true);
@@ -22,10 +25,11 @@ const ImportExport = () => {
     formData.append('file', file);
 
     try {
+      if (!accessToken) throw new Error('Not authenticated');
       const response = await fetch(`${import.meta.env.VITE_API_URL}/import-export/import/customers`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${accessToken}`
         },
         body: formData
       });
@@ -42,10 +46,11 @@ const ImportExport = () => {
 
   const handleExport = async () => {
     try {
+      if (!accessToken) throw new Error('Not authenticated');
       const response = await fetch(`${import.meta.env.VITE_API_URL}/import-export/export/customers`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${accessToken}`
         }
       });
       if (!response.ok) throw new Error('Export failed');

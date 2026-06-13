@@ -4,6 +4,7 @@ import { fetchApi } from '../services/api';
 import { Search, Plus, ArrowUpRight, ArrowDownRight, MoreVertical } from 'lucide-react';
 import { formatLKR } from '../utils/format';
 import { usePermissions } from '../hooks/usePermissions';
+import { ResponsiveTable, TableRow, TableCell } from '../components/ResponsiveTable';
 
 const Savings = () => {
   const { canManageSavingsAccounts } = usePermissions();
@@ -44,74 +45,60 @@ const Savings = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 text-gray-500 text-sm border-b border-gray-100">
-                <th className="p-4 font-medium">Account Details</th>
-                <th className="p-4 font-medium">Customer</th>
-                <th className="p-4 font-medium">Current Balance</th>
-                <th className="p-4 font-medium">Interest Rate</th>
-                <th className="p-4 font-medium">Status</th>
-                <th className="p-4 font-medium text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={6} className="p-8 text-center text-gray-500 animate-pulse">Loading savings accounts...</td>
-                </tr>
-              ) : savingsData?.data?.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="p-8 text-center text-gray-500">No savings accounts found.</td>
-                </tr>
-              ) : (
-                savingsData?.data?.map((account: any) => (
-                  <tr key={account.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                    <td className="p-4">
-                      <div>
-                        <p className="font-semibold text-gray-900">{account.account_code}</p>
-                        <p className="text-xs text-gray-500 capitalize">{account.account_type} Account</p>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div>
-                        <p className="font-medium text-gray-900">{account.customers?.full_name}</p>
-                        <p className="text-xs text-gray-500">{account.customers?.customer_code}</p>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <p className="font-bold text-leaf">{formatLKR(account.balance)}</p>
-                    </td>
-                    <td className="p-4">
-                      <p className="text-gray-700">{account.interest_rate}% <span className="text-xs text-gray-400 capitalize">p.a.</span></p>
-                    </td>
-                    <td className="p-4">
-                      <span className={`px-2.5 py-1 rounded-lg text-xs font-medium ${account.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                        {account.is_active ? 'Active' : 'Closed'}
-                      </span>
-                    </td>
-                    <td className="p-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button className="px-3 py-1.5 bg-leaf/10 hover:bg-leaf/20 text-leaf rounded-lg text-sm font-medium transition-colors flex items-center gap-1">
-                          <ArrowDownRight className="w-4 h-4" />
-                          Deposit
-                        </button>
-                        <button className="px-3 py-1.5 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg text-sm font-medium transition-colors flex items-center gap-1">
-                          <ArrowUpRight className="w-4 h-4" />
-                          Withdraw
-                        </button>
-                        <button className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
-                          <MoreVertical className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <ResponsiveTable headers={['Account Details', 'Customer', 'Current Balance', 'Interest Rate', 'Status', 'Actions']}>
+          {isLoading ? (
+            <TableRow>
+              <TableCell className="p-8 text-center text-gray-500 animate-pulse" colSpan={6}>Loading savings accounts...</TableCell>
+            </TableRow>
+          ) : savingsData?.data?.length === 0 ? (
+            <TableRow>
+              <TableCell className="p-8 text-center text-gray-500" colSpan={6}>No savings accounts found.</TableCell>
+            </TableRow>
+          ) : (
+            savingsData?.data?.map((account: any) => (
+              <TableRow key={account.id}>
+                <TableCell>
+                  <div>
+                    <p className="font-semibold text-gray-900">{account.account_code}</p>
+                    <p className="text-xs text-gray-500 capitalize">{account.account_type} Account</p>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div>
+                    <p className="font-medium text-gray-900">{account.customers?.full_name}</p>
+                    <p className="text-xs text-gray-500">{account.customers?.customer_code}</p>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <p className="font-bold text-leaf">{formatLKR(account.balance)}</p>
+                </TableCell>
+                <TableCell>
+                  <p className="text-gray-700">{account.interest_rate}% <span className="text-xs text-gray-400 capitalize">p.a.</span></p>
+                </TableCell>
+                <TableCell>
+                  <span className={`px-2.5 py-1 rounded-lg text-xs font-medium ${account.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                    {account.is_active ? 'Active' : 'Closed'}
+                  </span>
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    <button className="px-3 py-1.5 bg-leaf/10 hover:bg-leaf/20 text-leaf rounded-lg text-sm font-medium transition-colors flex items-center gap-1">
+                      <ArrowDownRight className="w-4 h-4" />
+                      Deposit
+                    </button>
+                    <button className="px-3 py-1.5 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg text-sm font-medium transition-colors flex items-center gap-1">
+                      <ArrowUpRight className="w-4 h-4" />
+                      Withdraw
+                    </button>
+                    <button className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
+                      <MoreVertical className="w-5 h-5" />
+                    </button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </ResponsiveTable>
 
         {/* Pagination */}
         <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm text-gray-500">

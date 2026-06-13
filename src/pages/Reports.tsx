@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/authStore';
 import { FileText, Download, Filter, Calendar, Mail, FileSpreadsheet } from 'lucide-react';
 import { formatLKR, formatDate } from '../utils/format';
 import { usePermissions } from '../hooks/usePermissions';
+import { ResponsiveTable, TableRow, TableCell } from '../components/ResponsiveTable';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -120,30 +121,17 @@ const Reports = () => {
               </div>
               <p className="text-2xl sm:text-3xl font-bold text-forest break-words">{formatLKR(data.total_collected)}</p>
             </div>
-            <div className="overflow-x-auto rounded-xl border border-gray-100 bg-white">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="p-3">Receipt</th>
-                    <th className="p-3">Date</th>
-                    <th className="p-3">Customer</th>
-                    <th className="p-3">Type</th>
-                    <th className="p-3 text-right">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.payments.map((p: any) => (
-                    <tr key={p.payment_code} className="border-b border-gray-100">
-                      <td className="p-3">{p.payment_code}</td>
-                      <td className="p-3">{formatDate(p.payment_date)}</td>
-                      <td className="p-3">{p.customers?.full_name}</td>
-                      <td className="p-3 capitalize">{p.payment_type}</td>
-                      <td className="p-3 text-right font-medium">{formatLKR(p.amount)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <ResponsiveTable headers={['Receipt', 'Date', 'Customer', 'Type', 'Amount (LKR)']} minWidth="min-w-[600px]">
+              {data.payments.map((p: any) => (
+                <TableRow key={p.payment_code}>
+                  <TableCell>{p.payment_code}</TableCell>
+                  <TableCell>{formatDate(p.payment_date)}</TableCell>
+                  <TableCell>{p.customers?.full_name}</TableCell>
+                  <TableCell className="capitalize">{p.payment_type}</TableCell>
+                  <TableCell className="text-right font-medium">{formatLKR(p.amount)}</TableCell>
+                </TableRow>
+              ))}
+            </ResponsiveTable>
           </div>
         );
 
@@ -226,26 +214,15 @@ const Reports = () => {
               <p className="text-sm text-gray-500">Customers</p>
               <p className="text-xl font-bold">{data.customers.length}</p>
             </div>
-            <div className="overflow-auto rounded-xl border border-gray-100 bg-white">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="py-2">Customer</th>
-                    <th className="py-2">Loans</th>
-                    <th className="py-2">Savings Accounts</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.customers.map((customer: any) => (
-                    <tr key={customer.id} className="border-b border-gray-100">
-                      <td className="py-2">{customer.full_name}</td>
-                      <td className="py-2">{customer.loans?.length || 0}</td>
-                      <td className="py-2">{customer.savings_accounts?.length || 0}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <ResponsiveTable headers={['Customer', 'Loans', 'Savings Accounts']} minWidth="min-w-[400px]">
+              {data.customers.map((customer: any) => (
+                <TableRow key={customer.id}>
+                  <TableCell>{customer.full_name}</TableCell>
+                  <TableCell>{customer.loans?.length || 0}</TableCell>
+                  <TableCell>{customer.savings_accounts?.length || 0}</TableCell>
+                </TableRow>
+              ))}
+            </ResponsiveTable>
           </div>
         );
 
@@ -258,28 +235,16 @@ const Reports = () => {
               </div>
               <p className="text-2xl sm:text-3xl font-bold text-forest break-words">{formatLKR(data.total_outstanding)}</p>
             </div>
-            <div className="overflow-auto rounded-xl border border-gray-100 bg-white">
-              <table className="w-full min-w-[560px] text-left text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="py-2">Loan</th>
-                    <th className="py-2">Customer</th>
-                    <th className="py-2">Balance</th>
-                    <th className="py-2">Days Overdue</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.overdue_loans.map((loan: any) => (
-                    <tr key={loan.id} className="border-b border-gray-100">
-                      <td className="py-2">{loan.loan_code}</td>
-                      <td className="py-2">{loan.full_name || loan.customer_name || 'N/A'}</td>
-                      <td className="py-2">{formatLKR(loan.remaining_balance)}</td>
-                      <td className="py-2">{loan.days_overdue || '-'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <ResponsiveTable headers={['Loan Code', 'Customer', 'Balance (LKR)', 'Days Overdue']} minWidth="min-w-[560px]">
+              {data.overdue_loans.map((loan: any) => (
+                <TableRow key={loan.id}>
+                  <TableCell>{loan.loan_code}</TableCell>
+                  <TableCell>{loan.full_name || loan.customer_name || 'N/A'}</TableCell>
+                  <TableCell>{formatLKR(loan.remaining_balance)}</TableCell>
+                  <TableCell>{loan.days_overdue || '-'}</TableCell>
+                </TableRow>
+              ))}
+            </ResponsiveTable>
           </div>
         );
 
@@ -296,26 +261,15 @@ const Reports = () => {
                 <p className="text-2xl font-bold text-forest break-words">{formatLKR(data.total_interest_income)}</p>
               </div>
             </div>
-            <div className="overflow-auto rounded-xl border border-gray-100 bg-white">
-              <table className="w-full min-w-[480px] text-left text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="py-2">Date</th>
-                    <th className="py-2">Method</th>
-                    <th className="py-2 text-right">Interest</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.payments.map((payment: any, index: number) => (
-                    <tr key={index} className="border-b border-gray-100">
-                      <td className="py-2">{formatDate(payment.payment_date)}</td>
-                      <td className="py-2">{payment.payment_method}</td>
-                      <td className="py-2 text-right">{formatLKR(payment.interest_paid || 0)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <ResponsiveTable headers={['Date', 'Method', 'Interest (LKR)']} minWidth="min-w-[480px]">
+              {data.payments.map((payment: any, index: number) => (
+                <TableRow key={index}>
+                  <TableCell>{formatDate(payment.payment_date)}</TableCell>
+                  <TableCell>{payment.payment_method}</TableCell>
+                  <TableCell className="text-right">{formatLKR(payment.interest_paid || 0)}</TableCell>
+                </TableRow>
+              ))}
+            </ResponsiveTable>
           </div>
         );
 

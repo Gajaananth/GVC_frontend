@@ -33,8 +33,6 @@ const LoanFormModal = ({ onClose }: Props) => {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  const staffUsers = (usersData?.data || []).filter((u: any) => u.is_active && ['staff', 'admin'].includes(u.role));
-
   const [form, setForm] = useState({
     customer_id: '',
     gross_loan_amount: '',
@@ -57,6 +55,12 @@ const LoanFormModal = ({ onClose }: Props) => {
   );
 
   const selectedCustomer = customersData?.data?.find((c: any) => c.id === form.customer_id);
+
+  const staffUsers = useMemo(() => {
+    const users = (usersData?.data || []).filter((u: any) => u.is_active && ['staff', 'admin', 'branch_manager', 'cashier', 'owner'].includes(u.role));
+    if (!selectedCustomer?.branch_id) return users;
+    return users.filter((u: any) => u.role === 'owner' || u.branch_id === selectedCustomer.branch_id);
+  }, [usersData?.data, selectedCustomer?.branch_id]);
 
   const filteredCustomers = useMemo(() => {
     const search = customerSearch.toLowerCase();

@@ -31,6 +31,7 @@ const Sidebar = () => {
     { name: 'Customers', path: '/customers', icon: Users, roles: ['owner', 'admin', 'staff', 'view_only'] },
     { name: 'Loans', path: '/loans', icon: Wallet, roles: ['owner', 'admin', 'staff', 'view_only'] },
     { name: 'Savings', path: '/savings', icon: PiggyBank, roles: ['owner', 'admin', 'staff', 'view_only'] },
+    { name: 'Fixed Deposits', path: '/fixed-deposits', icon: Wallet, roles: ['owner', 'admin', 'staff', 'view_only'] },
     { name: 'Collections', path: '/collections', icon: Banknote, roles: ['staff'] },
     { name: 'Approve Collections', path: '/collection-approvals', icon: ClipboardCheck, roles: ['owner', 'admin'] },
     { name: 'Physical Forms', path: '/physical-forms', icon: FileInput, roles: ['owner', 'admin'] },

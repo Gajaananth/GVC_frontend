@@ -49,10 +49,12 @@ export function CustomerRegistration() {
       formData.append('file', file);
       
       // Upload would call the API endpoint
-      const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/customers/upload`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` },
-        body: formData,
+        const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/customers/upload`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${useAuthStore.getState().accessToken}`
+          },
+          body: formData,
       });
 
       if (!response.ok) throw new Error('Upload failed');
