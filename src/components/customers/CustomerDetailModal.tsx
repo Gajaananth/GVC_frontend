@@ -5,6 +5,8 @@ import Modal from '../Modal';
 import { usePermissions } from '../../hooks/usePermissions';
 import { Upload, FileText, ExternalLink } from 'lucide-react';
 import toast from 'react-hot-toast';
+import CollectPaymentModal from '../CollectPaymentModal';
+import { formatLKR } from '../../utils/format';
 
 const DOC_TYPES = [
   { key: 'application_form', label: 'Scanned Application Form (PDF/Image)' },
@@ -24,6 +26,8 @@ const CustomerDetailModal = ({ customerId, onClose }: Props) => {
   const { canUploadDocuments, isStaff } = usePermissions();
   const queryClient = useQueryClient();
   const [uploadType, setUploadType] = useState('application_form');
+  const [selectedLoanId, setSelectedLoanId] = useState<string | null>(null);
+  const [showCollectModal, setShowCollectModal] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['customer', customerId],
@@ -41,6 +45,12 @@ const CustomerDetailModal = ({ customerId, onClose }: Props) => {
       toast.success('Document uploaded');
       queryClient.invalidateQueries({ queryKey: ['customer', customerId] });
     },
+  });
+
+  const { data: selectedLoanData, isLoading: loanLoading } = useQuery({
+    queryKey: ['loan', selectedLoanId],
+    enabled: !!selectedLoanId,
+    queryFn: () => fetchApi(`/loans/${selectedLoanId}`),
   });
 
   const customer = data?.data;
@@ -141,15 +151,132 @@ const CustomerDetailModal = ({ customerId, onClose }: Props) => {
         {customer.loans?.length > 0 && (
           <div>
             <h4 className="font-semibold text-gray-800 mb-2">Loans</h4>
-            <ul className="space-y-2 text-sm">
+            <div className="space-y-3">
               {customer.loans.map((l: any) => (
-                <li key={l.id} className="flex justify-between p-2 bg-gray-50 rounded-lg">
-                  <span>{l.loan_code}</span>
-                  <span className="capitalize">{l.approval_status || l.status}</span>
-                </li>
+                <div key={l.id} className="border border-gray-100 rounded-2xl p-4 bg-white shadow-sm">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                      <p className="font-semibold text-gray-900">{l.loan_code}</p>
+                      <p className="text-sm text-gray-500">Next due: {l.next_due_date || 'N/A'}</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2 text-sm">
+                      <span className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700">Balance: {formatLKR(l.remaining_balance)}</span>
+                      <span className="px-2.5 py-1 rounded-lg bg-gray-50 text-gray-700">Status: {l.status}</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setSelectedLoanId(l.id);
+                      }}
+                      className="bg-forest hover:bg-leaf text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                    >
+                      View Loan
+                    </button>
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
+        )}
+
+        {selectedLoanData?.data && (
+          <div className="space-y-4">
+            <div className="border border-gray-100 rounded-2xl p-4 bg-white shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <p className="text-sm text-gray-500">Selected Loan</p>
+                  <p className="font-semibold text-gray-900">{selectedLoanData.data.loan_code}</p>
+                </div>
+                <button
+                  onClick={() => setShowCollectModal(true)}
+                  className="bg-forest hover:bg-leaf text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                >
+                  Collect Payment
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 text-sm text-gray-700">
+                <div className="space-y-2">
+                  <p className="font-semibold text-gray-900">Loan Summary</p>
+                  <p>Principal: {formatLKR(selectedLoanData.data.principal_amount)}</p>
+                  <p>Total Payable: {formatLKR(selectedLoanData.data.total_payable)}</p>
+                  <p>Remaining Balance: {formatLKR(selectedLoanData.data.remaining_balance)}</p>
+                </div>
+                <div className="space-y-2">
+                  <p className="font-semibold text-gray-900">Schedule</p>
+                  <p>Installment Amount: {formatLKR(selectedLoanData.data.installment_amount)}</p>
+                  <p>Next Due: {selectedLoanData.data.next_due_date || 'N/A'}</p>
+                  <p>Status: {selectedLoanData.data.status}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div className="border border-gray-100 rounded-2xl p-4 bg-white shadow-sm">
+                <h5 className="font-semibold text-gray-800 mb-3">Collection History</h5>
+                {selectedLoanData.data.payments?.length > 0 ? (
+                  <div className="space-y-3 text-sm">
+                    {selectedLoanData.data.payments.map((payment: any) => (
+                      <div key={payment.id} className="p-3 bg-gray-50 rounded-xl">
+                        <div className="flex justify-between gap-3 items-center">
+                          <span className="font-medium text-gray-900">{payment.payment_code}</span>
+                          <span className="text-sm text-gray-500">{payment.payment_date}</span>
+                        </div>
+                        <div className="mt-2 grid grid-cols-2 gap-2 text-sm text-gray-700">
+                          <div>Amount: {formatLKR(payment.amount)}</div>
+                          <div>Type: {payment.payment_type}</div>
+                          <div>Method: {payment.payment_method}</div>
+                          <div>Cash: {formatLKR(payment.cash_amount || 0)}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-sm">No payments recorded yet for this loan.</p>
+                )}
+              </div>
+
+              <div className="border border-gray-100 rounded-2xl p-4 bg-white shadow-sm overflow-x-auto">
+                <h5 className="font-semibold text-gray-800 mb-3">Due Schedule</h5>
+                {selectedLoanData.data.schedule?.length > 0 ? (
+                  <table className="w-full text-left text-sm border-collapse">
+                    <thead>
+                      <tr className="text-gray-500 border-b border-gray-100">
+                        <th className="py-2 px-3">#</th>
+                        <th className="py-2 px-3">Due Date</th>
+                        <th className="py-2 px-3">Amount</th>
+                        <th className="py-2 px-3">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedLoanData.data.schedule.map((row: any) => (
+                        <tr key={row.installment_number} className="border-b border-gray-100">
+                          <td className="py-2 px-3 text-gray-700">{row.installment_number}</td>
+                          <td className="py-2 px-3 text-gray-700">{row.due_date}</td>
+                          <td className="py-2 px-3 text-gray-700">{formatLKR(row.installment_amount)}</td>
+                          <td className="py-2 px-3 text-gray-700 capitalize">{row.status}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <p className="text-gray-500 text-sm">No loan schedule available.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+        {showCollectModal && selectedLoanData?.data && (
+          <CollectPaymentModal
+            loanId={selectedLoanData.data.id}
+            customerId={customer.id}
+            defaultAmount={selectedLoanData.data.remaining_balance}
+            onClose={() => setShowCollectModal(false)}
+            onCollected={() => {
+              queryClient.invalidateQueries({ queryKey: ['customer', customerId] });
+              queryClient.invalidateQueries({ queryKey: ['loan', selectedLoanData.data.id] });
+              setShowCollectModal(false);
+            }}
+          />
         )}
       </div>
     </Modal>

@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchApi } from '../services/api';
 import { AlertTriangle, Clock, Search, Send, Calendar as CalendarIcon, CheckCircle2 } from 'lucide-react';
-import { formatLKR, formatDate } from '../utils/format';
+import { formatLKR } from '../utils/format';
+import CollectPaymentModal from '../components/CollectPaymentModal';
+import { usePermissions } from '../hooks/usePermissions';
 import toast from 'react-hot-toast';
 import { ResponsiveTable, TableRow, TableCell } from '../components/ResponsiveTable';
 
 const DueReminders = () => {
   const [activeTab, setActiveTab] = useState<'today' | 'overdue' | 'upcoming'>('today');
 
+  const queryClient = useQueryClient();
   const { data: todayDues, isLoading: loadingToday } = useQuery({
     queryKey: ['dues', 'today'],
     queryFn: () => fetchApi('/due/today'),
@@ -19,9 +22,29 @@ const DueReminders = () => {
     queryFn: () => fetchApi('/due/overdue'),
   });
 
+  const { canRecordPaymentsDirect } = usePermissions();
+
   const handleSendReminder = async (loanId: string, customerId: string) => {
     // In a real app, this would call an API endpoint to send SMS/Email
     toast.success('Reminder sent successfully!');
+  };
+
+  const [selectedDue, setSelectedDue] = useState<any | null>(null);
+  const [showCollect, setShowCollect] = useState(false);
+
+  const openCollect = (due: any) => {
+    setSelectedDue(due);
+    setShowCollect(true);
+  };
+
+  const onCollected = (result?: any) => {
+    queryClient.invalidateQueries({ queryKey: ['dues', 'today'] });
+    queryClient.invalidateQueries({ queryKey: ['dues', 'overdue'] });
+    if (selectedDue) {
+      queryClient.invalidateQueries({ queryKey: ['customer', selectedDue.customer_id] });
+      queryClient.invalidateQueries({ queryKey: ['loan', selectedDue.loan_id] });
+    }
+    setShowCollect(false);
   };
 
   return (
@@ -102,9 +125,11 @@ const DueReminders = () => {
                         <p className="text-xl sm:text-2xl font-bold text-gray-800 break-words">{formatLKR(due.balance_due)}</p>
                       </div>
                       <div className="flex flex-col gap-2 w-full sm:w-auto">
-                        <button className="bg-forest hover:bg-leaf text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm">
-                          Collect
-                        </button>
+                        {canRecordPaymentsDirect && (
+                          <button onClick={() => openCollect(due)} className="bg-forest hover:bg-leaf text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm">
+                            Collect
+                          </button>
+                        )}
                         <button 
                           onClick={() => handleSendReminder(due.loan_id, due.customer_id)}
                           className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
@@ -148,7 +173,20 @@ const DueReminders = () => {
                       </TableCell>
                       <TableCell className="font-bold text-gray-900">{formatLKR(loan.remaining_balance)}</TableCell>
                       <TableCell className="text-red-600 font-medium">{formatLKR(loan.late_fees || 0)}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right space-x-2">
+                        {canRecordPaymentsDirect && (
+                          <button
+                            onClick={() => openCollect({
+                              loan_id: loan.id,
+                              customer_id: loan.customer_id,
+                              loan_code: loan.loan_code,
+                              balance_due: loan.remaining_balance
+                            })}
+                            className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
+                          >
+                            Collect
+                          </button>
+                        )}
                         <button 
                           onClick={() => handleSendReminder(loan.id, loan.customer_id)}
                           className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ml-auto"
@@ -173,6 +211,15 @@ const DueReminders = () => {
           )}
         </div>
       </div>
+        {showCollect && selectedDue && (
+          <CollectPaymentModal
+            loanId={selectedDue.loan_id}
+            customerId={selectedDue.customer_id}
+            defaultAmount={selectedDue.balance_due}
+            onClose={() => setShowCollect(false)}
+            onCollected={onCollected}
+          />
+        )}
     </div>
   );
 };
