@@ -5,7 +5,7 @@ import { formatLKR, formatDate } from '../utils/format';
 import {
   Search, ShoppingCart, Trash2, Send, Download, FileSpreadsheet,
   FileText, CheckCircle, XCircle, Wallet, ChevronDown, ChevronUp,
-  Info, AlertTriangle, PlusCircle
+  Info, AlertTriangle, PlusCircle, Edit
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
@@ -207,6 +207,23 @@ const OwnerCollections = () => {
   };
 
   const removeFromQueue = (id: string) => setQueue(q => q.filter(i => i.id !== id));
+
+  const editFromQueue = (id: string) => {
+    const item = queue.find(i => i.id === id);
+    if (item) {
+      setAddForm({
+        loan_id: item.loan_id,
+        amount: String(item.amount),
+        cash_amount: String(item.cash_amount),
+        online_amount: String(item.online_amount),
+        payment_type: item.payment_type as any,
+        notes: item.notes || '',
+      });
+      removeFromQueue(id);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      toast('Editing item - removed from queue', { icon: '✏️' });
+    }
+  };
 
   // ── totals ──
   const totalAmount = queue.reduce((s, i) => s + i.amount, 0);
@@ -463,13 +480,24 @@ const OwnerCollections = () => {
                         <p className="font-bold text-forest">{formatLKR(item.amount)}</p>
                         <p className="text-xs text-gray-400">Cash {formatLKR(item.cash_amount)} / Online {formatLKR(item.online_amount)}</p>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => removeFromQueue(item.id)}
-                        className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          onClick={() => editFromQueue(item.id)}
+                          className="p-1.5 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Edit"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeFromQueue(item.id)}
+                          className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Remove"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
