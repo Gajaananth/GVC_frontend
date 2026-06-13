@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchApi } from '../services/api';
-import { AlertTriangle, Clock, Search, Send, Calendar as CalendarIcon, CheckCircle2 } from 'lucide-react';
+import { AlertTriangle, Clock, Send, Calendar as CalendarIcon, CheckCircle2 } from 'lucide-react';
 import { formatLKR } from '../utils/format';
-import CollectPaymentModal from '../components/CollectPaymentModal';
+import CollectPaymentModal, { QueuePaymentItem } from '../components/CollectPaymentModal';
 import { usePermissions } from '../hooks/usePermissions';
 import toast from 'react-hot-toast';
 import { ResponsiveTable, TableRow, TableCell } from '../components/ResponsiveTable';
@@ -31,9 +31,22 @@ const DueReminders = () => {
 
   const [selectedDue, setSelectedDue] = useState<any | null>(null);
   const [showCollect, setShowCollect] = useState(false);
+  const [collectMode, setCollectMode] = useState<'direct' | 'queue'>('direct');
+  const [queueItems, setQueueItems] = useState<QueuePaymentItem[]>([]);
+  const [editQueueItem, setEditQueueItem] = useState<QueuePaymentItem | null>(null);
+  const [submittingQueue, setSubmittingQueue] = useState(false);
 
-  const openCollect = (due: any) => {
+  const openCollect = (due: any, mode: 'direct' | 'queue' = 'direct') => {
     setSelectedDue(due);
+    setCollectMode(mode);
+    setEditQueueItem(null);
+    setShowCollect(true);
+  };
+
+  const openEditQueueItem = (item: QueuePaymentItem) => {
+    setSelectedDue({ loan_id: item.loanId, customer_id: item.customerId });
+    setCollectMode('queue');
+    setEditQueueItem(item);
     setShowCollect(true);
   };
 
@@ -45,6 +58,63 @@ const DueReminders = () => {
       queryClient.invalidateQueries({ queryKey: ['loan', selectedDue.loan_id] });
     }
     setShowCollect(false);
+  };
+
+  const onQueueAdd = (item: QueuePaymentItem) => {
+    setQueueItems(prev => {
+      const existingIndex = prev.findIndex(q => q.id === item.id);
+      if (existingIndex !== -1) {
+        const updated = [...prev];
+        updated[existingIndex] = item;
+        return updated;
+      }
+      return [...prev, item];
+    });
+  };
+
+  const removeQueueItem = (id: string) => {
+    setQueueItems(prev => prev.filter(item => item.id !== id));
+  };
+
+  const queueTotal = queueItems.reduce((sum, item) => sum + item.amount, 0);
+  const queueCashTotal = queueItems.reduce((sum, item) => sum + item.cashAmount, 0);
+  const queueOnlineTotal = queueItems.reduce((sum, item) => sum + item.onlineAmount, 0);
+
+  const submitQueue = async () => {
+    if (queueItems.length === 0) {
+      toast.error('No queued payments to submit');
+      return;
+    }
+    setSubmittingQueue(true);
+
+    try {
+      for (const item of queueItems) {
+        const body = {
+          loan_id: item.loanId,
+          amount: item.amount,
+          cash_amount: item.cashAmount,
+          online_amount: item.onlineAmount,
+          payment_type: item.paymentType,
+          payment_method: item.cashAmount >= item.onlineAmount ? 'cash' : 'mobile',
+          notes: item.notes || null,
+        } as any;
+
+        await fetchApi('/payments', {
+          method: 'POST',
+          body: JSON.stringify(body),
+        });
+      }
+
+      toast.success('All queued payments submitted successfully');
+      setQueueItems([]);
+      queryClient.invalidateQueries({ queryKey: ['dues', 'today'] });
+      queryClient.invalidateQueries({ queryKey: ['dues', 'overdue'] });
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to submit queued payments');
+    } finally {
+      setSubmittingQueue(false);
+      setShowCollect(false);
+    }
   };
 
   return (
@@ -99,6 +169,72 @@ const DueReminders = () => {
         </div>
 
         <div className="flex-1 overflow-y-auto p-3 sm:p-4">
+          {queueItems.length > 0 && (
+            <div className="glass-card mb-4 p-4 border border-blue-100 bg-blue-50">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-blue-900">Queued Payments</h3>
+                  <p className="text-sm text-blue-700">Review, edit, or remove entries before final submission.</p>
+                </div>
+                <div className="grid grid-cols-3 gap-3 text-sm text-blue-900">
+                  <div className="rounded-xl bg-white p-3 shadow-sm">
+                    <p className="text-gray-500">Total Items</p>
+                    <p className="font-semibold">{queueItems.length}</p>
+                  </div>
+                  <div className="rounded-xl bg-white p-3 shadow-sm">
+                    <p className="text-gray-500">Total Cash</p>
+                    <p className="font-semibold">{formatLKR(queueCashTotal)}</p>
+                  </div>
+                  <div className="rounded-xl bg-white p-3 shadow-sm">
+                    <p className="text-gray-500">Total Online</p>
+                    <p className="font-semibold">{formatLKR(queueOnlineTotal)}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 overflow-x-auto">
+                <table className="w-full text-left text-sm border-collapse">
+                  <thead>
+                    <tr className="text-gray-500 border-b border-blue-100">
+                      <th className="py-2 px-3">Loan</th>
+                      <th className="py-2 px-3">Customer</th>
+                      <th className="py-2 px-3">Amount</th>
+                      <th className="py-2 px-3">Cash / Online</th>
+                      <th className="py-2 px-3">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {queueItems.map(item => (
+                      <tr key={item.id} className="border-b border-blue-100">
+                        <td className="py-2 px-3 font-medium">{item.loanCode || item.loanId}</td>
+                        <td className="py-2 px-3">{item.customerName || item.customerId}</td>
+                        <td className="py-2 px-3">{formatLKR(item.amount)}</td>
+                        <td className="py-2 px-3">{formatLKR(item.cashAmount)} / {formatLKR(item.onlineAmount)}</td>
+                        <td className="py-2 px-3 space-x-2">
+                          <button onClick={() => openEditQueueItem(item)} className="text-xs px-2 py-1 bg-white border border-blue-200 rounded-lg text-blue-700 hover:bg-blue-50">Edit</button>
+                          <button onClick={() => removeQueueItem(item.id)} className="text-xs px-2 py-1 bg-red-50 border border-red-200 rounded-lg text-red-700 hover:bg-red-100">Remove</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <p className="text-sm text-blue-700">Final submission will record all queued owner collections as immediate payments.</p>
+                </div>
+                <button
+                  onClick={submitQueue}
+                  disabled={submittingQueue}
+                  className="inline-flex items-center justify-center rounded-xl bg-blue-700 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-60"
+                >
+                  {submittingQueue ? 'Submitting...' : 'Submit All Queue'}
+                </button>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'today' && (
             <div className="space-y-4">
               {loadingToday ? (
@@ -126,9 +262,14 @@ const DueReminders = () => {
                       </div>
                       <div className="flex flex-col gap-2 w-full sm:w-auto">
                         {canRecordPaymentsDirect && (
-                          <button onClick={() => openCollect(due)} className="bg-forest hover:bg-leaf text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm">
-                            Collect
-                          </button>
+                          <>
+                            <button onClick={() => openCollect(due, 'direct')} className="bg-forest hover:bg-leaf text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm">
+                              Collect
+                            </button>
+                            <button onClick={() => openCollect(due, 'queue')} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm">
+                              Add to queue
+                            </button>
+                          </>
                         )}
                         <button 
                           onClick={() => handleSendReminder(due.loan_id, due.customer_id)}
@@ -175,17 +316,32 @@ const DueReminders = () => {
                       <TableCell className="text-red-600 font-medium">{formatLKR(loan.late_fees || 0)}</TableCell>
                       <TableCell className="text-right space-x-2">
                         {canRecordPaymentsDirect && (
-                          <button
-                            onClick={() => openCollect({
-                              loan_id: loan.id,
-                              customer_id: loan.customer_id,
-                              loan_code: loan.loan_code,
-                              balance_due: loan.remaining_balance
-                            })}
-                            className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
-                          >
-                            Collect
-                          </button>
+                          <>
+                            <button
+                              onClick={() => openCollect({
+                                loan_id: loan.id,
+                                customer_id: loan.customer_id,
+                                loan_code: loan.loan_code,
+                                customer_name: loan.customer_name,
+                                balance_due: loan.remaining_balance
+                              }, 'direct')}
+                              className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
+                            >
+                              Collect
+                            </button>
+                            <button
+                              onClick={() => openCollect({
+                                loan_id: loan.id,
+                                customer_id: loan.customer_id,
+                                loan_code: loan.loan_code,
+                                customer_name: loan.customer_name,
+                                balance_due: loan.remaining_balance
+                              }, 'queue')}
+                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+                            >
+                              Queue
+                            </button>
+                          </>
                         )}
                         <button 
                           onClick={() => handleSendReminder(loan.id, loan.customer_id)}
@@ -215,9 +371,14 @@ const DueReminders = () => {
           <CollectPaymentModal
             loanId={selectedDue.loan_id}
             customerId={selectedDue.customer_id}
+            loanCode={selectedDue.loan_code}
+            customerName={selectedDue.customer_name}
             defaultAmount={selectedDue.balance_due}
             onClose={() => setShowCollect(false)}
             onCollected={onCollected}
+            onQueueAdd={onQueueAdd}
+            initialData={editQueueItem || undefined}
+            mode={collectMode}
           />
         )}
     </div>
