@@ -172,8 +172,14 @@ const LoanFormModal = ({ onClose }: Props) => {
       toast.error('Wait for loan calculation preview');
       return;
     }
-    if (!applicationPdf) {
+    // PDF is required for non-owner users
+    if (!isOwner && !applicationPdf) {
       toast.error('Please upload the loan application PDF');
+      return;
+    }
+    // Staff is required for non-owner users
+    if (!isOwner && (!form.applied_by || !form.in_charge_user_id)) {
+      toast.error('Staff fields are required');
       return;
     }
     mutation.mutate();
@@ -191,6 +197,7 @@ const LoanFormModal = ({ onClose }: Props) => {
         <p className="text-sm text-amber-800 bg-amber-50 p-3 rounded-lg">
           Choose collection type and loan length in <strong>days / weeks / 14-day periods / months</strong>.
           Schedule is built from credit date. {!isOwner && "Owner approves before the loan goes live."}
+          {isOwner && <><br/><span className="text-forest font-medium">💡 Owner mode: Staff assignment and PDF upload are optional. You can add old loan records and backdate payments after creation.</span></>}
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -394,9 +401,13 @@ const LoanFormModal = ({ onClose }: Props) => {
         <div className="border border-blue-200 rounded-xl p-4 bg-blue-50/30">
           <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
             <Upload className="w-5 h-5 text-blue-600" />
-            Loan Application Document *
+            Loan Application Document {!isOwner && '*'}
           </h4>
-          <p className="text-xs text-gray-500 mb-3">Upload the scanned PDF of the physical loan application form. This is required before submission.</p>
+          <p className="text-xs text-gray-500 mb-3">
+            {isOwner
+              ? 'Optional for owner. Upload the scanned PDF if available.'
+              : 'Upload the scanned PDF of the physical loan application form. This is required before submission.'}
+          </p>
           <div className="flex items-center gap-3">
             <label className="cursor-pointer px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2">
               <Upload className="w-4 h-4" />
@@ -432,16 +443,16 @@ const LoanFormModal = ({ onClose }: Props) => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
           <div>
-            <label className="text-sm font-medium">Staff Who Applied *</label>
-            <select required className="input-field" value={form.applied_by} onChange={e => setForm({ ...form, applied_by: e.target.value })}>
-              <option value="">Select staff</option>
+            <label className="text-sm font-medium">Staff Who Applied {!isOwner && '*'}</label>
+            <select required={!isOwner} className="input-field" value={form.applied_by} onChange={e => setForm({ ...form, applied_by: e.target.value })}>
+              <option value="">{isOwner ? 'None (optional)' : 'Select staff'}</option>
               {staffUsers.map((u: any) => <option key={u.id} value={u.id}>{u.full_name}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-sm font-medium">Staff In Charge *</label>
-            <select required className="input-field" value={form.in_charge_user_id} onChange={e => setForm({ ...form, in_charge_user_id: e.target.value })}>
-              <option value="">Select staff</option>
+            <label className="text-sm font-medium">Staff In Charge {!isOwner && '*'}</label>
+            <select required={!isOwner} className="input-field" value={form.in_charge_user_id} onChange={e => setForm({ ...form, in_charge_user_id: e.target.value })}>
+              <option value="">{isOwner ? 'None (optional)' : 'Select staff'}</option>
               {staffUsers.map((u: any) => <option key={u.id} value={u.id}>{u.full_name}</option>)}
             </select>
           </div>
@@ -454,7 +465,7 @@ const LoanFormModal = ({ onClose }: Props) => {
 
         <div className="flex justify-end gap-3">
           <button type="button" onClick={onClose} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl">Cancel</button>
-          <button type="submit" disabled={mutation.isPending || !preview || !applicationPdf} className="px-4 py-2 bg-forest text-white rounded-xl hover:bg-leaf disabled:opacity-50">
+          <button type="submit" disabled={mutation.isPending || !preview || (!isOwner && !applicationPdf)} className="px-4 py-2 bg-forest text-white rounded-xl hover:bg-leaf disabled:opacity-50">
             {mutation.isPending ? 'Submitting...' : isOwner ? 'Create Loan' : 'Submit for Owner Approval'}
           </button>
         </div>

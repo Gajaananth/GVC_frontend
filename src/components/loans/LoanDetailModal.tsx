@@ -5,12 +5,19 @@ import Modal from '../Modal';
 import LoanRestructureModal from './LoanRestructureModal';
 import { usePermissions } from '../../hooks/usePermissions';
 import { formatLKR, formatDate } from '../../utils/format';
-import { Download, RefreshCw } from 'lucide-react';
+import { Download, RefreshCw, CheckCircle2, Calendar, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Props {
   loanId: string;
   onClose: () => void;
+}
+
+interface BackdateEntry {
+  installment_number: number;
+  paid_amount: number;
+  paid_date: string;
+  notes?: string;
 }
 
 const LoanDetailModal = ({ loanId, onClose }: Props) => {
@@ -19,6 +26,8 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
   const [proposedStaff, setProposedStaff] = useState('');
   const [changeReason, setChangeReason] = useState('');
   const [showRestructure, setShowRestructure] = useState(false);
+  const [backdateEntries, setBackdateEntries] = useState<Map<number, BackdateEntry>>(new Map());
+  const [showBackdateMode, setShowBackdateMode] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -47,8 +56,61 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
     },
   });
 
+  const backdateMutation = useMutation({
+    mutationFn: (payments: BackdateEntry[]) =>
+      fetchApi(`/loans/${loanId}/backdate-payments`, {
+        method: 'POST',
+        body: JSON.stringify({ payments }),
+      }),
+    onSuccess: (res) => {
+      toast.success(res.message || 'Payments backdated successfully');
+      queryClient.invalidateQueries({ queryKey: ['loan', loanId] });
+      queryClient.invalidateQueries({ queryKey: ['loans'] });
+      setBackdateEntries(new Map());
+      setShowBackdateMode(false);
+    },
+    onError: (err: any) => {
+      toast.error(err.message || 'Failed to backdate payments');
+    },
+  });
+
   const loan = data?.data;
   const staffUsers = (usersData?.data || []).filter((u: any) => u.is_active && ['staff', 'admin'].includes(u.role));
+
+  const toggleBackdateEntry = (installment: any) => {
+    const num = installment.installment_number;
+    const newMap = new Map(backdateEntries);
+    if (newMap.has(num)) {
+      newMap.delete(num);
+    } else {
+      newMap.set(num, {
+        installment_number: num,
+        paid_amount: Number(installment.installment_amount),
+        paid_date: installment.due_date?.slice(0, 10) || new Date().toISOString().slice(0, 10),
+        notes: '',
+      });
+    }
+    setBackdateEntries(newMap);
+  };
+
+  const updateBackdateEntry = (num: number, field: keyof BackdateEntry, value: any) => {
+    const newMap = new Map(backdateEntries);
+    const entry = newMap.get(num);
+    if (entry) {
+      (entry as any)[field] = value;
+      newMap.set(num, { ...entry });
+    }
+    setBackdateEntries(newMap);
+  };
+
+  const handleBackdateSubmit = () => {
+    const payments = Array.from(backdateEntries.values());
+    if (payments.length === 0) {
+      toast.error('Select at least one installment to mark as paid');
+      return;
+    }
+    backdateMutation.mutate(payments);
+  };
 
   if (isLoading || !loan) {
     return (
@@ -57,6 +119,10 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
       </Modal>
     );
   }
+
+  const pendingInstallments = (loan.schedule || []).filter(
+    (s: any) => ['pending', 'partial', 'overdue'].includes(s.status)
+  );
 
   return (
     <Modal title={`Loan ${loan.loan_code}`} onClose={onClose} wide>
@@ -76,7 +142,7 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
           <div><span className="text-gray-500">Next Due</span><p className="font-medium">{loan.next_due_date ? formatDate(loan.next_due_date) : '—'}</p></div>
         </div>
 
-        <div className="flex gap-2 border-b border-gray-100 pb-3">
+        <div className="flex gap-2 border-b border-gray-100 pb-3 flex-wrap">
           <a
             href={`${API_URL}/documents/statement/${loan.customer_id}`}
             target="_blank"
@@ -161,21 +227,147 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
           </div>
         )}
 
+        {/* Schedule Section with Backdate Payments */}
         {loan.schedule?.length > 0 && (
           <div>
-            <h4 className="font-semibold mb-2">Schedule</h4>
-            <div className="max-h-40 overflow-y-auto border border-gray-100 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="font-semibold">Schedule</h4>
+              {isOwner && loan.approval_status === 'approved' && pendingInstallments.length > 0 && !loan.is_fully_paid && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowBackdateMode(!showBackdateMode);
+                    if (showBackdateMode) setBackdateEntries(new Map());
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                    showBackdateMode
+                      ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                      : 'bg-forest text-white hover:bg-leaf'
+                  }`}
+                >
+                  <Calendar className="w-3.5 h-3.5" />
+                  {showBackdateMode ? 'Cancel Backdate' : 'Backdate Payments'}
+                </button>
+              )}
+            </div>
+
+            {showBackdateMode && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3">
+                <p className="text-xs text-amber-800 mb-2 font-medium">
+                  📝 Select installments below and set the actual payment date. This is for adding old records where payments were already collected.
+                </p>
+                {backdateEntries.size > 0 && (
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-amber-700">
+                      {backdateEntries.size} installment(s) selected — Total: {formatLKR(
+                        Array.from(backdateEntries.values()).reduce((sum, e) => sum + e.paid_amount, 0)
+                      )}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleBackdateSubmit}
+                      disabled={backdateMutation.isPending}
+                      className="px-4 py-1.5 bg-forest text-white rounded-lg text-xs font-medium hover:bg-leaf disabled:opacity-50 flex items-center gap-1.5"
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                      {backdateMutation.isPending ? 'Saving...' : 'Save Backdated Payments'}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="max-h-64 overflow-y-auto border border-gray-100 rounded-lg">
               <table className="w-full text-xs">
-                <thead className="bg-gray-50"><tr><th className="p-2">#</th><th className="p-2">Due</th><th className="p-2">Amount</th><th className="p-2">Status</th></tr></thead>
+                <thead className="bg-gray-50 sticky top-0">
+                  <tr>
+                    {showBackdateMode && <th className="p-2 w-8"></th>}
+                    <th className="p-2 text-left">#</th>
+                    <th className="p-2 text-left">Due</th>
+                    <th className="p-2 text-right">Amount</th>
+                    <th className="p-2 text-left">Status</th>
+                    {showBackdateMode && <th className="p-2 text-left">Paid Date</th>}
+                    {showBackdateMode && <th className="p-2 text-right">Paid Amount</th>}
+                  </tr>
+                </thead>
                 <tbody>
-                  {loan.schedule.map((s: any) => (
-                    <tr key={s.id} className="border-t border-gray-50">
-                      <td className="p-2">{s.installment_number}</td>
-                      <td className="p-2">{formatDate(s.due_date)}</td>
-                      <td className="p-2">{formatLKR(s.installment_amount)}</td>
-                      <td className="p-2 capitalize">{s.status}</td>
-                    </tr>
-                  ))}
+                  {loan.schedule.map((s: any) => {
+                    const isPending = ['pending', 'partial', 'overdue'].includes(s.status);
+                    const isSelected = backdateEntries.has(s.installment_number);
+                    const entry = backdateEntries.get(s.installment_number);
+
+                    return (
+                      <tr
+                        key={s.id}
+                        className={`border-t border-gray-50 ${
+                          showBackdateMode && isPending ? 'cursor-pointer hover:bg-forest/5' : ''
+                        } ${isSelected ? 'bg-forest/10' : ''} ${
+                          s.status === 'paid' ? 'bg-green-50/50' : ''
+                        }`}
+                        onClick={() => {
+                          if (showBackdateMode && isPending) {
+                            toggleBackdateEntry(s);
+                          }
+                        }}
+                      >
+                        {showBackdateMode && (
+                          <td className="p-2 text-center">
+                            {isPending && (
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => toggleBackdateEntry(s)}
+                                onClick={(e) => e.stopPropagation()}
+                                className="accent-forest w-4 h-4"
+                              />
+                            )}
+                            {s.status === 'paid' && (
+                              <CheckCircle2 className="w-4 h-4 text-green-500 mx-auto" />
+                            )}
+                          </td>
+                        )}
+                        <td className="p-2">{s.installment_number}</td>
+                        <td className="p-2">{formatDate(s.due_date)}</td>
+                        <td className="p-2 text-right">{formatLKR(s.installment_amount)}</td>
+                        <td className="p-2">
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium capitalize ${
+                            s.status === 'paid' ? 'bg-green-100 text-green-700' :
+                            s.status === 'partial' ? 'bg-yellow-100 text-yellow-700' :
+                            s.status === 'overdue' ? 'bg-red-100 text-red-700' :
+                            'bg-gray-100 text-gray-600'
+                          }`}>
+                            {s.status}
+                          </span>
+                        </td>
+                        {showBackdateMode && (
+                          <td className="p-2" onClick={(e) => e.stopPropagation()}>
+                            {isSelected && entry && (
+                              <input
+                                type="date"
+                                value={entry.paid_date}
+                                onChange={(e) => updateBackdateEntry(s.installment_number, 'paid_date', e.target.value)}
+                                className="px-2 py-1 border border-gray-300 rounded text-xs w-full max-w-[140px] focus:ring-1 focus:ring-forest focus:border-forest outline-none"
+                              />
+                            )}
+                          </td>
+                        )}
+                        {showBackdateMode && (
+                          <td className="p-2 text-right" onClick={(e) => e.stopPropagation()}>
+                            {isSelected && entry && (
+                              <input
+                                type="number"
+                                value={entry.paid_amount}
+                                onChange={(e) => updateBackdateEntry(s.installment_number, 'paid_amount', Number(e.target.value))}
+                                className="px-2 py-1 border border-gray-300 rounded text-xs w-full max-w-[100px] text-right focus:ring-1 focus:ring-forest focus:border-forest outline-none"
+                                min={0}
+                                max={Number(s.installment_amount)}
+                              />
+                            )}
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
