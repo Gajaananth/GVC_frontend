@@ -4,6 +4,7 @@ import { fetchApi } from '../../services/api';
 import Modal from '../Modal';
 import LoanRestructureModal from './LoanRestructureModal';
 import { usePermissions } from '../../hooks/usePermissions';
+import { useAuthStore } from '../../store/authStore';
 import { formatLKR, formatDate } from '../../utils/format';
 import { Download, RefreshCw, CheckCircle2, Calendar, Save, FileText, FileSpreadsheet } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -28,6 +29,7 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
   const [showRestructure, setShowRestructure] = useState(false);
   const [backdateEntries, setBackdateEntries] = useState<Map<number, BackdateEntry>>(new Map());
   const [showBackdateMode, setShowBackdateMode] = useState(false);
+  const token = useAuthStore(state => state.accessToken);
 
   const API_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -145,7 +147,7 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
 
         <div className="flex gap-2 border-b border-gray-100 pb-3 flex-wrap">
           <a
-            href={`${API_URL}/documents/statement/${loan.customer_id}`}
+            href={`${API_URL}/documents/statement/${loan.customer_id}?token=${token}`}
             target="_blank"
             rel="noopener noreferrer"
             className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium flex items-center gap-1.5"
@@ -154,7 +156,7 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
           </a>
           {loan.loan_application_url && (
             <a
-              href={loan.loan_application_url}
+              href={`${loan.loan_application_url}`}
               target="_blank"
               rel="noopener noreferrer"
               className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-sm font-medium flex items-center gap-1.5"
@@ -164,7 +166,7 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
           )}
           {loan.loan_form_url && (
             <a
-              href={loan.loan_form_url}
+              href={`${loan.loan_form_url}`}
               target="_blank"
               rel="noopener noreferrer"
               className="px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 rounded-lg text-sm font-medium flex items-center gap-1.5"
@@ -175,7 +177,7 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
           
           {loan.status === 'closed' && loan.is_fully_paid && (
             <a
-              href={`${API_URL}/documents/loan-certificate/${loan.id}`}
+              href={`${API_URL}/documents/loan-certificate/${loan.id}?token=${token}`}
               target="_blank"
               rel="noopener noreferrer"
               className="px-3 py-1.5 bg-forest hover:bg-leaf text-white rounded-lg text-sm font-medium flex items-center gap-1.5 shadow-sm"
@@ -235,7 +237,7 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
               <h4 className="font-semibold">Schedule</h4>
               <div className="flex items-center gap-2">
                 <a
-                  href={`${API_URL}/documents/loan-schedule/${loan.id}/pdf`}
+                  href={`${API_URL}/documents/loan-schedule/${loan.id}/pdf?token=${token}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium flex items-center gap-1.5 border border-gray-200"
@@ -243,7 +245,7 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
                   <FileText className="w-3.5 h-3.5" /> PDF
                 </a>
                 <a
-                  href={`${API_URL}/documents/loan-schedule/${loan.id}/excel`}
+                  href={`${API_URL}/documents/loan-schedule/${loan.id}/excel?token=${token}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-medium flex items-center gap-1.5 border border-emerald-200"
@@ -375,7 +377,6 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
                                 onChange={(e) => updateBackdateEntry(s.installment_number, 'paid_amount', Number(e.target.value))}
                                 className="px-2 py-1 border border-gray-300 rounded text-xs w-full max-w-[100px] text-right focus:ring-1 focus:ring-forest focus:border-forest outline-none"
                                 min={0}
-                                max={Number(s.installment_amount)}
                               />
                             </td>
                           </>
@@ -409,7 +410,7 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
                       <td className="p-2 capitalize">{p.payment_type}</td>
                       <td className="p-2">
                         <a
-                          href={`${API_URL}/documents/receipt/${p.id}`}
+                          href={`${API_URL}/documents/receipt/${p.id}?token=${token}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-forest hover:underline flex items-center gap-1"
