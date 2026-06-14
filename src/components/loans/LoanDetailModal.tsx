@@ -5,7 +5,7 @@ import Modal from '../Modal';
 import LoanRestructureModal from './LoanRestructureModal';
 import { usePermissions } from '../../hooks/usePermissions';
 import { formatLKR, formatDate } from '../../utils/format';
-import { Download, RefreshCw, CheckCircle2, Calendar, Save } from 'lucide-react';
+import { Download, RefreshCw, CheckCircle2, Calendar, Save, FileText, FileSpreadsheet } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Props {
@@ -133,10 +133,11 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
             Approval: {loan.approval_status}
           </span>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div><span className="text-gray-500">Customer</span><p className="font-medium">{loan.customers?.full_name}</p></div>
           <div><span className="text-gray-500">Principal</span><p className="font-medium">{formatLKR(loan.principal_amount)}</p></div>
-          <div><span className="text-gray-500">Remaining</span><p className="font-medium">{formatLKR(loan.remaining_balance)}</p></div>
+          <div><span className="text-gray-500">Total Paid</span><p className="font-medium text-forest">{formatLKR(loan.amount_paid || 0)}</p></div>
+          <div><span className="text-gray-500">Remaining</span><p className="font-medium text-amber-600">{formatLKR(loan.remaining_balance)}</p></div>
           <div><span className="text-gray-500">Applied By</span><p className="font-medium">{loan.applied_by_user?.full_name || '—'}</p></div>
           <div><span className="text-gray-500">In Charge</span><p className="font-medium">{loan.in_charge_user?.full_name || '—'}</p></div>
           <div><span className="text-gray-500">Next Due</span><p className="font-medium">{loan.next_due_date ? formatDate(loan.next_due_date) : '—'}</p></div>
@@ -230,25 +231,43 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
         {/* Schedule Section with Backdate Payments */}
         {loan.schedule?.length > 0 && (
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
               <h4 className="font-semibold">Schedule</h4>
-              {isOwner && loan.approval_status === 'approved' && pendingInstallments.length > 0 && !loan.is_fully_paid && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowBackdateMode(!showBackdateMode);
-                    if (showBackdateMode) setBackdateEntries(new Map());
-                  }}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
-                    showBackdateMode
-                      ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                      : 'bg-forest text-white hover:bg-leaf'
-                  }`}
+              <div className="flex items-center gap-2">
+                <a
+                  href={`${API_URL}/documents/loan-schedule/${loan.id}/pdf`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium flex items-center gap-1.5 border border-gray-200"
                 >
-                  <Calendar className="w-3.5 h-3.5" />
-                  {showBackdateMode ? 'Cancel Backdate' : 'Backdate Payments'}
-                </button>
-              )}
+                  <FileText className="w-3.5 h-3.5" /> PDF
+                </a>
+                <a
+                  href={`${API_URL}/documents/loan-schedule/${loan.id}/excel`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-medium flex items-center gap-1.5 border border-emerald-200"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5" /> Excel
+                </a>
+                {isOwner && loan.approval_status === 'approved' && pendingInstallments.length > 0 && !loan.is_fully_paid && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowBackdateMode(!showBackdateMode);
+                      if (showBackdateMode) setBackdateEntries(new Map());
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                      showBackdateMode
+                        ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                        : 'bg-forest text-white hover:bg-leaf'
+                    }`}
+                  >
+                    <Calendar className="w-3.5 h-3.5" />
+                    {showBackdateMode ? 'Cancel Backdate' : 'Backdate Payments'}
+                  </button>
+                )}
+              </div>
             </div>
 
             {showBackdateMode && (
@@ -277,17 +296,17 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
               </div>
             )}
 
-            <div className="max-h-64 overflow-y-auto border border-gray-100 rounded-lg">
-              <table className="w-full text-xs">
+            <div className="border border-gray-100 rounded-lg overflow-x-auto">
+              <table className="w-full text-xs min-w-[600px] whitespace-nowrap">
                 <thead className="bg-gray-50 sticky top-0">
                   <tr>
                     {showBackdateMode && <th className="p-2 w-8"></th>}
                     <th className="p-2 text-left">#</th>
-                    <th className="p-2 text-left">Due</th>
-                    <th className="p-2 text-right">Amount</th>
+                    <th className="p-2 text-left">Due Date</th>
+                    <th className="p-2 text-right">Due Amount</th>
                     <th className="p-2 text-left">Status</th>
-                    {showBackdateMode && <th className="p-2 text-left">Paid Date</th>}
-                    {showBackdateMode && <th className="p-2 text-right">Paid Amount</th>}
+                    <th className="p-2 text-left">Paid Date</th>
+                    <th className="p-2 text-right">Paid Amount</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -339,21 +358,17 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
                             {s.status}
                           </span>
                         </td>
-                        {showBackdateMode && (
-                          <td className="p-2" onClick={(e) => e.stopPropagation()}>
-                            {isSelected && entry && (
+                        {showBackdateMode && isSelected && entry ? (
+                          <>
+                            <td className="p-2" onClick={(e) => e.stopPropagation()}>
                               <input
                                 type="date"
                                 value={entry.paid_date}
                                 onChange={(e) => updateBackdateEntry(s.installment_number, 'paid_date', e.target.value)}
                                 className="px-2 py-1 border border-gray-300 rounded text-xs w-full max-w-[140px] focus:ring-1 focus:ring-forest focus:border-forest outline-none"
                               />
-                            )}
-                          </td>
-                        )}
-                        {showBackdateMode && (
-                          <td className="p-2 text-right" onClick={(e) => e.stopPropagation()}>
-                            {isSelected && entry && (
+                            </td>
+                            <td className="p-2 text-right" onClick={(e) => e.stopPropagation()}>
                               <input
                                 type="number"
                                 value={entry.paid_amount}
@@ -362,8 +377,13 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
                                 min={0}
                                 max={Number(s.installment_amount)}
                               />
-                            )}
-                          </td>
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td className="p-2">{s.paid_date ? formatDate(s.paid_date) : '—'}</td>
+                            <td className="p-2 text-right text-forest font-medium">{Number(s.paid_amount) > 0 ? formatLKR(s.paid_amount) : '—'}</td>
+                          </>
                         )}
                       </tr>
                     );
