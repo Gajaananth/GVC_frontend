@@ -309,6 +309,7 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
                     <th className="p-2 text-left">Status</th>
                     <th className="p-2 text-left">Paid Date</th>
                     <th className="p-2 text-right">Paid Amount</th>
+                    <th className="p-2 text-center">Receipt</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -384,6 +385,30 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
                           <>
                             <td className="p-2">{s.paid_date ? formatDate(s.paid_date) : '—'}</td>
                             <td className="p-2 text-right text-forest font-medium">{Number(s.paid_amount) > 0 ? formatLKR(s.paid_amount) : '—'}</td>
+                            <td className="p-2 text-center">
+                              {(() => {
+                                if (!s.paid_date) return <span className="text-gray-400">—</span>;
+                                // Find payment that matches this installment date or mentions this installment in notes
+                                const pmt = loan.payments?.find((p: any) => 
+                                  (p.notes && p.notes.includes(`installment #${s.installment_number}`)) || 
+                                  (p.payment_date && p.payment_date.split('T')[0] === s.paid_date.split('T')[0])
+                                );
+                                if (pmt && pmt.approval_status === 'approved') {
+                                  return (
+                                    <a
+                                      href={`${API_URL}/documents/receipt/${pmt.id}?token=${token}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-forest hover:text-leaf inline-flex p-1 bg-green-50 rounded"
+                                      title="Download Receipt"
+                                    >
+                                      <FileText className="w-4 h-4" />
+                                    </a>
+                                  );
+                                }
+                                return <span className="text-gray-400">—</span>;
+                              })()}
+                            </td>
                           </>
                         )}
                       </tr>
