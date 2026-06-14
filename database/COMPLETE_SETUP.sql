@@ -243,6 +243,107 @@ INSERT INTO customers (
   ('c2222222-2222-2222-2222-222222222222', 'CUS-20260607-0002', 'Lakshmi Priya', '200234567890', '+94771111121', 'lakshmi@example.com', 'Ampara Street 2', '1985-03-20', 'female', 'Shop Owner', 45000, 'b1111111-1111-1111-1111-111111111111', TRUE, 'a5555555-5555-5555-5555-555555555551');
 
 -- ============================================================
+-- PART 4: FIXED DEPOSITS FEATURE (Migration 013)
+-- ============================================================
+
+-- 1. Create Fixed Deposits Table
+CREATE TABLE IF NOT EXISTS fixed_deposits (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  fd_code TEXT UNIQUE NOT NULL,
+  customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE RESTRICT,
+  branch_id UUID REFERENCES branches(id) ON DELETE CASCADE,
+  
+  -- Deposit terms
+  principal_amount NUMERIC(15,2) NOT NULL,
+  interest_rate NUMERIC(8,4) NOT NULL,
+  term_months INTEGER NOT NULL,
+  maturity_date DATE NOT NULL,
+  
+  -- Calculated fields
+  total_interest NUMERIC(15,2) NOT NULL DEFAULT 0,
+  total_maturity_amount NUMERIC(15,2) NOT NULL DEFAULT 0,
+  
+  -- Status tracking
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'matured', 'closed', 'blocked')),
+  is_blocked BOOLEAN DEFAULT FALSE,
+  block_reason TEXT,
+  blocked_at TIMESTAMPTZ,
+  blocked_by UUID REFERENCES users(id),
+  
+  -- Closure tracking
+  closed_at TIMESTAMPTZ,
+  closed_by UUID REFERENCES users(id),
+  payout_amount NUMERIC(15,2),
+  closure_reason TEXT,
+  
+  -- Payout details
+  payout_method TEXT DEFAULT 'cash' CHECK (payout_method IN ('cash', 'bank_transfer', 'cheque', 'mobile')),
+  
+  -- Additional info
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  created_by UUID REFERENCES users(id)
+);
+
+-- 2. Create indexes for Fixed Deposits
+CREATE INDEX IF NOT EXISTS idx_fixed_deposits_customer ON fixed_deposits(customer_id);
+CREATE INDEX IF NOT EXISTS idx_fixed_deposits_branch ON fixed_deposits(branch_id);
+CREATE INDEX IF NOT EXISTS idx_fixed_deposits_status ON fixed_deposits(status);
+CREATE INDEX IF NOT EXISTS idx_fixed_deposits_maturity ON fixed_deposits(maturity_date);
+CREATE INDEX IF NOT EXISTS idx_fixed_deposits_code ON fixed_deposits(fd_code);
+CREATE INDEX IF NOT EXISTS idx_fixed_deposits_created ON fixed_deposits(created_at);
+
+-- 3. Create Fixed Deposit Transactions Table
+CREATE TABLE IF NOT EXISTS fixed_deposit_transactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  fd_id UUID NOT NULL REFERENCES fixed_deposits(id) ON DELETE CASCADE,
+  transaction_type TEXT NOT NULL CHECK (transaction_type IN ('deposit', 'interest', 'closure', 'penalty')),
+  amount NUMERIC(15,2) NOT NULL,
+  description TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  created_by UUID REFERENCES users(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_fd_transactions_fd ON fixed_deposit_transactions(fd_id);
+CREATE INDEX IF NOT EXISTS idx_fd_transactions_type ON fixed_deposit_transactions(transaction_type);
+
+-- 4. Trigger for Fixed Deposits updated_at
+CREATE TRIGGER tr_fixed_deposits_updated_at BEFORE UPDATE ON fixed_deposits
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+-- 5. Sequence for FD code generation
+CREATE SEQUENCE IF NOT EXISTS fd_seq START 1;
+
+-- 6. Function to generate FD code
+CREATE OR REPLACE FUNCTION generate_fd_code()
+RETURNS TEXT AS $$
+DECLARE
+  seq_val BIGINT;
+  date_part TEXT;
+BEGIN
+  seq_val := nextval('fd_seq');
+  date_part := TO_CHAR(NOW(), 'YYYYMMDD');
+  RETURN 'FD-' || date_part || '-' || LPAD(seq_val::TEXT, 5, '0');
+END;
+$$ LANGUAGE plpgsql;
+
+-- 7. Trigger to auto-populate FD code
+CREATE OR REPLACE FUNCTION set_fd_code()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.fd_code IS NULL THEN
+    NEW.fd_code := generate_fd_code();
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_set_fd_code ON fixed_deposits;
+CREATE TRIGGER trg_set_fd_code BEFORE INSERT ON fixed_deposits
+  FOR EACH ROW EXECUTE FUNCTION set_fd_code();
+
+-- ============================================================
 -- SUMMARY OF DEFAULT CREDENTIALS
 -- ============================================================
 -- Owner: owner@gvcagro.lk / Password@2026
