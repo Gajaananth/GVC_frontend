@@ -388,10 +388,15 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
                             <td className="p-2 text-center">
                               {(() => {
                                 if (!s.paid_date) return <span className="text-gray-400">—</span>;
-                                // Find payment that matches this installment date or mentions this installment in notes
-                                const pmt = loan.payments?.find((p: any) => 
-                                  (p.notes && p.notes.includes(`installment #${s.installment_number}`)) || 
-                                  (p.payment_date && p.payment_date.split('T')[0] === s.paid_date.split('T')[0])
+                                // Find payment by exact installment number in notes (primary), then by date (fallback)
+                                const pmt = loan.payments?.find((p: any) => {
+                                  if (!p.notes) return false;
+                                  const m = p.notes.match(/installment\s*#(\d+)/);
+                                  return m && parseInt(m[1], 10) === s.installment_number;
+                                }) || loan.payments?.find((p: any) =>
+                                  p.approval_status === 'approved' &&
+                                  p.payment_date && s.paid_date &&
+                                  p.payment_date.split('T')[0] === s.paid_date.split('T')[0]
                                 );
                                 if (pmt && pmt.approval_status === 'approved') {
                                   return (
