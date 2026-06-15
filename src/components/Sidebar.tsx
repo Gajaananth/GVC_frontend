@@ -59,7 +59,7 @@ const Sidebar = () => {
         />
       )}
       
-      <div className={`fixed inset-y-0 left-0 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0 transition-transform duration-300 ease-in-out z-[110] w-72 lg:w-64 max-w-full bg-forest text-white flex flex-col h-screen overflow-y-auto shadow-2xl`}>
+      <div className={`fixed inset-y-0 left-0 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0 transition-transform duration-300 ease-in-out z-[110] w-72 lg:w-64 max-w-full bg-forest text-white flex flex-col h-screen shadow-2xl`}>
         <div className="p-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="bg-white p-2 rounded-xl shadow-md flex items-center justify-center w-12 h-12 overflow-hidden">
@@ -75,7 +75,7 @@ const Sidebar = () => {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-4">
+        <div className="flex-1 overflow-y-auto dark-scrollbar py-4">
         <nav className="space-y-2 px-4">
           {filteredMenu.map((item) => {
             const Icon = item.icon;
