@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchApi } from '../services/api';
 import { formatLKR, formatDate } from '../utils/format';
 import {
@@ -79,6 +79,7 @@ const OwnerCollections = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [lastResults, setLastResults] = useState<{ summary: any; results: SubmitResult[] } | null>(null);
   const [showQueue, setShowQueue] = useState(true);
+  const queryClient = useQueryClient();
 
   // ── Add-item form (per loan selected) ──
   const [addForm, setAddForm] = useState({
@@ -216,6 +217,9 @@ const OwnerCollections = () => {
       const { data } = res;
       setLastResults({ summary: data.summary, results: data.results });
       setQueue([]);
+      queryClient.invalidateQueries({ queryKey: ['owner-loans-active'] });
+      queryClient.invalidateQueries({ queryKey: ['loans'] });
+      queryClient.invalidateQueries({ queryKey: ['loan-detail-owner'] });
       toast.success(res.message || 'Collections submitted!');
 
       // Auto-download both
