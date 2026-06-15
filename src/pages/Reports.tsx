@@ -44,7 +44,7 @@ const Reports = () => {
     refetch();
   };
 
-  const downloadReport = async (format: 'pdf' | 'excel') => {
+  const downloadReport = async (format: 'pdf' | 'excel', overrideType?: string, overrideStart?: string, overrideEnd?: string) => {
     const { accessToken } = useAuthStore.getState();
     
     if (!accessToken) {
@@ -52,7 +52,11 @@ const Reports = () => {
       return;
     }
 
-    const url = `${API_URL}/reports/${selectedReport}/export/${format}?start_date=${dateRange.start}&end_date=${dateRange.end}`;
+    const exportType = overrideType || selectedReport;
+    const exportStart = overrideStart ?? dateRange.start;
+    const exportEnd = overrideEnd ?? dateRange.end;
+
+    const url = `${API_URL}/reports/${exportType}/export/${format}?start_date=${exportStart}&end_date=${exportEnd}`;
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -70,7 +74,7 @@ const Reports = () => {
     const blobUrl = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = blobUrl;
-    link.download = `${selectedReport}-${dateRange.start || 'start'}-to-${dateRange.end || 'end'}.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
+    link.download = `${exportType}-${exportStart || 'start'}-to-${exportEnd || 'end'}.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -83,6 +87,15 @@ const Reports = () => {
 
   const handleExportExcel = () => {
     downloadReport('excel').catch((err) => alert(err.message));
+  };
+
+  const handleQuickToday = (format: 'pdf' | 'excel') => {
+    const today = new Date();
+    // Use local date string YYYY-MM-DD
+    const todayStr = today.toLocaleDateString('en-CA'); 
+    setDateRange({ start: todayStr, end: todayStr });
+    setSelectedReport('daily_collection');
+    downloadReport(format, 'daily_collection', todayStr, todayStr).catch((err) => alert(err.message));
   };
 
   const handleEmailReport = async () => {
@@ -284,6 +297,22 @@ const Reports = () => {
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Reports & Analytics</h2>
           <p className="text-sm text-gray-500">Generate, view, and export financial reports.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button 
+            onClick={() => handleQuickToday('excel')}
+            className="px-4 py-2 bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 shadow-sm"
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            Today's Collection (Excel)
+          </button>
+          <button 
+            onClick={() => handleQuickToday('pdf')}
+            className="px-4 py-2 bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 shadow-sm"
+          >
+            <Download className="w-4 h-4" />
+            Today's Collection (PDF)
+          </button>
         </div>
       </div>
 
