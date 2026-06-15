@@ -131,33 +131,33 @@ export function extendScheduleForRemainingBalance(
   
   // Generate extension schedule for remaining balance
   const extendedSchedule = [...originalSchedule];
-  let currentBalance = remainingBalance;
+  // Prefer last known remaining_balance on schedule if present
+  const lastKnownRemaining = lastSchedule && typeof lastSchedule.remaining_balance === 'number' ? lastSchedule.remaining_balance : null;
+  let currentBalance = lastKnownRemaining !== null ? lastKnownRemaining : remainingBalance;
   let installmentNum = originalSchedule.length + 1;
   
   // Calculate monthly rate for extensions
   const monthlyRate = loan.interest_rate / 100 / 12;
   
+  // Use original EMI where available to produce deterministic extensions
+  const originalEmi = loan.installment_amount || calculateEMI(loan.principal_amount, monthlyRate, loan.term_months);
+
   // Generate new installments until balance is zero
-  while (currentBalance > 0) {
+  let safety = 0;
+  while (currentBalance > 0 && safety < 120) {
     const nextDueDate = new Date(lastDueDate);
     nextDueDate.setMonth(nextDueDate.getMonth() + (installmentNum - originalSchedule.length));
-    
-    // Calculate interest on remaining balance
+
+    // Interest on remaining balance
     const interestAmount = currentBalance * monthlyRate;
-    
-    // Principal = average of remaining balance over the period
-    const principalAmount = Math.min(
-      currentBalance,
-      (loan.principal_amount / loan.term_months) * 0.8 // Estimate based on original
-    );
-    
+
+    // Principal is EMI minus interest (but not exceed remaining balance)
+    let principalAmount = Math.max(0, originalEmi - interestAmount);
+    principalAmount = Math.min(principalAmount, currentBalance);
+
     const installmentAmount = principalAmount + interestAmount;
-    currentBalance -= principalAmount;
-    
-    if (currentBalance < 0) {
-      currentBalance = 0;
-    }
-    
+    currentBalance = Math.max(0, currentBalance - principalAmount);
+
     extendedSchedule.push({
       installment_number: installmentNum,
       due_date: nextDueDate.toISOString().split('T')[0],
@@ -166,13 +166,9 @@ export function extendScheduleForRemainingBalance(
       installment_amount: Math.round(installmentAmount * 100) / 100,
       remaining_balance: Math.round(currentBalance * 100) / 100,
     });
-    
+
     installmentNum++;
-    
-    // Safety: prevent infinite loop
-    if (installmentNum > originalSchedule.length + 60) {
-      break;
-    }
+    safety++;
   }
   
   return extendedSchedule;

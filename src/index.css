@@ -7,6 +7,18 @@
     @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl rounded-2xl;
   }
 
+  /* Touch target minimum size */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+  }
+
+  .mobile-button {
+    @apply min-h-[48px] sm:min-h-[40px] px-3 sm:px-4 py-2.5 sm:py-2 text-sm sm:text-base;
+  }
+
+  .mobile-input {
+    @apply w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm;
+  }
 
   @media (max-width: 640px) {
     .responsive-table {
@@ -14,6 +26,18 @@
     }
     .modal-content {
       @apply w-full max-w-none h-full max-h-none rounded-none;
+    }
+    
+    /* Prevent zoom on focus input on iOS */
+    input, select, textarea {
+      font-size: 16px;
+    }
+    
+    /* File input mobile styling */
+    input[type=\"file\"] {
+      padding: 10px 0;
+      min-height: 44px;
+      cursor: pointer;
     }
   }
 }

@@ -22,9 +22,9 @@ const TopBar = () => {
   };
 
   return (
-    <div className="h-16 sm:h-20 bg-white/60 backdrop-blur-md border-b border-gray-100 flex items-center justify-between gap-2 px-3 sm:px-4 lg:px-8 sticky top-0 z-10 shadow-sm w-full">
-      <div className="flex items-center min-w-0">
-        <button onClick={toggle} className="lg:hidden p-2 mr-1 sm:mr-2 text-gray-600 hover:bg-gray-100 rounded-lg shrink-0">
+    <div className="min-h-16 sm:min-h-20 bg-white/60 backdrop-blur-md border-b border-gray-100 flex items-center justify-between gap-2 px-2 sm:px-3 md:px-4 lg:px-8 sticky top-0 z-40 shadow-sm w-full">
+      <div className="flex items-center min-w-0 gap-1">
+        <button onClick={toggle} className="lg:hidden p-2.5 mr-0.5 sm:mr-1 text-gray-600 hover:bg-gray-100 rounded-lg shrink-0 touch-target">
           <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
         </button>
         <div className="min-w-0">
@@ -37,13 +37,13 @@ const TopBar = () => {
         <div className="relative hidden md:block">
           <GlobalSearch />
         </div>
-        <button className="md:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-full">
+        <button className="md:hidden p-2.5 text-gray-500 hover:bg-gray-100 rounded-full touch-target">
           <Search className="w-5 h-5" />
         </button>
         
-        <button className="relative p-2 text-gray-500 hover:text-forest transition-colors rounded-full hover:bg-forest/5">
+        <button className="relative p-2.5 text-gray-500 hover:text-forest transition-colors rounded-full hover:bg-forest/5 touch-target">
           <Bell className="w-5 h-5 sm:w-6 sm:h-6" />
-          <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-gold rounded-full border-2 border-white"></span>
+          <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-gold rounded-full border-2 border-white"></span>
         </button>
       </div>
     </div>

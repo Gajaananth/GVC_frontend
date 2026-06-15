@@ -2,6 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
 import { useEffect } from 'react';
+import { startKeepAlive, stopKeepAlive } from '../services/keepAlive';
 
 interface ProtectedRouteProps {
   children: JSX.Element;
@@ -11,6 +12,21 @@ interface ProtectedRouteProps {
 export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
   const { user } = useAuthStore();
   const location = useLocation();
+
+  useEffect(() => {
+    if (user) {
+      // Start keep-alive service when user is authenticated
+      startKeepAlive();
+
+      // Clean up when component unmounts or user logs out
+      return () => {
+        // Keep-alive will stop when user fully logs out
+      };
+    } else {
+      // Stop keep-alive if user is not authenticated
+      stopKeepAlive();
+    }
+  }, [user]);
 
   useEffect(() => {
     if (user && allowedRoles && !allowedRoles.includes(user.role)) {

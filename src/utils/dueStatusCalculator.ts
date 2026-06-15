@@ -42,10 +42,12 @@ export function calculateDueStatus(
   today: string = new Date().toISOString().slice(0, 10)
 ): 'PAID' | 'PARTIAL' | 'OVERDUE' | 'PENDING' {
   // Get all payments for this installment
-  const relevantPayments = payments.filter(p => p.loan_id === schedule.loan_id);
-  
-  // Calculate total paid amount for this installment
-  const totalPaid = relevantPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+  // Prefer authoritative paid_amount on schedule (server-side). Fallback to payments matching installment_number.
+  let totalPaid = typeof schedule.paid_amount === 'number' ? schedule.paid_amount : 0;
+  if (totalPaid === 0) {
+    const relevantPayments = payments.filter(p => p.loan_id === schedule.loan_id && p.installment_number === schedule.installment_number);
+    totalPaid = relevantPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+  }
   
   const installmentAmount = schedule.installment_amount || 0;
   const dueDate = schedule.due_date;

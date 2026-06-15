@@ -213,7 +213,7 @@ const Users = () => {
               }
               setShowCreateModal(true);
             }}
-            className="bg-forest hover:bg-leaf text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 shadow-sm w-full sm:w-auto">
+            className="bg-forest hover:bg-leaf text-white mobile-button rounded-xl font-medium transition-colors flex items-center justify-center gap-2 shadow-sm w-full sm:w-auto">
             <Plus className="w-5 h-5" />
             Add User
           </button>
@@ -222,62 +222,62 @@ const Users = () => {
 
       {/* Create User Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3">
-          <div className="bg-white rounded-2xl shadow-xl p-5 sm:p-8 max-w-md w-full max-h-[92vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-gray-800">Create New User</h3>
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-xl p-4 sm:p-6 max-w-2xl w-full max-h-[85vh] sm:max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4 sm:mb-6 sticky top-0 bg-white pb-3 sm:pb-4 border-b border-gray-100">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800">Create New User</h3>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 touch-target"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateUser} className="space-y-4">
+            <form onSubmit={handleCreateUser} className="space-y-3 sm:space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
                 <input
                   type="text"
                   required
                   value={formData.full_name}
                   onChange={(e) => setFormData({...formData, full_name: e.target.value})}
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  className="mobile-input bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
                   placeholder="John Doe"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
                 <input
                   type="email"
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  className="mobile-input bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
                   placeholder="john@example.com"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Password *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Password *</label>
                 <input
                   type="password"
                   required
                   minLength={8}
                   value={formData.password}
                   onChange={(e) => setFormData({...formData, password: e.target.value})}
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  className="mobile-input bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
                   placeholder="Min 8 characters"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Role *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Role *</label>
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({...formData, role: e.target.value})}
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  className="mobile-input bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
                 >
                   {isOwner ? (
                     <>
@@ -301,11 +301,11 @@ const Users = () => {
 
               {(isOwner && formData.role !== 'owner') && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Branch *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Branch *</label>
                   <select
                     value={formData.branch_id}
                     onChange={(e) => setFormData({...formData, branch_id: e.target.value})}
-                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                    className="mobile-input bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
                     disabled={branchesLoading}
                     required
                   >
@@ -326,39 +326,39 @@ const Users = () => {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Mobile</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Mobile</label>
                 <input
                   type="tel"
                   value={formData.mobile}
                   onChange={(e) => setFormData({...formData, mobile: e.target.value})}
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  className="mobile-input bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
                   placeholder="+94 123 456 789"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
                 <input
                   type="text"
                   value={formData.address}
                   onChange={(e) => setFormData({...formData, address: e.target.value})}
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  className="mobile-input bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
                   placeholder="Street address"
                 />
               </div>
 
-              <div className="flex gap-3 pt-4">
+              <div className="flex gap-2 sm:gap-3 pt-6 sm:pt-4">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="flex-1 mobile-button bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isCreating}
-                  className="flex-1 px-4 py-2 bg-forest text-white rounded-lg hover:bg-leaf transition-colors disabled:opacity-50"
+                  className="flex-1 mobile-button bg-forest text-white rounded-lg hover:bg-leaf transition-colors disabled:opacity-50"
                 >
                   {isCreating ? 'Creating...' : 'Create User'}
                 </button>
@@ -370,59 +370,59 @@ const Users = () => {
 
       {/* Edit User Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3">
-          <div className="bg-white rounded-2xl shadow-xl p-5 sm:p-8 max-w-md w-full max-h-[92vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-gray-800">Edit User</h3>
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-xl p-4 sm:p-6 max-w-2xl w-full max-h-[85vh] sm:max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4 sm:mb-6 sticky top-0 bg-white pb-3 sm:pb-4 border-b border-gray-100">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800">Edit User</h3>
               <button
                 onClick={() => setShowEditModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 touch-target"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
             </div>
 
-            <form onSubmit={(e) => { e.preventDefault(); updateUserMutation.mutate(); }} className="space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); updateUserMutation.mutate(); }} className="space-y-3 sm:space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
                 <input
                   type="text"
                   required
                   value={editFormData.full_name}
                   onChange={(e) => setEditFormData({...editFormData, full_name: e.target.value})}
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  className="mobile-input bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
                 <input
                   type="email"
                   required
                   value={editFormData.email}
                   onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  className="mobile-input bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
                 />
               </div>
 
               {/* Password optional for edit */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Password (leave blank to keep current)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Password (leave blank to keep current)</label>
                 <input
                   type="password"
                   value={editFormData.password || ''}
                   onChange={(e) => setEditFormData({...editFormData, password: e.target.value})}
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  className="mobile-input bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
                   placeholder="••••••••"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Role *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Role *</label>
                 <select
                   value={editFormData.role}
                   onChange={(e) => setEditFormData({...editFormData, role: e.target.value})}
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  className="mobile-input bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
                 >
                   {isOwner ? (
                     <>
@@ -446,11 +446,11 @@ const Users = () => {
 
               {(isOwner && editFormData.role !== 'owner') && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Branch *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Branch *</label>
                   <select
                     value={editFormData.branch_id}
                     onChange={(e) => setEditFormData({...editFormData, branch_id: e.target.value})}
-                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                    className="mobile-input bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
                     disabled={branchesLoading}
                     required
                   >
@@ -471,37 +471,37 @@ const Users = () => {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Mobile</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Mobile</label>
                 <input
                   type="tel"
                   value={editFormData.mobile}
                   onChange={(e) => setEditFormData({...editFormData, mobile: e.target.value})}
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  className="mobile-input bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
                 <input
                   type="text"
                   value={editFormData.address}
                   onChange={(e) => setEditFormData({...editFormData, address: e.target.value})}
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+                  className="mobile-input bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
                 />
               </div>
 
-              <div className="flex gap-3 pt-4">
+              <div className="flex gap-2 sm:gap-3 pt-6 sm:pt-4">
                 <button
                   type="button"
                   onClick={() => setShowEditModal(false)}
-                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="flex-1 mobile-button bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isUpdating || updateUserMutation.isPending}
-                  className="flex-1 px-4 py-2 bg-forest text-white rounded-lg hover:bg-leaf transition-colors disabled:opacity-50"
+                  className="flex-1 mobile-button bg-forest text-white rounded-lg hover:bg-leaf transition-colors disabled:opacity-50"
                 >
                   {updateUserMutation.isPending ? 'Updating...' : 'Update User'}
                 </button>
@@ -513,24 +513,24 @@ const Users = () => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3">
-          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full">
-            <div className="space-y-5">
-              <h3 className="text-xl font-bold text-gray-800">Delete User</h3>
-              <p className="text-gray-600">
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-xl p-4 sm:p-6 max-w-2xl w-full">
+            <div className="space-y-4 sm:space-y-5">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800">Delete User</h3>
+              <p className="text-sm sm:text-base text-gray-600">
                 Are you sure you want to delete this user? This action cannot be undone.
               </p>
-              <div className="flex justify-end gap-3">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-4">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="mobile-button bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => deleteUserMutation.mutate()}
                   disabled={isDeleting || deleteUserMutation.isPending}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                  className="mobile-button bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
                 >
                   {deleteUserMutation.isPending ? 'Deleting...' : 'Delete User'}
                 </button>
@@ -594,7 +594,7 @@ const Users = () => {
                         onClick={() => {
                           fetchUserForEdit(u.id);
                         }}
-                        className="p-2 text-gray-400 hover:text-blue-600 transition-colors disabled:opacity-50"
+                        className="p-2 text-gray-400 hover:text-blue-600 transition-colors disabled:opacity-50 touch-target"
                         disabled={editLoading}
                       >
                         {editLoading ? <span className="animate-spin w-4 h-4" /> : <Edit className="w-4 h-4" />}
@@ -605,7 +605,7 @@ const Users = () => {
                           setDeleteUserId(u.id);
                           setShowDeleteModal(true);
                         }}
-                        className="p-2 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                        className="p-2 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50 touch-target"
                         disabled={isDeleting}
                       >
                         {isDeleting ? <span className="animate-spin w-4 h-4" /> : <Trash2 className="w-4 h-4" />}

@@ -34,6 +34,8 @@ async function refreshAccessToken(): Promise<string | null> {
 
 export const fetchApi = async (endpoint: string, options: RequestInit = {}) => {
   const { accessToken, logout } = useAuthStore.getState();
+  const MAX_RETRIES = 3;
+  const RETRY_DELAYS = [1000, 2000, 4000]; // 1s, 2s, 4s exponential backoff
 
   const buildHeaders = (token: string | null) => {
     const headers = new Headers(options.headers || {});
@@ -46,62 +48,96 @@ export const fetchApi = async (endpoint: string, options: RequestInit = {}) => {
     return headers;
   };
 
-  try {
-    const response = await fetch(`${API_URL}${endpoint}`, {
+  const performRequest = async (token: string | null) => {
+    return fetch(`${API_URL}${endpoint}`, {
       ...options,
-      headers: buildHeaders(accessToken),
+      headers: buildHeaders(token),
     });
+  };
 
-    // If 401 and not a login/refresh request, try refreshing the token
-    if (response.status === 401 && !endpoint.includes('/auth/')) {
-      // Use a shared promise so concurrent 401s only trigger one refresh
-      if (!isRefreshing) {
-        isRefreshing = true;
-        refreshPromise = refreshAccessToken().finally(() => {
-          isRefreshing = false;
-          refreshPromise = null;
-        });
-      }
+  let lastError: any = null;
 
-      const newToken = await (refreshPromise || refreshAccessToken());
+  // Retry loop for temporary failures (network errors, timeouts)
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    try {
+      const response = await Promise.race([
+        performRequest(accessToken),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Request timeout')), 30000) // 30s timeout
+        ),
+      ]) as Response;
 
-      if (newToken) {
-        // Retry the original request with the new token
-        const retryResponse = await fetch(`${API_URL}${endpoint}`, {
-          ...options,
-          headers: buildHeaders(newToken),
-        });
-
-        const retryData = await retryResponse.json().catch(() => ({}));
-
-        if (!retryResponse.ok) {
-          if (retryResponse.status === 401) {
-            logout();
-            window.location.href = '/login';
-          }
-          throw new Error(retryData.error || 'API request failed');
+      // If 401 and not a login/refresh request, try refreshing the token
+      if (response.status === 401 && !endpoint.includes('/auth/')) {
+        // Use a shared promise so concurrent 401s only trigger one refresh
+        if (!isRefreshing) {
+          isRefreshing = true;
+          refreshPromise = refreshAccessToken().finally(() => {
+            isRefreshing = false;
+            refreshPromise = null;
+          });
         }
 
-        return retryData;
-      } else {
-        // Refresh failed — force logout
-        logout();
-        window.location.href = '/login';
-        throw new Error('Session expired. Please log in again.');
+        const newToken = await (refreshPromise || refreshAccessToken());
+
+        if (newToken) {
+          // Retry the original request with the new token
+          const retryResponse = await performRequest(newToken);
+          const retryData = await retryResponse.json().catch(() => ({}));
+
+          if (!retryResponse.ok) {
+            if (retryResponse.status === 401) {
+              logout();
+              window.location.href = '/login';
+            }
+            throw new Error(retryData.error || 'API request failed');
+          }
+
+          return retryData;
+        } else {
+          // Refresh failed — force logout
+          logout();
+          window.location.href = '/login';
+          throw new Error('Session expired. Please log in again.');
+        }
       }
-    }
 
-    const data = await response.json().catch(() => ({}));
+      const data = await response.json().catch(() => ({}));
 
-    if (!response.ok) {
-      throw new Error(data.error || 'API request failed');
-    }
+      if (!response.ok) {
+        throw new Error(data.error || `API request failed (${response.status})`);
+      }
 
-    return data;
-  } catch (error: any) {
-    if (error.message !== 'Unauthorized') {
-      toast.error(error.message || 'Something went wrong');
+      return data;
+    } catch (error: any) {
+      lastError = error;
+
+      // Retry only for temporary errors (not 4xx status codes, not auth errors)
+      const isTemporaryError =
+        error.message.includes('timeout') ||
+        error.message.includes('fetch') ||
+        error.message.includes('network') ||
+        error.message.includes('503') || // Service Unavailable
+        error.message.includes('502') || // Bad Gateway
+        error.message.includes('504'); // Gateway Timeout
+
+      if (isTemporaryError && attempt < MAX_RETRIES - 1) {
+        const delayMs = RETRY_DELAYS[attempt];
+        console.warn(
+          `[API Retry] Attempt ${attempt + 1}/${MAX_RETRIES} failed for ${endpoint}. Retrying in ${delayMs}ms...`,
+          error.message
+        );
+
+        // Wait before retrying
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        continue; // Try again
+      }
+
+      // Don't retry if this is not a temporary error
+      throw error;
     }
-    throw error;
   }
+
+  // All retries exhausted
+  throw lastError || new Error('API request failed after maximum retries');
 };

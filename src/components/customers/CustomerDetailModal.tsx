@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchApi } from '../../services/api';
+import { useCompleteLoanData, useLoanUpdateListener } from '../../hooks/useLoanSync';
 import Modal from '../Modal';
 import { usePermissions } from '../../hooks/usePermissions';
 import { Upload, FileText, ExternalLink } from 'lucide-react';
@@ -47,11 +48,10 @@ const CustomerDetailModal = ({ customerId, onClose }: Props) => {
     },
   });
 
-  const { data: selectedLoanData, isLoading: loanLoading } = useQuery({
-    queryKey: ['loan', selectedLoanId],
-    enabled: !!selectedLoanId,
-    queryFn: () => fetchApi(`/loans/${selectedLoanId}`),
-  });
+  const { data: selectedLoanData, isLoading: loanLoading } = useCompleteLoanData(selectedLoanId);
+
+  // Listen for external loan updates to keep UI fresh
+  const { emitLoanUpdate } = useLoanUpdateListener();
 
   const customer = data?.data;
   const today = new Date().toISOString().slice(0, 10);

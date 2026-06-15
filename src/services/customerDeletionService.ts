@@ -4,7 +4,8 @@
  * archive PDF generation, and cascading data removal with transactions
  */
 
-import { fetchApi } from './api';
+import { fetchApi, API_URL } from './api';
+import { useAuthStore } from '../store/authStore';
 
 export interface CustomerDeletionRequest {
   customerId: string;
@@ -103,18 +104,24 @@ export async function generateCustomerArchivePDF(
       generatedAt: new Date().toISOString(),
     };
 
-    // Request PDF generation from backend
-    const response = await fetchApi(`/customers/${customerId}/generate-archive-pdf`, {
+    // Request PDF generation from backend — stream PDF and return blob URL
+    const { accessToken } = useAuthStore.getState();
+    const resp = await fetch(`${API_URL}/customers/${customerId}/generate-archive-pdf`, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: accessToken ? `Bearer ${accessToken}` : ''
+      },
       body: JSON.stringify(pdfData),
     });
 
+    if (!resp.ok) throw new Error('Failed to generate PDF');
+
+    const blob = await resp.blob();
+    const url = window.URL.createObjectURL(blob);
     const fileName = `customer-archive-${customerId}-${new Date().toISOString().split('T')[0]}.pdf`;
 
-    return {
-      pdfUrl: response.data.pdfUrl || response.data.url,
-      fileName,
-    };
+    return { pdfUrl: url, fileName };
   } catch (error) {
     console.error('Error generating archive PDF:', error);
     throw new Error('Failed to generate customer archive PDF');

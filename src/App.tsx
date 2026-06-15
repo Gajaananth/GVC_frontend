@@ -31,11 +31,11 @@ import ImportExport from './pages/ImportExport';
 
 const Layout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
-    <div className="flex h-screen bg-[#F8FBF8] font-sans overflow-hidden relative">
+    <div className="flex min-h-screen bg-[#F8FBF8] font-sans relative w-full">
       <Sidebar />
-      <div className="flex-1 flex flex-col h-screen overflow-hidden w-full relative">
+      <div className="flex-1 flex flex-col w-full min-h-screen">
         <TopBar />
-        <main className="flex-1 p-3 sm:p-4 md:p-8 overflow-y-auto w-full min-w-0">{children}</main>
+        <main className="flex-1 p-2 sm:p-3 md:p-6 lg:p-8 overflow-y-auto w-full min-w-0 pb-8 sm:pb-4">{children}</main>
       </div>
     </div>
   </SidebarProvider>

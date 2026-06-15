@@ -290,9 +290,9 @@ const CustomerFormModal = ({ customer, onClose }: Props) => {
           <textarea className="input-field" rows={2} value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} />
         </div>
         
-        <div className="flex justify-end gap-3 pt-2">
-          <button type="button" onClick={onClose} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl">Cancel</button>
-          <button type="submit" disabled={mutation.isPending || isValidatingFace} className="px-4 py-2 bg-forest text-white rounded-xl hover:bg-leaf disabled:opacity-50">
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-6 sm:pt-4">
+          <button type="button" onClick={onClose} className="mobile-button bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition">Cancel</button>
+          <button type="submit" disabled={mutation.isPending || isValidatingFace} className="mobile-button bg-forest text-white rounded-xl hover:bg-leaf disabled:opacity-50 transition">
             {isValidatingFace ? 'Validating Face...' : mutation.isPending ? 'Saving...' : isEdit ? 'Update' : 'Create Customer'}
           </button>
         </div>
