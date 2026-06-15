@@ -13,7 +13,7 @@ export interface Customer {
   gender?: 'male' | 'female' | 'other';
   occupation?: string;
   monthly_income?: number;
-  branch_id: string;
+  branch_id?: string | null;
   photo_url?: string;
   nic_front_url?: string;
   nic_back_url?: string;
@@ -63,7 +63,7 @@ export const customerService = {
   },
 
   // Create customer (JSON payload for cases where files are uploaded separately)
-  async createCustomer(data: Partial<Customer> & { photo_url?: string; nic_front_url?: string; nic_back_url?: string; branch_id: string; }): Promise<Customer> {
+  async createCustomer(data: Partial<Customer> & { photo_url?: string; nic_front_url?: string; nic_back_url?: string; branch_id?: string; }): Promise<Customer> {
     return fetchApi('/customers', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -81,7 +81,7 @@ export const customerService = {
     gender?: 'male' | 'female' | 'other';
     occupation?: string;
     monthly_income?: number;
-    branch_id: string;
+    branch_id?: string;
     registered_by_staff_id?: string;
     assigned_staff_id?: string;
     notes?: string;

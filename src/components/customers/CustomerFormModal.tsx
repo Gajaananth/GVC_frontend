@@ -191,20 +191,20 @@ const CustomerFormModal = ({ customer, onClose }: Props) => {
         
         {isOwner && !isEdit && (
           <div>
-            <label className="text-sm font-medium text-gray-700">Branch *</label>
+            <label className="text-sm font-medium text-gray-700">Branch</label>
             <select
-              required
               className="input-field"
               value={form.branch_id}
               onChange={e => setForm({ ...form, branch_id: e.target.value })}
             >
-              <option value="">Select branch</option>
+              <option value="">No branch (optional)</option>
               {(branchesData?.data || []).map((branch: any) => (
                 <option key={branch.id} value={branch.id}>
                   {branch.branch_name} ({branch.branch_code})
                 </option>
               ))}
             </select>
+            <p className="text-xs text-gray-500 mt-1">Owner may leave branch unset when adding a customer.</p>
           </div>
         )}
 

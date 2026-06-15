@@ -108,7 +108,7 @@ export function CustomerRegistration() {
       const customer = await customerService.createCustomer({
         ...formData,
         monthly_income: formData.monthly_income ? Number(formData.monthly_income) : undefined,
-        branch_id: user?.branch_id || '',
+        branch_id: user?.branch_id || undefined,
         photo_url: uploads.face_photo.url,
         nic_front_url: uploads.nic_front.url,
         nic_back_url: uploads.nic_back.url,
