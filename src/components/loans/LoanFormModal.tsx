@@ -221,7 +221,7 @@ const LoanFormModal = ({ onClose }: Props) => {
                   onBlur={() => setTimeout(() => setShowCustomerDropdown(false), 200)}
                 />
                 {showCustomerDropdown && (
-                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl max-h-60 overflow-auto">
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl max-h-48 sm:max-h-60 overflow-auto max-w-[calc(100vw-2rem)] sm:max-w-none">
                     {filteredCustomers.length === 0 ? (
                       <div className="p-3 text-sm text-gray-500 text-center">No customers found</div>
                     ) : (

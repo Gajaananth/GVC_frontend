@@ -11,7 +11,7 @@ interface ModalProps {
 
 const Modal = ({ title, onClose, children, wide, className }: ModalProps) => (
   <div className="fixed inset-0 z-[130] flex items-end sm:items-center justify-center p-0 sm:p-2 md:p-4 bg-black/50 backdrop-blur-sm">
-    <div className={`modal-content bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full ${wide ? 'sm:max-w-4xl md:max-w-5xl' : 'sm:max-w-2xl'} ${className ?? ''} max-h-[85vh] sm:max-h-[90vh] flex flex-col min-w-0 sm:my-4`}>
+    <div className={`modal-content bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full ${wide ? 'sm:max-w-4xl md:max-w-5xl' : 'sm:max-w-2xl'} ${className ?? ''} max-h-[90vh] sm:max-h-[90vh] flex flex-col min-w-0 sm:my-4 mx-auto`}>
       <div className="flex items-center justify-between gap-3 p-3 sm:p-4 md:p-5 border-b border-gray-100 flex-shrink-0 sticky top-0 bg-white rounded-t-3xl sm:rounded-t-2xl">
         <h3 className="text-base sm:text-lg font-bold text-gray-900 truncate">{title}</h3>
         <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 shrink-0 touch-target">

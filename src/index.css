@@ -25,12 +25,20 @@
       @apply block w-full overflow-x-auto whitespace-nowrap;
     }
     .modal-content {
-      @apply w-full max-w-none h-full max-h-none rounded-none;
+      @apply w-full max-w-none rounded-none;
+      max-height: 100dvh;
     }
     
     /* Prevent zoom on focus input on iOS */
     input, select, textarea {
       font-size: 16px;
+    }
+
+    /* Constrain select dropdowns to viewport */
+    select {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     
     /* File input mobile styling */

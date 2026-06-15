@@ -75,7 +75,7 @@ const SearchableSelect = ({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-w-[calc(100vw-2rem)] sm:max-w-none">
           {/* Search Input */}
           <div className="p-2 border-b border-gray-100 sticky top-0 bg-white rounded-t-xl">
             <div className="relative">
@@ -100,7 +100,7 @@ const SearchableSelect = ({
           </div>
 
           {/* Options */}
-          <div className="max-h-64 overflow-y-auto">
+          <div className="max-h-48 sm:max-h-64 overflow-y-auto">
             {isLoading ? (
               <div className="p-4 text-center text-gray-500 text-sm">Loading...</div>
             ) : filteredOptions.length === 0 ? (
@@ -121,7 +121,7 @@ const SearchableSelect = ({
                       : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  {option.label}
+                  <span className="block truncate">{option.label}</span>
                 </button>
               ))
             )}
