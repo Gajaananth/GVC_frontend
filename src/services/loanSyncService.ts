@@ -78,7 +78,7 @@ export interface CollectionHistoryData {
 export async function getFreshLoanDetails(
   loanId: string,
   options?: { forceRefresh?: boolean }
-): Promise<LoanDetailData> {
+): Promise<any> { // Any to accommodate the nested schedule/payments
   try {
     // Add timestamp to bust any cache
     const timestamp = options?.forceRefresh ? `&_t=${Date.now()}` : '';
@@ -98,9 +98,8 @@ export async function getFreshPaymentHistory(
   options?: { forceRefresh?: boolean }
 ): Promise<LoanPaymentData[]> {
   try {
-    const timestamp = options?.forceRefresh ? `&_t=${Date.now()}` : '';
-    const response = await fetchApi(`/loans/${loanId}/payments?fresh=true${timestamp}`);
-    return Array.isArray(response.data) ? response.data : response.data.payments || [];
+    const fullData = await getFreshLoanDetails(loanId, options);
+    return fullData.payments || [];
   } catch (error) {
     console.error('Error fetching payment history:', error);
     throw new Error('Failed to fetch payment history');
@@ -114,14 +113,7 @@ export async function getFreshCollectionHistory(
   loanId: string,
   options?: { forceRefresh?: boolean }
 ): Promise<CollectionHistoryData[]> {
-  try {
-    const timestamp = options?.forceRefresh ? `&_t=${Date.now()}` : '';
-    const response = await fetchApi(`/loans/${loanId}/collections?fresh=true${timestamp}`);
-    return Array.isArray(response.data) ? response.data : response.data.collections || [];
-  } catch (error) {
-    console.error('Error fetching collection history:', error);
-    throw new Error('Failed to fetch collection history');
-  }
+  return []; // Collections endpoint does not exist on backend and isn't used by the UI (it uses payments)
 }
 
 /**
@@ -132,9 +124,8 @@ export async function getFreshDueSchedule(
   options?: { forceRefresh?: boolean }
 ): Promise<DueScheduleData[]> {
   try {
-    const timestamp = options?.forceRefresh ? `&_t=${Date.now()}` : '';
-    const response = await fetchApi(`/loans/${loanId}/schedule?fresh=true${timestamp}`);
-    return Array.isArray(response.data) ? response.data : response.data.schedule || [];
+    const fullData = await getFreshLoanDetails(loanId, options);
+    return fullData.schedule || [];
   } catch (error) {
     console.error('Error fetching due schedule:', error);
     throw new Error('Failed to fetch due schedule');
@@ -150,18 +141,14 @@ export async function getCompleteLoanData(
   options?: { forceRefresh?: boolean }
 ) {
   try {
-    const [loanDetails, payments, schedule, collections] = await Promise.all([
-      getFreshLoanDetails(loanId, options),
-      getFreshPaymentHistory(loanId, options),
-      getFreshDueSchedule(loanId, options),
-      getFreshCollectionHistory(loanId, options),
-    ]);
+    // Only 1 network request needed since the backend returns it all
+    const fullData = await getFreshLoanDetails(loanId, options);
 
     return {
-      loan: loanDetails,
-      payments,
-      schedule,
-      collections,
+      loan: fullData,
+      payments: fullData.payments || [],
+      schedule: fullData.schedule || [],
+      collections: [],
       lastUpdated: new Date().toISOString(),
     };
   } catch (error) {
