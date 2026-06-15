@@ -54,12 +54,12 @@ const Sidebar = () => {
       {/* Mobile Overlay */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm"
+          className="fixed inset-0 bg-black/60 z-[100] lg:hidden backdrop-blur-sm"
           onClick={close}
         />
       )}
       
-      <div className={`fixed inset-y-0 left-0 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0 transition-transform duration-300 ease-in-out z-50 w-72 lg:w-64 bg-forest text-white flex flex-col h-screen overflow-y-auto shadow-2xl`}>
+      <div className={`fixed inset-y-0 left-0 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0 transition-transform duration-300 ease-in-out z-[110] w-72 lg:w-64 bg-forest text-white flex flex-col h-screen overflow-y-auto shadow-2xl`}>
         <div className="p-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="bg-white p-2 rounded-xl shadow-md flex items-center justify-center w-12 h-12 overflow-hidden">
@@ -82,9 +82,7 @@ const Sidebar = () => {
             const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
             const isDashboard = item.name === 'Dashboard';
 
-            const baseClasses = isDashboard
-              ? 'flex items-center gap-4 px-4 py-3 rounded-2xl transition-all text-base touch-target'
-              : 'flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm sm:text-base touch-target';
+            const baseClasses = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm sm:text-base touch-target justify-start';
 
             const activeClasses = isActive
               ? 'bg-leaf/20 text-white shadow-inner font-medium border border-leaf/30'
@@ -97,8 +95,8 @@ const Sidebar = () => {
                 onClick={close}
                 className={`${baseClasses} ${activeClasses}`}
               >
-                <Icon className={`flex-shrink-0 ${isDashboard ? 'w-6 h-6' : 'w-5 h-5'} ${isActive ? 'text-leaf' : 'opacity-70'}`} />
-                <span className="truncate">{item.name}</span>
+                <Icon className={`flex-shrink-0 w-5 h-5 ${isActive ? 'text-leaf' : 'opacity-70'}`} />
+                <span className="truncate text-left flex-1">{item.name}</span>
               </NavLink>
             );
           })}
