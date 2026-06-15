@@ -50,12 +50,22 @@ const CustomerDetailModal = ({ customerId, onClose }: Props) => {
 
   const { data: selectedLoanData, isLoading: loanLoading } = useCompleteLoanData(selectedLoanId);
 
+  // Fallback to the loan summary included on the customer payload if the detailed loan data isn't loaded yet
+  const selectedLoanMeta = data?.data?.loans?.find((l: any) => l.id === selectedLoanId) ?? null;
+  const selectedLoan = selectedLoanData?.loan ?? selectedLoanMeta;
+  const selectedLoanPayments = selectedLoanData?.payments || [];
+  const selectedLoanSchedule = selectedLoanData?.schedule || [] as any[];
+  const selectedLoanRemainingBalance = selectedLoanMeta?.remaining_balance ?? (selectedLoanSchedule.length > 0 ? selectedLoanSchedule[selectedLoanSchedule.length - 1]?.remaining_balance ?? 0 : 0);
+  const selectedLoanNextDueDate = selectedLoanSchedule.find((row: any) => ['pending', 'partial', 'overdue'].includes(row.status))?.due_date || selectedLoanMeta?.next_due_date;
+  const selectedLoanInstallmentAmount = selectedLoanMeta?.installment_amount ?? selectedLoanSchedule[0]?.installment_amount ?? 0;
+  const selectedLoanTotalPayable = selectedLoanMeta?.total_payable ?? selectedLoanSchedule.reduce((sum, row: any) => sum + (row.installment_amount || 0), 0);
+
   // Listen for external loan updates to keep UI fresh
   const { emitLoanUpdate } = useLoanUpdateListener();
 
   const customer = data?.data;
   const today = new Date().toISOString().slice(0, 10);
-  const isDueToday = selectedLoanData?.data?.schedule?.some((row: any) =>
+  const isDueToday = selectedLoanSchedule.some((row: any) =>
     row.due_date === today && ['pending', 'partial', 'overdue'].includes(row.status)
   );
 
@@ -182,13 +192,13 @@ const CustomerDetailModal = ({ customerId, onClose }: Props) => {
           </div>
         )}
 
-        {selectedLoanData?.data && (
+        {selectedLoan && (
           <div className="space-y-4">
             <div className="border border-gray-100 rounded-2xl p-4 bg-white shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                   <p className="text-sm text-gray-500">Selected Loan</p>
-                  <p className="font-semibold text-gray-900">{selectedLoanData.data.loan_code}</p>
+                  <p className="font-semibold text-gray-900">{selectedLoan.loan_code}</p>
                 </div>
                 {isDueToday ? (
                   <button
@@ -207,15 +217,15 @@ const CustomerDetailModal = ({ customerId, onClose }: Props) => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 text-sm text-gray-700">
                 <div className="space-y-2">
                   <p className="font-semibold text-gray-900">Loan Summary</p>
-                  <p>Principal: {formatLKR(selectedLoanData.data.principal_amount)}</p>
-                  <p>Total Payable: {formatLKR(selectedLoanData.data.total_payable)}</p>
-                  <p>Remaining Balance: {formatLKR(selectedLoanData.data.remaining_balance)}</p>
+                  <p>Principal: {formatLKR(selectedLoan.principal_amount)}</p>
+                  <p>Total Payable: {formatLKR(selectedLoanTotalPayable)}</p>
+                  <p>Remaining Balance: {formatLKR(selectedLoanRemainingBalance)}</p>
                 </div>
                 <div className="space-y-2">
                   <p className="font-semibold text-gray-900">Schedule</p>
-                  <p>Installment Amount: {formatLKR(selectedLoanData.data.installment_amount)}</p>
-                  <p>Next Due: {selectedLoanData.data.next_due_date || 'N/A'}</p>
-                  <p>Status: {selectedLoanData.data.status}</p>
+                  <p>Installment Amount: {formatLKR(selectedLoanInstallmentAmount)}</p>
+                  <p>Next Due: {selectedLoanNextDueDate || 'N/A'}</p>
+                  <p>Status: {selectedLoan.status}</p>
                 </div>
               </div>
             </div>
@@ -223,9 +233,9 @@ const CustomerDetailModal = ({ customerId, onClose }: Props) => {
             <div className="grid gap-4 lg:grid-cols-2">
               <div className="border border-gray-100 rounded-2xl p-4 bg-white shadow-sm">
                 <h5 className="font-semibold text-gray-800 mb-3">Collection History</h5>
-                {selectedLoanData.data.payments?.length > 0 ? (
+                {selectedLoanPayments.length > 0 ? (
                   <div className="space-y-3 text-sm">
-                    {selectedLoanData.data.payments.map((payment: any) => (
+                    {selectedLoanPayments.map((payment: any) => (
                       <div key={payment.id} className="p-3 bg-gray-50 rounded-xl">
                         <div className="flex justify-between gap-3 items-center">
                           <span className="font-medium text-gray-900">{payment.payment_code}</span>
@@ -247,7 +257,7 @@ const CustomerDetailModal = ({ customerId, onClose }: Props) => {
 
               <div className="border border-gray-100 rounded-2xl p-4 bg-white shadow-sm overflow-x-auto">
                 <h5 className="font-semibold text-gray-800 mb-3">Due Schedule</h5>
-                {selectedLoanData.data.schedule?.length > 0 ? (
+                {selectedLoanSchedule.length > 0 ? (
                   <table className="w-full text-left text-sm border-collapse">
                     <thead>
                       <tr className="text-gray-500 border-b border-gray-100">
@@ -258,7 +268,7 @@ const CustomerDetailModal = ({ customerId, onClose }: Props) => {
                       </tr>
                     </thead>
                     <tbody>
-                      {selectedLoanData.data.schedule.map((row: any) => (
+                      {selectedLoanSchedule.map((row: any) => (
                         <tr key={row.installment_number} className="border-b border-gray-100">
                           <td className="py-2 px-3 text-gray-700">{row.installment_number}</td>
                           <td className="py-2 px-3 text-gray-700">{row.due_date}</td>
@@ -275,15 +285,15 @@ const CustomerDetailModal = ({ customerId, onClose }: Props) => {
             </div>
           </div>
         )}
-        {showCollectModal && selectedLoanData?.data && isDueToday && (
+        {showCollectModal && selectedLoan && isDueToday && (
           <CollectPaymentModal
-            loanId={selectedLoanData.data.id}
+            loanId={selectedLoan.id}
             customerId={customer.id}
-            defaultAmount={selectedLoanData.data.remaining_balance}
+            defaultAmount={selectedLoanRemainingBalance}
             onClose={() => setShowCollectModal(false)}
             onCollected={() => {
               queryClient.invalidateQueries({ queryKey: ['customer', customerId] });
-              queryClient.invalidateQueries({ queryKey: ['loan', selectedLoanData.data.id] });
+              queryClient.invalidateQueries({ queryKey: ['loan', selectedLoan.id] });
               setShowCollectModal(false);
             }}
           />

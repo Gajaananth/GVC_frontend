@@ -6,7 +6,7 @@ import { API_URL } from './api';
  * Renders free tier spins down after 15 minutes, so we ping every 10 minutes
  */
 
-let keepAliveInterval: NodeJS.Timeout | null = null;
+let keepAliveInterval: ReturnType<typeof setInterval> | null = null;
 const KEEP_ALIVE_INTERVAL = 10 * 60 * 1000; // 10 minutes
 
 export const startKeepAlive = () => {
