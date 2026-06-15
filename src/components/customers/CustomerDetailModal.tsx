@@ -58,7 +58,7 @@ const CustomerDetailModal = ({ customerId, onClose }: Props) => {
   const selectedLoanRemainingBalance = selectedLoanMeta?.remaining_balance ?? (selectedLoanSchedule.length > 0 ? selectedLoanSchedule[selectedLoanSchedule.length - 1]?.remaining_balance ?? 0 : 0);
   const selectedLoanNextDueDate = selectedLoanSchedule.find((row: any) => ['pending', 'partial', 'overdue'].includes(row.status))?.due_date || selectedLoanMeta?.next_due_date;
   const selectedLoanInstallmentAmount = selectedLoanMeta?.installment_amount ?? selectedLoanSchedule[0]?.installment_amount ?? 0;
-  const selectedLoanTotalPayable = selectedLoanMeta?.total_payable ?? selectedLoanSchedule.reduce((sum, row: any) => sum + (row.installment_amount || 0), 0);
+  const selectedLoanTotalPayable = selectedLoanMeta?.total_payable ?? selectedLoanSchedule.reduce((sum: number, row: any) => sum + (row.installment_amount || 0), 0);
 
   // Listen for external loan updates to keep UI fresh
   const { emitLoanUpdate } = useLoanUpdateListener();
