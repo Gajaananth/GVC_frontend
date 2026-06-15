@@ -1,0 +1,23 @@
+name: Prevent backend directory in frontend repo
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check-no-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for tracked backend files
+        run: |
+          if git ls-files --error-unmatch 'backend/**' > /dev/null 2>&1; then
+            echo 'ERROR: backend directory files are tracked in the frontend repo.'
+            echo 'Remove them and keep backend in the separate backend repository.'
+            git ls-files 'backend/**' || true
+            exit 1
+          fi
+      - name: OK
+        run: echo 'No backend files tracked.'
