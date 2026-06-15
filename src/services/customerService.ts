@@ -103,7 +103,7 @@ export const customerService = {
     if (data.gender) formData.append('gender', data.gender);
     if (data.occupation) formData.append('occupation', data.occupation);
     if (data.monthly_income !== undefined) formData.append('monthly_income', String(data.monthly_income));
-    formData.append('branch_id', data.branch_id);
+    if (data.branch_id) formData.append('branch_id', data.branch_id);
     if (data.registered_by_staff_id) formData.append('registered_by_staff_id', data.registered_by_staff_id);
     if (data.assigned_staff_id) formData.append('assigned_staff_id', data.assigned_staff_id);
     if (data.notes) formData.append('notes', data.notes);
