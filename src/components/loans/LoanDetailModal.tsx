@@ -393,11 +393,12 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
                                   if (!p.notes) return false;
                                   const m = p.notes.match(/installment\s*#(\d+)/);
                                   return m && parseInt(m[1], 10) === s.installment_number;
-                                }) || loan.payments?.find((p: any) =>
-                                  p.approval_status === 'approved' &&
-                                  p.payment_date && s.paid_date &&
-                                  p.payment_date.split('T')[0] === s.paid_date.split('T')[0]
-                                );
+                                }) || loan.payments?.find((p: any) => {
+                                  if (p.approval_status !== 'approved' || !p.payment_date || !s.paid_date) return false;
+                                  const d1 = p.payment_date.split('T')[0];
+                                  const d2 = s.paid_date.split('T')[0];
+                                  return d1 === d2;
+                                });
                                 if (pmt && pmt.approval_status === 'approved') {
                                   return (
                                     <a
