@@ -268,21 +268,20 @@ const CustomerFormModal = ({ customer, onClose }: Props) => {
           </div>
         )}
 
-        {!isEdit && (
+        {!isEdit && !isOwner && (
           <div>
-            <label className="text-sm font-medium text-gray-700">Staff Who Applied (Loan Officer) { !isOwner && '*' }</label>
+            <label className="text-sm font-medium text-gray-700">Staff Who Applied (Loan Officer) *</label>
             <select
-              required={!isOwner}
+              required
               className="input-field"
               value={form.registered_by_staff_id}
               onChange={e => setForm({ ...form, registered_by_staff_id: e.target.value })}
             >
-              <option value="">{isOwner ? 'None (optional)' : 'Select staff member'}</option>
+              <option value="">Select staff member</option>
               {staffUsers.map((u: any) => (
                 <option key={u.id} value={u.id}>{u.full_name} ({u.role})</option>
               ))}
             </select>
-            {isOwner && <p className="text-xs text-gray-500 mt-1">Owner may leave this empty when creating a customer.</p>}
           </div>
         )}
         

@@ -137,8 +137,8 @@ const LoanFormModal = ({ onClose }: Props) => {
       formData.append('term_count', String(clampTerm(form.term_count)));
       formData.append('repayment_frequency', form.repayment_frequency);
       formData.append('credit_date', form.credit_date);
-      formData.append('applied_by', form.applied_by);
-      formData.append('in_charge_user_id', form.in_charge_user_id);
+      if (form.applied_by) formData.append('applied_by', form.applied_by);
+      if (form.in_charge_user_id) formData.append('in_charge_user_id', form.in_charge_user_id);
       if (form.purpose) formData.append('purpose', form.purpose);
       if (form.notes) formData.append('notes', form.notes);
       if (applicationPdf) formData.append('loan_application_pdf', applicationPdf);
@@ -441,26 +441,30 @@ const LoanFormModal = ({ onClose }: Props) => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
-          <div>
-            <label className="text-sm font-medium">Staff Who Applied {!isOwner && '*'}</label>
-            <select required={!isOwner} className="input-field" value={form.applied_by} onChange={e => setForm({ ...form, applied_by: e.target.value })}>
-              <option value="">{isOwner ? 'None (optional)' : 'Select staff'}</option>
-              {staffUsers.map((u: any) => <option key={u.id} value={u.id}>{u.full_name}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="text-sm font-medium">Staff In Charge {!isOwner && '*'}</label>
-            <select required={!isOwner} className="input-field" value={form.in_charge_user_id} onChange={e => setForm({ ...form, in_charge_user_id: e.target.value })}>
-              <option value="">{isOwner ? 'None (optional)' : 'Select staff'}</option>
-              {staffUsers.map((u: any) => <option key={u.id} value={u.id}>{u.full_name}</option>)}
-            </select>
-          </div>
-        </div>
-        {staffUsers.length > 0 && (
-          <button type="button" className="text-xs text-forest underline" onClick={() => setStaffBoth(staffUsers[0].id)}>
-            Same staff for applied & in-charge
-          </button>
+        {!isOwner && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
+              <div>
+                <label className="text-sm font-medium">Staff Who Applied *</label>
+                <select required className="input-field" value={form.applied_by} onChange={e => setForm({ ...form, applied_by: e.target.value })}>
+                  <option value="">Select staff</option>
+                  {staffUsers.map((u: any) => <option key={u.id} value={u.id}>{u.full_name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Staff In Charge *</label>
+                <select required className="input-field" value={form.in_charge_user_id} onChange={e => setForm({ ...form, in_charge_user_id: e.target.value })}>
+                  <option value="">Select staff</option>
+                  {staffUsers.map((u: any) => <option key={u.id} value={u.id}>{u.full_name}</option>)}
+                </select>
+              </div>
+            </div>
+            {staffUsers.length > 0 && (
+              <button type="button" className="text-xs text-forest underline" onClick={() => setStaffBoth(staffUsers[0].id)}>
+                Same staff for applied & in-charge
+              </button>
+            )}
+          </>
         )}
 
         <div className="flex justify-end gap-3">

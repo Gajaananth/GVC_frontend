@@ -14,7 +14,7 @@ export const ResponsiveTable = ({
   maxHeight = 'max-h-[calc(100vh-280px)]'
 }: ResponsiveTableProps) => {
   return (
-    <div className={`overflow-auto rounded-xl border border-gray-100 bg-white ${maxHeight}`}>
+    <div className={`overflow-x-auto rounded-xl border border-gray-100 bg-white ${maxHeight}`}>
       <table className={`w-full text-left border-collapse ${minWidth}`}>
         <thead className="sticky top-0 z-10 bg-gray-50 shadow-sm">
           <tr className="text-gray-500 text-sm border-b border-gray-100">

@@ -81,3 +81,8 @@ This is a **Complete Full-Stack Application** divided into two parts:
 - ✅ **Due Reminders**: Track today's due and overdue loans, late fee calculation.
 - ✅ **Reports**: 7 predefined aggregated reports for financial auditing.
 - ✅ **Settings & Users**: RBAC and company settings configuration.
+
+---
+
+Note: The backend is maintained in a separate repository: https://github.com/Gajaananth/GVC_backend
+Do not add or track a local `backend/` directory in this frontend repository. A CI workflow will block commits that add `backend/` files.

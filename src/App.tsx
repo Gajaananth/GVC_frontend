@@ -31,7 +31,7 @@ import ImportExport from './pages/ImportExport';
 
 const Layout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
-    <div className="flex min-h-screen bg-[#F8FBF8] font-sans relative w-full">
+    <div className="flex min-h-screen bg-[#F8FBF8] font-sans relative w-full overflow-x-hidden lg:pl-64">
       <Sidebar />
       <div className="flex-1 flex flex-col w-full min-h-screen">
         <TopBar />

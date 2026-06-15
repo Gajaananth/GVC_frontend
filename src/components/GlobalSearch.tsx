@@ -49,7 +49,7 @@ export const GlobalSearch = () => {
   };
 
   return (
-    <div className="relative w-full" ref={wrapperRef}>
+    <div className="relative w-full max-w-full" ref={wrapperRef}>
       <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
       <input 
         type="text" 
@@ -60,7 +60,7 @@ export const GlobalSearch = () => {
         }}
         onFocus={() => setIsOpen(true)}
         placeholder="Search by ID, name, or phone..." 
-        className="pl-10 pr-4 py-2 bg-gray-100/50 border-none rounded-xl focus:ring-2 focus:ring-leaf w-64 text-sm transition-all"
+        className="pl-10 pr-4 py-2 bg-gray-100/50 border-none rounded-xl focus:ring-2 focus:ring-leaf w-full md:w-72 lg:w-96 text-sm transition-all"
       />
 
       {isOpen && query.length >= 2 && (

@@ -26,7 +26,13 @@ interface AuthState {
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      user: null,
+      user: import.meta.env.DEV ? {
+        id: 'dev-1',
+        user_code: 'DEV001',
+        email: 'dev@gvc.local',
+        full_name: 'Owner Admin',
+        role: 'owner',
+      } as User : null,
       accessToken: null,
       refreshToken: null,
       setAuth: (user, accessToken, refreshToken) => set({ user, accessToken, refreshToken }),

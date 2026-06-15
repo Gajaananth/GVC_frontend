@@ -58,6 +58,6 @@ input[type=number] {
 
 @layer components {
   .input-field {
-    @apply w-full mt-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-leaf focus:border-leaf outline-none transition-all text-sm;
+    @apply w-full max-w-full mt-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-leaf focus:border-leaf outline-none transition-all text-sm;
   }
 }
