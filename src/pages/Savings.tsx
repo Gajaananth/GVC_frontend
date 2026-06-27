@@ -5,11 +5,13 @@ import { Search, Plus, ArrowUpRight, ArrowDownRight, MoreVertical } from 'lucide
 import { formatLKR } from '../utils/format';
 import { usePermissions } from '../hooks/usePermissions';
 import { ResponsiveTable, TableRow, TableCell } from '../components/ResponsiveTable';
+import SavingsFormModal from '../components/savings/SavingsFormModal';
 
 const Savings = () => {
   const { canManageSavingsAccounts } = usePermissions();
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
+  const [showCreate, setShowCreate] = useState(false);
 
   const { data: savingsData, isLoading } = useQuery({
     queryKey: ['savings', page, searchTerm],
@@ -18,13 +20,17 @@ const Savings = () => {
 
   return (
     <div className="space-y-6">
+      {showCreate && <SavingsFormModal onClose={() => setShowCreate(false)} />}
       <div className="flex justify-between items-start flex-wrap gap-4">
         <div className="min-w-0">
           <h2 className="text-2xl font-bold text-gray-800">Savings Accounts</h2>
           <p className="text-sm text-gray-500">Manage customer deposits, withdrawals, and interest.</p>
         </div>
         {canManageSavingsAccounts && (
-          <button className="bg-forest hover:bg-leaf text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 shadow-sm w-full sm:w-auto">
+          <button
+            onClick={() => setShowCreate(true)}
+            className="bg-forest hover:bg-leaf text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 shadow-sm w-full sm:w-auto"
+          >
             <Plus className="w-5 h-5" />
             Open Account
           </button>
