@@ -157,12 +157,24 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
                       <p className="text-xs text-red-600 font-medium">Total Arrears Amount</p>
                       <p className="text-2xl font-bold text-red-700">{formatLKR(totalArrears)}</p>
                     </div>
-                    <button 
-                      onClick={() => setShowArrearsTable(!showArrearsTable)}
-                      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap shadow-sm w-full sm:w-auto"
-                    >
-                      {showArrearsTable ? 'Hide Details' : 'View Arrears'}
-                    </button>
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                      <button 
+                        onClick={() => setShowArrearsTable(!showArrearsTable)}
+                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap shadow-sm w-full sm:w-auto"
+                      >
+                        {showArrearsTable ? 'Hide Details' : 'View Arrears'}
+                      </button>
+                      {showArrearsTable && (
+                        <a 
+                          href={`${API_URL}/documents/arrears/${loan.id}?token=${token}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-lg text-sm font-medium transition-colors whitespace-nowrap shadow-sm w-full sm:w-auto flex items-center justify-center gap-2"
+                        >
+                          <Download className="w-4 h-4" /> Download Report
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
                 
