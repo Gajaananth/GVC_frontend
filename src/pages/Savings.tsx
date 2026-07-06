@@ -6,12 +6,16 @@ import { formatLKR } from '../utils/format';
 import { usePermissions } from '../hooks/usePermissions';
 import { ResponsiveTable, TableRow, TableCell } from '../components/ResponsiveTable';
 import SavingsFormModal from '../components/savings/SavingsFormModal';
+import SavingsTransactionModal from '../components/savings/SavingsTransactionModal';
+import SavingsDetailModal from '../components/savings/SavingsDetailModal';
 
 const Savings = () => {
-  const { canManageSavingsAccounts } = usePermissions();
+  const { canManageSavingsAccounts, isStaff } = usePermissions();
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
   const [showCreate, setShowCreate] = useState(false);
+  const [transactionModal, setTransactionModal] = useState<{ account: any, type: 'deposit' | 'withdrawal' } | null>(null);
+  const [detailModalAccount, setDetailModalAccount] = useState<string | null>(null);
 
   const { data: savingsData, isLoading } = useQuery({
     queryKey: ['savings', page, searchTerm],
@@ -21,6 +25,19 @@ const Savings = () => {
   return (
     <div className="space-y-6">
       {showCreate && <SavingsFormModal onClose={() => setShowCreate(false)} />}
+      {transactionModal && (
+        <SavingsTransactionModal 
+          account={transactionModal.account} 
+          type={transactionModal.type} 
+          onClose={() => setTransactionModal(null)} 
+        />
+      )}
+      {detailModalAccount && (
+        <SavingsDetailModal 
+          accountId={detailModalAccount} 
+          onClose={() => setDetailModalAccount(null)} 
+        />
+      )}
       <div className="flex justify-between items-start flex-wrap gap-4">
         <div className="min-w-0">
           <h2 className="text-2xl font-bold text-gray-800">Savings Accounts</h2>
@@ -88,16 +105,30 @@ const Savings = () => {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-2">
-                    <button className="px-3 py-1.5 bg-leaf/10 hover:bg-leaf/20 text-leaf rounded-lg text-sm font-medium transition-colors flex items-center gap-1">
-                      <ArrowDownRight className="w-4 h-4" />
-                      Deposit
-                    </button>
-                    <button className="px-3 py-1.5 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg text-sm font-medium transition-colors flex items-center gap-1">
-                      <ArrowUpRight className="w-4 h-4" />
-                      Withdraw
-                    </button>
-                    <button className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
-                      <MoreVertical className="w-5 h-5" />
+                    {!isStaff && (
+                      <>
+                        <button 
+                          onClick={() => setTransactionModal({ account, type: 'deposit' })}
+                          className="px-3 py-1.5 bg-leaf/10 hover:bg-leaf/20 text-leaf rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
+                        >
+                          <ArrowDownRight className="w-4 h-4" />
+                          Deposit
+                        </button>
+                        <button 
+                          onClick={() => setTransactionModal({ account, type: 'withdrawal' })}
+                          className="px-3 py-1.5 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
+                        >
+                          <ArrowUpRight className="w-4 h-4" />
+                          Withdraw
+                        </button>
+                      </>
+                    )}
+                    <button 
+                      onClick={() => setDetailModalAccount(account.id)}
+                      className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
+                    >
+                      <MoreVertical className="w-4 h-4" />
+                      Details
                     </button>
                   </div>
                 </TableCell>
