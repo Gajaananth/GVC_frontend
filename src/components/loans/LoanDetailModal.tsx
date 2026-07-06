@@ -29,6 +29,7 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
   const [showRestructure, setShowRestructure] = useState(false);
   const [backdateEntries, setBackdateEntries] = useState<Map<number, BackdateEntry>>(new Map());
   const [showBackdateMode, setShowBackdateMode] = useState(false);
+  const [showArrearsTable, setShowArrearsTable] = useState(false);
   const token = useAuthStore(state => state.accessToken);
 
   const API_URL = import.meta.env.VITE_API_URL || '/api';
@@ -145,15 +146,55 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
             const daysOverdue = Math.floor((new Date().getTime() - new Date(oldestDue).getTime()) / (1000 * 3600 * 24));
             
             return (
-              <div className="bg-red-50 p-4 rounded-xl border border-red-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-                <div>
-                  <h4 className="font-bold text-red-900 flex items-center gap-2">⚠️ Loan in Arrears</h4>
-                  <p className="text-xs text-red-700 mt-1">This loan has {overdueInstallments.length} overdue installment(s). Oldest is {daysOverdue} days past due.</p>
+              <div className="bg-red-50 p-4 rounded-xl border border-red-200 flex flex-col gap-3">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                  <div>
+                    <h4 className="font-bold text-red-900 flex items-center gap-2">⚠️ Loan in Arrears</h4>
+                    <p className="text-xs text-red-700 mt-1">This loan has {overdueInstallments.length} overdue installment(s). Oldest is {daysOverdue} days past due.</p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6">
+                    <div className="text-left sm:text-right">
+                      <p className="text-xs text-red-600 font-medium">Total Arrears Amount</p>
+                      <p className="text-2xl font-bold text-red-700">{formatLKR(totalArrears)}</p>
+                    </div>
+                    <button 
+                      onClick={() => setShowArrearsTable(!showArrearsTable)}
+                      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap shadow-sm w-full sm:w-auto"
+                    >
+                      {showArrearsTable ? 'Hide Details' : 'View Arrears'}
+                    </button>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-xs text-red-600 font-medium">Total Arrears Amount</p>
-                  <p className="text-2xl font-bold text-red-700">{formatLKR(totalArrears)}</p>
-                </div>
+                
+                {showArrearsTable && (
+                  <div className="mt-2 border border-red-200 rounded-lg overflow-x-auto bg-white">
+                    <table className="w-full text-xs min-w-[500px] whitespace-nowrap">
+                      <thead className="bg-red-50 text-red-900 border-b border-red-100">
+                        <tr>
+                          <th className="p-2 text-left">Installment #</th>
+                          <th className="p-2 text-left">Due Date</th>
+                          <th className="p-2 text-right">Due Amount</th>
+                          <th className="p-2 text-right">Paid Amount</th>
+                          <th className="p-2 text-right">Arrears (LKR)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {overdueInstallments.map((s: any) => {
+                          const arr_amt = Number(s.installment_amount) - Number(s.paid_amount || 0);
+                          return (
+                            <tr key={s.id} className="border-b border-red-50 hover:bg-red-50/50">
+                              <td className="p-2 text-left">{s.installment_number}</td>
+                              <td className="p-2 text-left font-medium text-red-800">{formatDate(s.due_date)}</td>
+                              <td className="p-2 text-right">{formatLKR(s.installment_amount)}</td>
+                              <td className="p-2 text-right text-gray-500">{formatLKR(s.paid_amount || 0)}</td>
+                              <td className="p-2 text-right font-bold text-red-600">{formatLKR(arr_amt)}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             );
           }
