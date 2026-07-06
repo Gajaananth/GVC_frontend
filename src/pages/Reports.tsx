@@ -15,6 +15,7 @@ const ALL_REPORT_TYPES = [
   { id: 'loan_summary', name: 'Loan Portfolio Summary', description: 'Overview of all active, overdue, and closed loans.' },
   { id: 'savings_summary', name: 'Savings Account Summary', description: 'Total deposits, withdrawals, and balances.' },
   { id: 'due_payment', name: 'Due Payments Report', description: 'List of all current overdue balances.' },
+  { id: 'arrears_report', name: 'Arrears Report', description: 'List of overdue installments within a specific period.' },
   { id: 'customer_wise', name: 'Customer-Wise Report', description: 'Loans and savings per customer.' },
   { id: 'income', name: 'Income Report', description: 'Interest income earned in a period.' },
 ];
@@ -23,7 +24,7 @@ const Reports = () => {
   const { isStaff } = usePermissions();
   
   const reportTypes = isStaff 
-    ? ALL_REPORT_TYPES.filter(r => ['daily_collection', 'customer_wise'].includes(r.id))
+    ? ALL_REPORT_TYPES.filter(r => ['daily_collection', 'customer_wise', 'arrears_report'].includes(r.id))
     : ALL_REPORT_TYPES;
 
   const [selectedReport, setSelectedReport] = useState(reportTypes[0]?.id || '');
@@ -91,11 +92,30 @@ const Reports = () => {
 
   const handleQuickToday = (format: 'pdf' | 'excel') => {
     const today = new Date();
-    // Use local date string YYYY-MM-DD
     const todayStr = today.toLocaleDateString('en-CA'); 
     setDateRange({ start: todayStr, end: todayStr });
     setSelectedReport('daily_collection');
     downloadReport(format, 'daily_collection', todayStr, todayStr).catch((err) => alert(err.message));
+  };
+
+  const handleSetQuickRange = (range: 'today' | 'week' | 'month' | 'year') => {
+    const today = new Date();
+    const todayStr = today.toLocaleDateString('en-CA');
+    let startStr = todayStr;
+    
+    if (range === 'week') {
+      const start = new Date(today);
+      start.setDate(today.getDate() - today.getDay());
+      startStr = start.toLocaleDateString('en-CA');
+    } else if (range === 'month') {
+      const start = new Date(today.getFullYear(), today.getMonth(), 1);
+      startStr = start.toLocaleDateString('en-CA');
+    } else if (range === 'year') {
+      const start = new Date(today.getFullYear(), 0, 1);
+      startStr = start.toLocaleDateString('en-CA');
+    }
+
+    setDateRange({ start: startStr, end: todayStr });
   };
 
   const handleEmailReport = async () => {
@@ -261,6 +281,39 @@ const Reports = () => {
           </div>
         );
 
+      case 'arrears_report':
+        return (
+          <div className="space-y-4">
+            <div className="bg-red-50 p-4 rounded-xl border border-red-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+              <div>
+                <h3 className="font-bold text-red-900">Total Arrears for Period</h3>
+                <p className="text-sm text-red-700">{formatDate(data.period.start)} to {formatDate(data.period.end)}</p>
+              </div>
+              <p className="text-2xl sm:text-3xl font-bold text-red-700 break-words">{formatLKR(data.total_arrears)}</p>
+            </div>
+            <ResponsiveTable headers={['Customer', 'NIC', 'Loan Code', 'Due Date', 'Arrears (LKR)']} minWidth="min-w-[600px]">
+              {data.arrears_list.map((item: any, i: number) => (
+                <TableRow key={i}>
+                  <TableCell className="flex items-center gap-2 min-w-[200px]">
+                    {item.photo_url ? (
+                      <img src={item.photo_url} alt={item.customer_name} className="w-8 h-8 rounded-full object-cover border border-gray-200 shadow-sm" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs font-bold shrink-0">
+                        {item.customer_name?.charAt(0) || '?'}
+                      </div>
+                    )}
+                    <span className="font-medium truncate">{item.customer_name}</span>
+                  </TableCell>
+                  <TableCell>{item.nic}</TableCell>
+                  <TableCell>{item.loan_code}</TableCell>
+                  <TableCell>{formatDate(item.due_date)}</TableCell>
+                  <TableCell className="text-right font-bold text-red-600">{formatLKR(item.arrears_amount)}</TableCell>
+                </TableRow>
+              ))}
+            </ResponsiveTable>
+          </div>
+        );
+
       case 'income':
         return (
           <div className="space-y-6">
@@ -364,6 +417,12 @@ const Reports = () => {
                   onChange={e => setDateRange({...dateRange, end: e.target.value})}
                 />
               </div>
+            </div>
+            <div className="flex flex-wrap gap-2 mt-2">
+              <button onClick={() => handleSetQuickRange('today')} className="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-xs font-medium">Today</button>
+              <button onClick={() => handleSetQuickRange('week')} className="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-xs font-medium">This Week</button>
+              <button onClick={() => handleSetQuickRange('month')} className="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-xs font-medium">This Month</button>
+              <button onClick={() => handleSetQuickRange('year')} className="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-xs font-medium">This Year</button>
             </div>
           </div>
 

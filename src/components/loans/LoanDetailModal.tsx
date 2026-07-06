@@ -129,6 +129,37 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
   return (
     <Modal title={`Loan ${loan.loan_code}`} onClose={onClose} wide>
       <div className="space-y-4 text-sm">
+        
+        {/* Arrears Summary Banner (if any arrears exist) */}
+        {(() => {
+          const todayDateStr = new Date().toISOString().split('T')[0];
+          const overdueInstallments = (loan.schedule || []).filter(
+            (s: any) => ['pending', 'partial', 'overdue'].includes(s.status) && s.due_date <= todayDateStr
+          );
+          
+          if (overdueInstallments.length > 0) {
+            const totalArrears = overdueInstallments.reduce((sum: number, s: any) => 
+              sum + (Number(s.installment_amount) - Number(s.paid_amount || 0)), 0
+            );
+            const oldestDue = overdueInstallments[0].due_date;
+            const daysOverdue = Math.floor((new Date().getTime() - new Date(oldestDue).getTime()) / (1000 * 3600 * 24));
+            
+            return (
+              <div className="bg-red-50 p-4 rounded-xl border border-red-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                <div>
+                  <h4 className="font-bold text-red-900 flex items-center gap-2">⚠️ Loan in Arrears</h4>
+                  <p className="text-xs text-red-700 mt-1">This loan has {overdueInstallments.length} overdue installment(s). Oldest is {daysOverdue} days past due.</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-red-600 font-medium">Total Arrears Amount</p>
+                  <p className="text-2xl font-bold text-red-700">{formatLKR(totalArrears)}</p>
+                </div>
+              </div>
+            );
+          }
+          return null;
+        })()}
+
         <div className="flex flex-wrap gap-2">
           <span className="px-2 py-1 rounded-lg bg-gray-100 capitalize">Status: {loan.status}</span>
           <span className={`px-2 py-1 rounded-lg capitalize ${loan.approval_status === 'approved' ? 'bg-leaf/20 text-leaf' : loan.approval_status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-800'}`}>
