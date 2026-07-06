@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getSLDateString, getSLDateTimeString } from '../../utils/dateUtils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchApi } from '../../services/api';
 import Modal from '../Modal';
@@ -89,7 +90,7 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
       newMap.set(num, {
         installment_number: num,
         paid_amount: Number(installment.installment_amount),
-        paid_date: installment.due_date?.slice(0, 10) || new Date().toISOString().slice(0, 10),
+        paid_date: installment.due_date?.slice(0, 10) || getSLDateString(),
         notes: '',
       });
     }
@@ -133,7 +134,7 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
         
         {/* Arrears Summary Banner (if any arrears exist) */}
         {(() => {
-          const todayDateStr = new Date().toISOString().split('T')[0];
+          const todayDateStr = getSLDateString();
           const overdueInstallments = (loan.schedule || []).filter(
             (s: any) => ['pending', 'partial', 'overdue'].includes(s.status) && s.due_date <= todayDateStr
           );

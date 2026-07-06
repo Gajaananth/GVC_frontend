@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getSLDateString, getSLDateTimeString } from '../../utils/dateUtils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchApi } from '../../services/api';
 import Modal from '../Modal';
@@ -50,7 +51,7 @@ const LoanRestructureModal = ({ loan, onClose }: Props) => {
           interest_rate_per_period: form.new_interest_rate_per_period,
           term_count: form.new_term_count,
           repayment_frequency: form.repayment_frequency,
-          credit_date: new Date().toISOString().split('T')[0],
+          credit_date: getSLDateString(),
         }),
       }),
     onSuccess: (res) => setPreview(res.data),

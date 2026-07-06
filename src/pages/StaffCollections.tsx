@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getSLDateString, getSLDateTimeString } from '../utils/dateUtils';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { fetchApi } from '../services/api';
 import { formatLKR, formatDate } from '../utils/format';
@@ -8,7 +9,7 @@ import toast from 'react-hot-toast';
 
 const StaffCollections = () => {
   const { user } = useAuthStore();
-  const [collectionDate, setCollectionDate] = useState(new Date().toISOString().slice(0, 10));
+  const [collectionDate, setCollectionDate] = useState(getSLDateString());
   const [tab, setTab] = useState<'loan' | 'savings'>('loan');
   const [showCorrection, setShowCorrection] = useState<string | null>(null);
   const [correctionForm, setCorrectionForm] = useState({ letter: '', type: 'void' as 'void' | 'amend' });
@@ -212,7 +213,7 @@ const StaffCollections = () => {
       <div className="glass-card p-6">
         {tab === 'loan' ? (
           <form onSubmit={e => { e.preventDefault(); submitLoan.mutate(); }} className="space-y-4 max-w-xl">
-            <div className="bg-blue-50 text-blue-800 text-xs p-3 rounded-lg">Collection date: <strong>{formatDate(new Date().toISOString())}</strong> (locked)</div>
+            <div className="bg-blue-50 text-blue-800 text-xs p-3 rounded-lg">Collection date: <strong>{formatDate(getSLDateTimeString())}</strong> (locked)</div>
             <div className="flex flex-col gap-4 sm:flex-row">
               <div className="flex-1">
                 <label className="text-sm font-medium">Search Customer/Loan</label>
@@ -351,7 +352,7 @@ const StaffCollections = () => {
           </form>
         ) : (
           <form onSubmit={e => { e.preventDefault(); submitSavings.mutate(); }} className="space-y-4 max-w-xl">
-            <div className="bg-blue-50 text-blue-800 text-xs p-3 rounded-lg">Transaction date: <strong>{formatDate(new Date().toISOString())}</strong> (locked)</div>
+            <div className="bg-blue-50 text-blue-800 text-xs p-3 rounded-lg">Transaction date: <strong>{formatDate(getSLDateTimeString())}</strong> (locked)</div>
             <div>
               <label className="text-sm font-medium">Savings Account *</label>
               <select required className="input-field" value={savingsForm.account_id} onChange={e => setSavingsForm({ ...savingsForm, account_id: e.target.value })}>

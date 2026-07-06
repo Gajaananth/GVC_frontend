@@ -5,6 +5,7 @@
  */
 
 import { fetchApi, API_URL } from './api';
+import { getSLDateString, getSLDateTimeString } from '../utils/dateUtils';
 import { useAuthStore } from '../store/authStore';
 
 export interface CustomerDeletionRequest {
@@ -101,7 +102,7 @@ export async function generateCustomerArchivePDF(
       fixedDeposits: archiveData.fixedDeposits || [],
       auditTrail: archiveData.auditTrail || [],
       generatedBy,
-      generatedAt: new Date().toISOString(),
+      generatedAt: getSLDateTimeString(),
     };
 
     // Request PDF generation from backend — stream PDF and return blob URL
@@ -119,7 +120,7 @@ export async function generateCustomerArchivePDF(
 
     const blob = await resp.blob();
     const url = window.URL.createObjectURL(blob);
-    const fileName = `customer-archive-${customerId}-${new Date().toISOString().split('T')[0]}.pdf`;
+    const fileName = `customer-archive-${customerId}-${getSLDateString()}.pdf`;
 
     return { pdfUrl: url, fileName };
   } catch (error) {
@@ -153,14 +154,14 @@ export async function deleteCustomerPermanently(
       body: JSON.stringify({
         deleted_by: deletedBy,
         deletion_reason: reason || 'No reason provided',
-        deleted_at: new Date().toISOString(),
+        deleted_at: getSLDateTimeString(),
       }),
     });
 
     return {
       success: true,
       deletedRecords: response.data.deletedRecords,
-      timestamp: new Date().toISOString(),
+      timestamp: getSLDateTimeString(),
       message: 'Customer deleted successfully',
     };
   } catch (error) {
@@ -219,14 +220,14 @@ export async function completeCustomerDeletion(
       deletedByName: ownerName,
       reason: request.reason || 'No reason provided',
       archivePdfUrl: pdfUrl,
-      timestamp: new Date().toISOString(),
+      timestamp: getSLDateTimeString(),
     });
 
     return {
       success: true,
       archivePdfUrl: pdfUrl,
       deletedRecords: deletionResult.deletedRecords,
-      timestamp: new Date().toISOString(),
+      timestamp: getSLDateTimeString(),
       message: `Customer deleted successfully. Archive PDF: ${fileName}`,
     };
   } catch (error) {

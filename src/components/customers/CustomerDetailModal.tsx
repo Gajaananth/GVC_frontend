@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getSLDateString, getSLDateTimeString } from '../../utils/dateUtils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchApi } from '../../services/api';
 import { useCompleteLoanData, useLoanUpdateListener } from '../../hooks/useLoanSync';
@@ -64,7 +65,7 @@ const CustomerDetailModal = ({ customerId, onClose }: Props) => {
   const { emitLoanUpdate } = useLoanUpdateListener();
 
   const customer = data?.data;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getSLDateString();
   const isDueToday = selectedLoanSchedule.some((row: any) =>
     row.due_date === today && ['pending', 'partial', 'overdue'].includes(row.status)
   );

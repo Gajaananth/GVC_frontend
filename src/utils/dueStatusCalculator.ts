@@ -39,7 +39,7 @@ export interface PaymentRecord {
 export function calculateDueStatus(
   schedule: DueScheduleItem,
   payments: PaymentRecord[],
-  today: string = new Date().toISOString().slice(0, 10)
+  today: string = getSLDateString()
 ): 'PAID' | 'PARTIAL' | 'OVERDUE' | 'PENDING' {
   // Get all payments for this installment
   // Prefer authoritative paid_amount on schedule (server-side). Fallback to payments matching installment_number.
@@ -91,7 +91,7 @@ export function calculateDueStatus(
 export function calculateAllDueStatuses(
   schedules: DueScheduleItem[],
   payments: PaymentRecord[],
-  today: string = new Date().toISOString().slice(0, 10)
+  today: string = getSLDateString()
 ): (DueScheduleItem & { calculated_status: string })[] {
   return schedules.map(schedule => ({
     ...schedule,
@@ -105,7 +105,7 @@ export function calculateAllDueStatuses(
 export function validateStatusCalculations(
   schedules: DueScheduleItem[],
   payments: PaymentRecord[],
-  today: string = new Date().toISOString().slice(0, 10)
+  today: string = getSLDateString()
 ): boolean {
   try {
     for (const schedule of schedules) {
@@ -127,7 +127,7 @@ export function validateStatusCalculations(
 export function getStatusSummary(
   schedules: DueScheduleItem[],
   payments: PaymentRecord[],
-  today: string = new Date().toISOString().slice(0, 10)
+  today: string = getSLDateString()
 ) {
   const statuses = calculateAllDueStatuses(schedules, payments, today);
   

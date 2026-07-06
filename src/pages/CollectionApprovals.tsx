@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getSLDateString, getSLDateTimeString } from '../utils/dateUtils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchApi } from '../services/api';
 import { formatLKR, formatDate } from '../utils/format';
@@ -7,7 +8,7 @@ import toast from 'react-hot-toast';
 
 const CollectionApprovals = () => {
   const queryClient = useQueryClient();
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(getSLDateString());
   const [staffId, setStaffId] = useState('');
   const [declaredCash, setDeclaredCash] = useState('');
   const [declaredOnline, setDeclaredOnline] = useState('');

@@ -4,6 +4,7 @@
  */
 
 import { fetchApi } from './api';
+import { getSLDateString, getSLDateTimeString } from '../utils/dateUtils';
 
 export interface FixedDepositData {
   id: string;
@@ -95,7 +96,7 @@ export async function blockFixedDeposit(
         block_reason: request.reason,
         notes: request.notes || '',
         blocked_by: userId,
-        blocked_at: new Date().toISOString(),
+        blocked_at: getSLDateTimeString(),
       }),
     });
 
@@ -128,7 +129,7 @@ export async function unblockFixedDeposit(
         reason: request.reason || '',
         notes: request.notes || '',
         unblocked_by: userId,
-        unblocked_at: new Date().toISOString(),
+        unblocked_at: getSLDateTimeString(),
       }),
     });
 
@@ -162,7 +163,7 @@ export async function closeFixedDeposit(
         payout_method: request.payout_method,
         notes: request.notes || '',
         closed_by: userId,
-        closed_at: new Date().toISOString(),
+        closed_at: getSLDateTimeString(),
       }),
     });
 

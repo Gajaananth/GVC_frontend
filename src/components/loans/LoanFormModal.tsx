@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { getSLDateString, getSLDateTimeString } from '../../utils/dateUtils';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchApi } from '../../services/api';
 import Modal from '../Modal';
@@ -49,7 +50,7 @@ const LoanFormModal = ({ onClose }: Props) => {
     interest_rate_per_period: '2.5',
     term_count: '90',
     repayment_frequency: 'daily' as RepaymentFrequency,
-    credit_date: new Date().toISOString().slice(0, 10),
+    credit_date: getSLDateString(),
     applied_by: '',
     in_charge_user_id: '',
     purpose: '',

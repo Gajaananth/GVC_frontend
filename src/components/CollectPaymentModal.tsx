@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { getSLDateString, getSLDateTimeString } from '../utils/dateUtils';
 import Modal from './Modal';
 import { fetchApi } from '../services/api';
 import toast from 'react-hot-toast';
@@ -98,7 +99,7 @@ const CollectPaymentModal = ({
         payment_method: cash >= online ? 'cash' : 'mobile',
         reference_number: undefined,
         notes: notes || null,
-        payment_date: new Date().toISOString()
+        payment_date: getSLDateTimeString()
       } as any;
 
       const res = await fetchApi('/payments', {

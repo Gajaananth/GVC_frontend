@@ -31,7 +31,7 @@ const TopBar = () => {
           </button>
           <div className="min-w-0">
             <h1 className="text-sm sm:text-xl lg:text-2xl font-bold text-gray-800 tracking-tight truncate">{getPageTitle()}</h1>
-            <p className="hidden md:block text-sm text-gray-500">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            <p className="hidden md:block text-sm text-gray-500">{new Date().toLocaleDateString('en-US', { timeZone: 'Asia/Colombo', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
           </div>
         </div>
 

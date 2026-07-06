@@ -5,6 +5,7 @@
  */
 
 import { fetchApi } from './api';
+import { getSLDateString, getSLDateTimeString } from '../utils/dateUtils';
 
 export interface LoanPaymentData {
   id: string;
@@ -149,7 +150,7 @@ export async function getCompleteLoanData(
       payments: fullData.payments || [],
       schedule: fullData.schedule || [],
       collections: [],
-      lastUpdated: new Date().toISOString(),
+      lastUpdated: getSLDateTimeString(),
     };
   } catch (error) {
     console.error('Error fetching complete loan data:', error);
@@ -183,7 +184,7 @@ export async function notifyLoanUpdated(loanId: string, updatedFields?: string[]
     await fetchApi(`/loans/${loanId}/notify-update`, {
       method: 'POST',
       body: JSON.stringify({
-        timestamp: new Date().toISOString(),
+        timestamp: getSLDateTimeString(),
         fields: updatedFields || [],
       }),
     });
