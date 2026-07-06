@@ -5,7 +5,7 @@ import Modal from '../Modal';
 import { formatLKR } from '../../utils/format';
 import { getTermConfig, type RepaymentFrequency } from '../../utils/loanTermConfig';
 import toast from 'react-hot-toast';
-import { Calculator, Upload, FileCheck, Search } from 'lucide-react';
+import { Calculator, Upload, FileCheck, Search, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 
 interface Props {
@@ -20,6 +20,13 @@ const LoanFormModal = ({ onClose }: Props) => {
   const [applicationPdf, setApplicationPdf] = useState<File | null>(null);
   const [customerSearch, setCustomerSearch] = useState('');
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+
+  // Password confirmation state
+  const [showPasswordStep, setShowPasswordStep] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [isVerifyingPassword, setIsVerifyingPassword] = useState(false);
 
   const { data: customersData } = useQuery({
     queryKey: ['customers-all'],
@@ -182,7 +189,38 @@ const LoanFormModal = ({ onClose }: Props) => {
       toast.error('Staff fields are required');
       return;
     }
-    mutation.mutate();
+    // Show password confirmation step instead of submitting directly
+    setShowPasswordStep(true);
+    setConfirmPassword('');
+    setPasswordError('');
+  };
+
+  const handleConfirmWithPassword = async () => {
+    if (!confirmPassword.trim()) {
+      setPasswordError('Please enter your password');
+      return;
+    }
+    setIsVerifyingPassword(true);
+    setPasswordError('');
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user?.email, password: confirmPassword }),
+      });
+      if (!res.ok) {
+        setPasswordError('Incorrect password. Please try again.');
+        setIsVerifyingPassword(false);
+        return;
+      }
+      // Password verified — proceed with loan creation
+      setShowPasswordStep(false);
+      mutation.mutate();
+    } catch {
+      setPasswordError('Network error. Please try again.');
+    } finally {
+      setIsVerifyingPassword(false);
+    }
   };
 
   const setStaffBoth = (id: string) => {
@@ -193,7 +231,16 @@ const LoanFormModal = ({ onClose }: Props) => {
 
   return (
     <Modal title="New Loan Application" onClose={onClose} wide>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4"
+        onKeyDown={(e) => {
+          // Prevent accidental form submission when pressing Enter inside any field
+          if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'BUTTON') {
+            e.preventDefault();
+          }
+        }}
+      >
         <p className="text-sm text-amber-800 bg-amber-50 p-3 rounded-lg">
           Choose collection type and loan length in <strong>days / weeks / 14-day periods / months</strong>.
           Schedule is built from credit date. {!isOwner && "Owner approves before the loan goes live."}
@@ -467,9 +514,78 @@ const LoanFormModal = ({ onClose }: Props) => {
           </>
         )}
 
+        {/* Password confirmation step */}
+        {showPasswordStep && (
+          <div className="border-2 border-amber-300 rounded-xl p-4 bg-amber-50 space-y-3">
+            <div className="flex items-center gap-2 text-amber-800">
+              <Lock className="w-5 h-5" />
+              <span className="font-semibold">Confirm Your Identity</span>
+            </div>
+            <p className="text-sm text-amber-700">
+              Enter your account password to confirm and create this loan.
+            </p>
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                placeholder="Your password"
+                className={`input-field pr-10 ${
+                  passwordError ? 'border-red-400 ring-1 ring-red-400' : ''
+                }`}
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  setPasswordError('');
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleConfirmWithPassword();
+                  }
+                }}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            {passwordError && (
+              <p className="text-sm text-red-600 font-medium">{passwordError}</p>
+            )}
+            <div className="flex gap-2 justify-end">
+              <button
+                type="button"
+                onClick={() => { setShowPasswordStep(false); setConfirmPassword(''); setPasswordError(''); }}
+                className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-xl text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmWithPassword}
+                disabled={isVerifyingPassword || !confirmPassword.trim()}
+                className="px-4 py-2 bg-forest text-white rounded-xl hover:bg-leaf disabled:opacity-50 text-sm font-medium flex items-center gap-2"
+              >
+                {isVerifyingPassword ? (
+                  <><span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" /> Verifying...</>
+                ) : (
+                  <><Lock className="w-4 h-4" /> {isOwner ? 'Confirm & Create Loan' : 'Confirm & Submit'}</>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="flex justify-end gap-3">
           <button type="button" onClick={onClose} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl">Cancel</button>
-          <button type="submit" disabled={mutation.isPending || !preview || (!isOwner && !applicationPdf)} className="px-4 py-2 bg-forest text-white rounded-xl hover:bg-leaf disabled:opacity-50">
+          <button
+            type="submit"
+            disabled={mutation.isPending || !preview || (!isOwner && !applicationPdf) || showPasswordStep}
+            className="px-4 py-2 bg-forest text-white rounded-xl hover:bg-leaf disabled:opacity-50"
+          >
             {mutation.isPending ? 'Submitting...' : isOwner ? 'Create Loan' : 'Submit for Owner Approval'}
           </button>
         </div>
