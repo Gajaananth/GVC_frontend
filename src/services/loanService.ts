@@ -24,6 +24,7 @@ export interface Loan {
   installment_amount: number;
   amount_paid: number;
   remaining_balance: number;
+  arrears_amount?: number;
   status: 'pending_approval' | 'active' | 'closed' | 'overdue' | 'restructured';
   is_fully_paid: boolean;
   last_payment_date?: string;

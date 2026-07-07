@@ -99,15 +99,16 @@ const Loans = () => {
                 <th className="p-4 font-medium">Staff</th>
                 <th className="p-4 font-medium">Principal</th>
                 <th className="p-4 font-medium">Balance</th>
+                <th className="p-4 font-medium">Arrears</th>
                 <th className="p-4 font-medium">Status</th>
                 <th className="p-4 font-medium text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
-                <tr><td colSpan={6} className="p-8 text-center text-gray-500 animate-pulse">Loading loans...</td></tr>
+                <tr><td colSpan={7} className="p-8 text-center text-gray-500 animate-pulse">Loading loans...</td></tr>
               ) : loansData?.data?.length === 0 ? (
-                <tr><td colSpan={6} className="p-8 text-center text-gray-500">No loans found.</td></tr>
+                <tr><td colSpan={7} className="p-8 text-center text-gray-500">No loans found.</td></tr>
               ) : (
                 loansData?.data?.map((loan: any) => (
                   <tr key={loan.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
@@ -134,6 +135,16 @@ const Loans = () => {
                     <td className="p-4">
                       <p className="font-bold text-forest">{formatLKR(loan.remaining_balance)}</p>
                       {loan.next_due_date && <p className="text-xs text-gray-500">Due {formatDate(loan.next_due_date)}</p>}
+                    </td>
+                    <td className="p-4">
+                      <p className={`font-semibold ${loan.arrears_amount && loan.arrears_amount > 0 ? 'text-red-700' : 'text-gray-700'}`}>
+                        {formatLKR(loan.arrears_amount || 0)}
+                      </p>
+                      {loan.arrears_amount && loan.arrears_amount > 0 ? (
+                        <p className="text-xs text-red-600">Overdue</p>
+                      ) : (
+                        <p className="text-xs text-gray-500">No arrears</p>
+                      )}
                     </td>
                     <td className="p-4">{getStatusBadge(loan)}</td>
                     <td className="p-4 text-right">
