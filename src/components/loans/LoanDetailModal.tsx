@@ -676,8 +676,8 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
                 </thead>
                 <tbody>
                   {loan.adjustments.map((adj: any) => (
-                    <>
-                      <tr key={adj.id} className="border-t border-gray-50">
+                    <React.Fragment key={adj.id}>
+                      <tr className="border-t border-gray-50">
                         <td className="p-2">{formatDate(adj.created_at)}</td>
                         <td className="p-2">
                           <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium capitalize ${
@@ -731,7 +731,7 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </React.Fragment>
                   ))}
                 </tbody>
               </table>
