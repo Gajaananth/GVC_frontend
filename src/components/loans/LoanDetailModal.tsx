@@ -668,23 +668,29 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
           </div>
         )}
 
-        {loan.adjustments?.length > 0 && (
-          <div>
-            <h4 className="font-semibold mb-2">Late Fees & Discounts</h4>
-            <div className="border border-gray-100 rounded-lg">
-              <table className="w-full text-xs">
-                <thead className="bg-gray-50">
+        <div className="mt-6">
+          <h4 className="font-semibold mb-2">Late Fees & Discounts</h4>
+          <div className="border border-gray-100 rounded-lg">
+            <table className="w-full text-xs">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="p-2 text-left">Date</th>
+                  <th className="p-2 text-left">Type</th>
+                  <th className="p-2 text-right">Amount</th>
+                  <th className="p-2 text-left">Reason</th>
+                  <th className="p-2 text-left">Applied By</th>
+                  {isOwner && <th className="p-2 text-center">Remove</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {!loan.adjustments || loan.adjustments.length === 0 ? (
                   <tr>
-                    <th className="p-2 text-left">Date</th>
-                    <th className="p-2 text-left">Type</th>
-                    <th className="p-2 text-right">Amount</th>
-                    <th className="p-2 text-left">Reason</th>
-                    <th className="p-2 text-left">Applied By</th>
-                    {isOwner && <th className="p-2 text-center">Remove</th>}
+                    <td colSpan={isOwner ? 6 : 5} className="p-4 text-center text-gray-500">
+                      No late fees or discounts applied yet.
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {loan.adjustments.map((adj: any) => (
+                ) : (
+                  loan.adjustments.map((adj: any) => (
                     <React.Fragment key={adj.id}>
                       <tr className="border-t border-gray-50">
                         <td className="p-2">{formatDate(adj.created_at)}</td>
@@ -730,23 +736,23 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
                               />
                               <button
                                 type="button"
+                                disabled={reverseAdjustmentMutation.isPending || !ownerPassword}
                                 onClick={() => handleReverseSubmit(adj.id)}
-                                disabled={reverseAdjustmentMutation.isPending}
                                 className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs font-medium disabled:opacity-50"
                               >
-                                {reverseAdjustmentMutation.isPending ? 'Reversing...' : 'Confirm Remove'}
+                                {reverseAdjustmentMutation.isPending ? 'Confirming...' : 'Confirm Remove'}
                               </button>
                             </div>
                           </td>
                         </tr>
                       )}
                     </React.Fragment>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
-        )}
+        </div>
 
         {loan.payments?.length > 0 && (
           <div>
