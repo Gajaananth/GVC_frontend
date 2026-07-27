@@ -5,13 +5,6 @@ export const usePermissions = () => {
   const role = (user?.role ?? 'view_only') as string;
 
   const isOwner = role === 'owner';
-import { useAuthStore } from '../store/authStore';
-
-export const usePermissions = () => {
-  const { user } = useAuthStore();
-  const role = (user?.role ?? 'view_only') as string;
-
-  const isOwner = role === 'owner';
   const isAdmin = role === 'admin';
   const isBranchManager = role === 'branch_manager';
   const isCashier = role === 'cashier';
