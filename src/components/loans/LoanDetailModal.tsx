@@ -7,7 +7,7 @@ import LoanRestructureModal from './LoanRestructureModal';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useAuthStore } from '../../store/authStore';
 import { formatLKR, formatDate } from '../../utils/format';
-import { Download, RefreshCw, CheckCircle2, Calendar, Save, FileText, FileSpreadsheet } from 'lucide-react';
+import { Download, RefreshCw, CheckCircle2, Calendar, Save, FileText, FileSpreadsheet, AlertTriangle, Tag } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Props {
@@ -23,7 +23,7 @@ interface BackdateEntry {
 }
 
 const LoanDetailModal = ({ loanId, onClose }: Props) => {
-  const { canRequestInChargeChange, isOwner } = usePermissions();
+  const { canRequestInChargeChange, isOwner, canManageLoanAdjustments } = usePermissions();
   const queryClient = useQueryClient();
   const [proposedStaff, setProposedStaff] = useState('');
   const [changeReason, setChangeReason] = useState('');
@@ -31,6 +31,9 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
   const [backdateEntries, setBackdateEntries] = useState<Map<number, BackdateEntry>>(new Map());
   const [showBackdateMode, setShowBackdateMode] = useState(false);
   const [showArrearsTable, setShowArrearsTable] = useState(false);
+  const [adjustmentMode, setAdjustmentMode] = useState<'late_fee' | 'discount' | null>(null);
+  const [adjustmentAmount, setAdjustmentAmount] = useState('');
+  const [adjustmentReason, setAdjustmentReason] = useState('');
   const token = useAuthStore(state => state.accessToken);
 
   const API_URL = import.meta.env.VITE_API_URL || '/api';
@@ -77,6 +80,42 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
       toast.error(err.message || 'Failed to backdate payments');
     },
   });
+
+  const adjustmentMutation = useMutation({
+    mutationFn: () =>
+      fetchApi(`/loans/${loanId}/adjustments`, {
+        method: 'POST',
+        body: JSON.stringify({
+          type: adjustmentMode,
+          amount: Number(adjustmentAmount),
+          reason: adjustmentReason,
+        }),
+      }),
+    onSuccess: (res) => {
+      toast.success(res.message || 'Adjustment applied successfully');
+      queryClient.invalidateQueries({ queryKey: ['loan', loanId] });
+      queryClient.invalidateQueries({ queryKey: ['loans'] });
+      setAdjustmentMode(null);
+      setAdjustmentAmount('');
+      setAdjustmentReason('');
+    },
+    onError: (err: any) => {
+      toast.error(err.message || 'Failed to apply adjustment');
+    },
+  });
+
+  const handleAdjustmentSubmit = () => {
+    const amt = Number(adjustmentAmount);
+    if (isNaN(amt) || amt <= 0) {
+      toast.error('Amount must be greater than 0');
+      return;
+    }
+    if (adjustmentReason.trim().length < 3) {
+      toast.error('Please provide a reason (min 3 characters)');
+      return;
+    }
+    adjustmentMutation.mutate();
+  };
 
   const loan = data?.data;
   const staffUsers = (usersData?.data || []).filter((u: any) => u.is_active && ['staff', 'admin'].includes(u.role));
@@ -225,6 +264,8 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
           <div><span className="text-gray-500">Principal</span><p className="font-medium">{formatLKR(loan.principal_amount)}</p></div>
           <div><span className="text-gray-500">Total Paid</span><p className="font-medium text-forest">{formatLKR(loan.amount_paid || 0)}</p></div>
           <div><span className="text-gray-500">Remaining</span><p className="font-medium text-amber-600">{formatLKR(loan.remaining_balance)}</p></div>
+          {Number(loan.late_fees) > 0 && <div><span className="text-gray-500">Late Fees</span><p className="font-medium text-red-600">+{formatLKR(loan.late_fees)}</p></div>}
+          {Number(loan.discount_total) > 0 && <div><span className="text-gray-500">Discounts</span><p className="font-medium text-emerald-600">-{formatLKR(loan.discount_total)}</p></div>}
           <div><span className="text-gray-500">Applied By</span><p className="font-medium">{loan.applied_by_user?.full_name || '—'}</p></div>
           <div><span className="text-gray-500">In Charge</span><p className="font-medium">{loan.in_charge_user?.full_name || '—'}</p></div>
           <div><span className="text-gray-500">Next Due</span><p className="font-medium">{loan.next_due_date ? formatDate(loan.next_due_date) : '—'}</p></div>
@@ -270,7 +311,86 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
               <Download className="w-4 h-4" /> Completion Certificate
             </a>
           )}
+
+          {canManageLoanAdjustments && loan.approval_status === 'approved' && loan.status !== 'closed' && (
+            <>
+              <button
+                type="button"
+                onClick={() => setAdjustmentMode(adjustmentMode === 'late_fee' ? null : 'late_fee')}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors ${
+                  adjustmentMode === 'late_fee' 
+                    ? 'bg-red-600 text-white shadow-inner' 
+                    : 'bg-red-50 hover:bg-red-100 text-red-700 border border-red-200'
+                }`}
+              >
+                <AlertTriangle className="w-4 h-4" /> Add Late Fee
+              </button>
+              <button
+                type="button"
+                onClick={() => setAdjustmentMode(adjustmentMode === 'discount' ? null : 'discount')}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors ${
+                  adjustmentMode === 'discount' 
+                    ? 'bg-emerald-600 text-white shadow-inner' 
+                    : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
+                }`}
+              >
+                <Tag className="w-4 h-4" /> Apply Discount
+              </button>
+            </>
+          )}
         </div>
+
+        {adjustmentMode && (
+          <div className={`p-4 rounded-xl border ${adjustmentMode === 'late_fee' ? 'bg-red-50 border-red-200' : 'bg-emerald-50 border-emerald-200'}`}>
+            <div className="flex justify-between items-start mb-2">
+              <div>
+                <h4 className={`font-semibold ${adjustmentMode === 'late_fee' ? 'text-red-900' : 'text-emerald-900'}`}>
+                  {adjustmentMode === 'late_fee' ? 'Add Late Fee' : 'Apply Discount'}
+                </h4>
+                <p className={`text-xs ${adjustmentMode === 'late_fee' ? 'text-red-700' : 'text-emerald-700'}`}>
+                  {adjustmentMode === 'late_fee' 
+                    ? 'This will increase the remaining balance and record a late fee penalty.' 
+                    : 'This will reduce the remaining balance and record a discount given.'}
+                </p>
+              </div>
+              <button 
+                onClick={() => setAdjustmentMode(null)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <input
+                type="number"
+                placeholder="Amount (LKR)"
+                value={adjustmentAmount}
+                onChange={e => setAdjustmentAmount(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:outline-none"
+                min="0"
+              />
+              <input
+                type="text"
+                placeholder="Reason (min 3 chars)"
+                value={adjustmentReason}
+                onChange={e => setAdjustmentReason(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm sm:col-span-2 focus:ring-1 focus:outline-none"
+              />
+            </div>
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                onClick={handleAdjustmentSubmit}
+                disabled={adjustmentMutation.isPending}
+                className={`px-4 py-2 text-white rounded-lg text-sm font-medium disabled:opacity-50 ${
+                  adjustmentMode === 'late_fee' ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700'
+                }`}
+              >
+                {adjustmentMutation.isPending ? 'Submitting...' : 'Submit'}
+              </button>
+            </div>
+          </div>
+        )}
 
         {canRequestInChargeChange && loan.approval_status === 'approved' && (
           <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
@@ -505,6 +625,44 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
                       </tr>
                     );
                   })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {loan.adjustments?.length > 0 && (
+          <div>
+            <h4 className="font-semibold mb-2">Late Fees & Discounts</h4>
+            <div className="max-h-40 overflow-y-auto border border-gray-100 rounded-lg mb-4">
+              <table className="w-full text-xs">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="p-2 text-left">Date</th>
+                    <th className="p-2 text-left">Type</th>
+                    <th className="p-2 text-right">Amount</th>
+                    <th className="p-2 text-left">Reason</th>
+                    <th className="p-2 text-left">Applied By</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loan.adjustments.map((adj: any) => (
+                    <tr key={adj.id} className="border-t border-gray-50">
+                      <td className="p-2">{formatDate(adj.created_at)}</td>
+                      <td className="p-2">
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium capitalize ${
+                          adj.type === 'late_fee' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'
+                        }`}>
+                          {adj.type.replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td className={`p-2 text-right font-medium ${adj.type === 'late_fee' ? 'text-red-600' : 'text-emerald-600'}`}>
+                        {adj.type === 'late_fee' ? '+' : '-'}{formatLKR(adj.amount)}
+                      </td>
+                      <td className="p-2">{adj.reason}</td>
+                      <td className="p-2">{adj.created_by_user?.full_name || '—'}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

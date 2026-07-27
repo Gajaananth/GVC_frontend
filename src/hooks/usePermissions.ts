@@ -5,6 +5,13 @@ export const usePermissions = () => {
   const role = (user?.role ?? 'view_only') as string;
 
   const isOwner = role === 'owner';
+import { useAuthStore } from '../store/authStore';
+
+export const usePermissions = () => {
+  const { user } = useAuthStore();
+  const role = (user?.role ?? 'view_only') as string;
+
+  const isOwner = role === 'owner';
   const isAdmin = role === 'admin';
   const isBranchManager = role === 'branch_manager';
   const isCashier = role === 'cashier';
@@ -13,6 +20,7 @@ export const usePermissions = () => {
 
   const canManageCustomers = isOwner || isAdmin || isBranchManager || isCashier;
   const canManageUsers = isOwner || isAdmin || isBranchManager;
+  const canManageLoanAdjustments = isOwner || isAdmin || isBranchManager;
 
   return {
     isOwner,
@@ -38,6 +46,7 @@ export const usePermissions = () => {
     canApproveLoans: isOwner,
     canChangeLoanStatus: isOwner || isAdmin || isBranchManager,
     canRequestInChargeChange: isOwner || isAdmin || isBranchManager,
+    canManageLoanAdjustments,
     // Collection Management
     canSubmitCollections: isStaff,
     canApproveCollections: isOwner || isAdmin || isBranchManager,
