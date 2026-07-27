@@ -34,6 +34,7 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
   const [adjustmentMode, setAdjustmentMode] = useState<'late_fee' | 'discount' | null>(null);
   const [adjustmentAmount, setAdjustmentAmount] = useState('');
   const [adjustmentReason, setAdjustmentReason] = useState('');
+  const [adjustmentDate, setAdjustmentDate] = useState(new Date().toISOString().split('T')[0]);
   const [reversingAdjId, setReversingAdjId] = useState<string | null>(null);
   const [ownerPassword, setOwnerPassword] = useState('');
   const token = useAuthStore(state => state.accessToken);
@@ -91,6 +92,7 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
           type: adjustmentMode,
           amount: Number(adjustmentAmount),
           reason: adjustmentReason,
+          date: adjustmentDate,
         }),
       }),
     onSuccess: (res) => {
@@ -100,6 +102,7 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
       setAdjustmentMode(null);
       setAdjustmentAmount('');
       setAdjustmentReason('');
+      setAdjustmentDate(new Date().toISOString().split('T')[0]);
     },
     onError: (err: any) => {
       toast.error(err.message || 'Failed to apply adjustment');
@@ -388,7 +391,13 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
                 ✕
               </button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              <input
+                type="date"
+                value={adjustmentDate}
+                onChange={e => setAdjustmentDate(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:outline-none"
+              />
               <input
                 type="number"
                 placeholder="Amount (LKR)"
