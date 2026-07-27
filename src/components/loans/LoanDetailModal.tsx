@@ -96,9 +96,10 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
         }),
       }),
     onSuccess: (res) => {
-      toast.success(res.message || 'Adjustment applied successfully');
       queryClient.invalidateQueries({ queryKey: ['loan', loanId] });
       queryClient.invalidateQueries({ queryKey: ['loans'] });
+      if (res.warning) toast.error(`Warning: ${res.warning}`);
+      else toast.success(res.message || 'Adjustment applied');
       setAdjustmentMode(null);
       setAdjustmentAmount('');
       setAdjustmentReason('');
