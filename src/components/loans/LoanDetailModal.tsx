@@ -34,6 +34,8 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
   const [adjustmentMode, setAdjustmentMode] = useState<'late_fee' | 'discount' | null>(null);
   const [adjustmentAmount, setAdjustmentAmount] = useState('');
   const [adjustmentReason, setAdjustmentReason] = useState('');
+  const [reversingAdjId, setReversingAdjId] = useState<string | null>(null);
+  const [ownerPassword, setOwnerPassword] = useState('');
   const token = useAuthStore(state => state.accessToken);
 
   const API_URL = import.meta.env.VITE_API_URL || '/api';
@@ -115,6 +117,32 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
       return;
     }
     adjustmentMutation.mutate();
+  };
+
+  const reverseAdjustmentMutation = useMutation({
+    mutationFn: (adjId: string) =>
+      fetchApi(`/loans/${loanId}/adjustments/${adjId}`, {
+        method: 'DELETE',
+        body: JSON.stringify({ owner_password: ownerPassword }),
+      }),
+    onSuccess: (res) => {
+      toast.success(res.message || 'Adjustment reversed successfully');
+      queryClient.invalidateQueries({ queryKey: ['loan', loanId] });
+      queryClient.invalidateQueries({ queryKey: ['loans'] });
+      setReversingAdjId(null);
+      setOwnerPassword('');
+    },
+    onError: (err: any) => {
+      toast.error(err.message || 'Failed to reverse adjustment');
+    },
+  });
+
+  const handleReverseSubmit = (adjId: string) => {
+    if (!ownerPassword) {
+      toast.error('Please enter your password');
+      return;
+    }
+    reverseAdjustmentMutation.mutate(adjId);
   };
 
   const loan = data?.data;
@@ -634,7 +662,7 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
         {loan.adjustments?.length > 0 && (
           <div>
             <h4 className="font-semibold mb-2">Late Fees & Discounts</h4>
-            <div className="max-h-40 overflow-y-auto border border-gray-100 rounded-lg mb-4">
+            <div className="border border-gray-100 rounded-lg">
               <table className="w-full text-xs">
                 <thead className="bg-gray-50">
                   <tr>
@@ -643,25 +671,67 @@ const LoanDetailModal = ({ loanId, onClose }: Props) => {
                     <th className="p-2 text-right">Amount</th>
                     <th className="p-2 text-left">Reason</th>
                     <th className="p-2 text-left">Applied By</th>
+                    {isOwner && <th className="p-2 text-center">Remove</th>}
                   </tr>
                 </thead>
                 <tbody>
                   {loan.adjustments.map((adj: any) => (
-                    <tr key={adj.id} className="border-t border-gray-50">
-                      <td className="p-2">{formatDate(adj.created_at)}</td>
-                      <td className="p-2">
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium capitalize ${
-                          adj.type === 'late_fee' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'
-                        }`}>
-                          {adj.type.replace('_', ' ')}
-                        </span>
-                      </td>
-                      <td className={`p-2 text-right font-medium ${adj.type === 'late_fee' ? 'text-red-600' : 'text-emerald-600'}`}>
-                        {adj.type === 'late_fee' ? '+' : '-'}{formatLKR(adj.amount)}
-                      </td>
-                      <td className="p-2">{adj.reason}</td>
-                      <td className="p-2">{adj.created_by_user?.full_name || '—'}</td>
-                    </tr>
+                    <>
+                      <tr key={adj.id} className="border-t border-gray-50">
+                        <td className="p-2">{formatDate(adj.created_at)}</td>
+                        <td className="p-2">
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium capitalize ${
+                            adj.type === 'late_fee' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'
+                          }`}>
+                            {adj.type.replace('_', ' ')}
+                          </span>
+                        </td>
+                        <td className={`p-2 text-right font-medium ${adj.type === 'late_fee' ? 'text-red-600' : 'text-emerald-600'}`}>
+                          {adj.type === 'late_fee' ? '+' : '-'}{formatLKR(adj.amount)}
+                        </td>
+                        <td className="p-2">{adj.reason}</td>
+                        <td className="p-2">{adj.created_by_user?.full_name || '—'}</td>
+                        {isOwner && (
+                          <td className="p-2 text-center">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setReversingAdjId(reversingAdjId === adj.id ? null : adj.id);
+                                setOwnerPassword('');
+                              }}
+                              className="px-2 py-1 text-[10px] bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded font-medium transition-colors"
+                            >
+                              {reversingAdjId === adj.id ? 'Cancel' : 'Remove'}
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                      {reversingAdjId === adj.id && (
+                        <tr key={`${adj.id}-confirm`} className="border-t border-red-100 bg-red-50">
+                          <td colSpan={isOwner ? 6 : 5} className="p-3">
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <p className="text-xs text-red-700 font-medium">⚠️ Enter owner password to reverse this {adj.type.replace('_', ' ')}:</p>
+                              <input
+                                type="password"
+                                placeholder="Owner password"
+                                value={ownerPassword}
+                                onChange={e => setOwnerPassword(e.target.value)}
+                                className="px-2 py-1 border border-red-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-red-400"
+                                autoFocus
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleReverseSubmit(adj.id)}
+                                disabled={reverseAdjustmentMutation.isPending}
+                                className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs font-medium disabled:opacity-50"
+                              >
+                                {reverseAdjustmentMutation.isPending ? 'Reversing...' : 'Confirm Remove'}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </>
                   ))}
                 </tbody>
               </table>
